@@ -28,8 +28,21 @@ class TypeInDB {
         const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
         
         request.onerror = () => {
-          console.error('Failed to open IndexedDB:', request.error);
+          const errorMsg = `Failed to open IndexedDB: ${request.error?.message || 'Unknown error'}`;
+          console.error(errorMsg);
+          // Add visible error notification or status update here
+          window.dispatchEvent(new CustomEvent('db-error', { 
+            detail: { message: errorMsg } 
+          }));
           reject(request.error);
+        };
+
+        request.onblocked = () => {
+          const errorMsg = 'Database blocked. Please close other tabs with this site open';
+          console.error(errorMsg);
+          window.dispatchEvent(new CustomEvent('db-error', { 
+            detail: { message: errorMsg } 
+          }));
         };
 
         request.onsuccess = () => {
@@ -39,7 +52,11 @@ class TypeInDB {
           // Add error handler for database-level errors
           this.db.onerror = (event: Event) => {
             const target = event.target as IDBRequest;
-            console.error('Database error:', target.error);
+            const errorMsg = `Database error: ${target.error?.message || 'Unknown error'}`;
+            console.error(errorMsg);
+            window.dispatchEvent(new CustomEvent('db-error', { 
+              detail: { message: errorMsg } 
+            }));
           };
 
           resolve();
@@ -109,12 +126,47 @@ class TypeInDB {
   }
 
   // Editor state operations
+  private async verifyDatabaseAccess(): Promise<boolean> {
+    try {
+      // Try to write and read a test value
+      await this.performTransaction('editor', 'readwrite', (store) => {
+        store.put('test', '_verify');
+      });
+      
+      const testValue = await this.performTransaction('editor', 'readonly', (store) => {
+        return store.get('_verify') as unknown as Promise<string>;
+      });
+
+      // Clean up test value
+      await this.performTransaction('editor', 'readwrite', (store) => {
+        store.delete('_verify');
+      });
+
+      return testValue === 'test';
+    } catch (error) {
+      console.error('Database verification failed:', error);
+      return false;
+    }
+  }
+
   async saveEditorState(data: StorageData): Promise<void> {
     console.log('Saving editor state to IndexedDB...');
-    const compressed = await this.compress(data);
-    return this.performTransaction('editor', 'readwrite', (store) => {
-      store.put(compressed, 'current');
-    });
+    try {
+      const compressed = await this.compress(data);
+      await this.performTransaction('editor', 'readwrite', (store) => {
+        store.put(compressed, 'current');
+      });
+    } catch (error) {
+      console.error('Failed to save editor state:', error);
+      // If save fails, verify database access
+      const hasAccess = await this.verifyDatabaseAccess();
+      if (!hasAccess) {
+        window.dispatchEvent(new CustomEvent('db-error', { 
+          detail: { message: 'Database access verification failed. Storage might be restricted in this environment.' } 
+        }));
+      }
+      throw error;
+    }
   }
 
   async getEditorState(): Promise<StorageData | null> {

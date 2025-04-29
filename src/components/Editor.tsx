@@ -248,6 +248,20 @@ export function Editor() {
   const wordCount = (state.content || '').trim() ? (state.content || '').trim().split(/\s+/).length : 0;
   const charCount = (state.content || '').length;
 
+  useEffect(() => {
+    const handleDbError = (event: CustomEvent<{ message: string }>) => {
+      // You can replace this with your preferred notification system
+      console.error('Database Error:', event.detail.message);
+      // Set dirty state to indicate save failed
+      dispatch({ type: 'SET_DIRTY', payload: true });
+    };
+
+    window.addEventListener('db-error', handleDbError as EventListener);
+    return () => {
+      window.removeEventListener('db-error', handleDbError as EventListener);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="h-12 px-4 flex justify-between items-center border-b border-border/10">
