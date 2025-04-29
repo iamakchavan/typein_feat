@@ -16,7 +16,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: 'system',
+  theme: 'dark',
   setTheme: () => null,
 };
 
@@ -24,60 +24,70 @@ export const ThemeProviderContext = createContext<ThemeProviderState>(initialSta
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'dark',
   storageKey = 'editor-theme',
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Load saved theme on mount
   useEffect(() => {
-    const initTheme = async () => {
+    const loadTheme = async () => {
       try {
+        // Try IndexedDB first
         const savedTheme = await db.getTheme();
         if (savedTheme) {
           setTheme(savedTheme as Theme);
+          return;
+        }
+        
+        // Fallback to localStorage
+        const localTheme = localStorage.getItem(storageKey);
+        if (localTheme) {
+          setTheme(localTheme as Theme);
+          // Sync to IndexedDB
+          await db.saveTheme(localTheme as Theme);
         }
       } catch (error) {
         console.error('Failed to load theme:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    initTheme();
-  }, []);
+    loadTheme();
+  }, [storageKey]);
 
+  // Update theme class and storage when theme changes
   useEffect(() => {
     const root = window.document.documentElement;
+    
+    // Remove existing theme classes
     root.classList.remove('light', 'dark');
 
+    // Add new theme class
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
       root.classList.add(systemTheme);
-      return;
+    } else {
+      root.classList.add(theme);
     }
 
-    root.classList.add(theme);
-  }, [theme]);
+    // Save theme preference
+    try {
+      localStorage.setItem(storageKey, theme);
+      db.saveTheme(theme).catch(console.error);
+    } catch (error) {
+      console.error('Failed to save theme:', error);
+    }
+  }, [theme, storageKey]);
 
   const value = {
     theme,
-    setTheme: async (theme: Theme) => {
-      try {
-        await db.saveTheme(theme);
-        setTheme(theme);
-      } catch (error) {
-        console.error('Failed to save theme:', error);
-      }
+    setTheme: (newTheme: Theme) => {
+      setTheme(newTheme);
     },
   };
-
-  if (isLoading) {
-    return null;
-  }
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>

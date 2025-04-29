@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/typeinfavicon.png" />
@@ -9,6 +9,14 @@
     <title>TypeIn - Minimalist Writing App</title>
     <meta name="title" content="TypeIn - Minimalist Writing App">
     <meta name="description" content="A clean, distraction-free writing space for your thoughts. Perfect for daily journaling and quick notes.">
+
+    <!-- Force dark mode by default -->
+    <script>
+      // Only remove dark mode if explicitly set to light
+      if (localStorage.getItem('editor-theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -24,7 +32,7 @@
     <meta property="twitter:description" content="A clean, distraction-free writing space for your thoughts. Perfect for daily journaling and quick notes.">
     <meta property="twitter:image" content="https://typein.vercel.app/typeinbanner.png">
   </head>
-  <body>
+  <body class="bg-background">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
