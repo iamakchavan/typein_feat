@@ -5,18 +5,24 @@
     <link rel="icon" type="image/png" href="/typeinfavicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Force dark mode initialization -->
+    <script src="/theme-init.js"></script>
+    
     <!-- Primary Meta Tags -->
     <title>TypeIn - Minimalist Writing App</title>
     <meta name="title" content="TypeIn - Minimalist Writing App">
     <meta name="description" content="A clean, distraction-free writing space for your thoughts. Perfect for daily journaling and quick notes.">
 
-    <!-- Force dark mode by default -->
-    <script>
-      // Only remove dark mode if explicitly set to light
-      if (localStorage.getItem('editor-theme') === 'light') {
-        document.documentElement.classList.remove('dark');
+    <!-- Prevent theme flash -->
+    <style>
+      :root {
+        color-scheme: dark;
       }
-    </script>
+      html.dark {
+        background: #09090b;
+        color-scheme: dark;
+      }
+    </style>
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">

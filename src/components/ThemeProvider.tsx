@@ -47,30 +47,46 @@ export function ThemeProvider({
           setTheme(localTheme as Theme);
           // Sync to IndexedDB
           await db.saveTheme(localTheme as Theme);
+        } else {
+          // If no theme is set, force dark mode
+          setTheme('dark');
+          localStorage.setItem(storageKey, 'dark');
+          await db.saveTheme('dark');
         }
       } catch (error) {
         console.error('Failed to load theme:', error);
+        // On error, force dark mode
+        setTheme('dark');
+        try {
+          localStorage.setItem(storageKey, 'dark');
+        } catch (e) {
+          console.error('Failed to save theme to localStorage:', e);
+        }
       }
     };
 
+    // Force dark mode immediately while loading
+    document.documentElement.classList.add('dark');
     loadTheme();
+
+    // Cleanup function to prevent theme flash on unmount
+    return () => {
+      if (localStorage.getItem(storageKey) !== 'light') {
+        document.documentElement.classList.add('dark');
+      }
+    };
   }, [storageKey]);
 
   // Update theme class and storage when theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // Remove existing theme classes
-    root.classList.remove('light', 'dark');
-
-    // Add new theme class
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      root.classList.add(systemTheme);
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
     } else {
-      root.classList.add(theme);
+      root.classList.remove('light');
+      root.classList.add('dark');
     }
 
     // Save theme preference
