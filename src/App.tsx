@@ -17,7 +17,7 @@ const Loading = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="system" storageKey="editor-theme">
+      <ThemeProvider storageKey="editor-theme">
         <EntryProvider>
           <Suspense fallback={<Loading />}>
             <Editor />
