@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { db } from '@/lib/db';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme?: Theme;
   storageKey?: string;
 };
 
@@ -24,62 +22,18 @@ export const ThemeProviderContext = createContext<ThemeProviderState>(initialSta
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'dark',
   storageKey = 'editor-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-
-  // Load saved theme on mount
-  useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        // Try IndexedDB first
-        const savedTheme = await db.getTheme();
-        if (savedTheme) {
-          setTheme(savedTheme as Theme);
-          return;
-        }
-        
-        // Fallback to localStorage
-        const localTheme = localStorage.getItem(storageKey);
-        if (localTheme) {
-          setTheme(localTheme as Theme);
-          // Sync to IndexedDB
-          await db.saveTheme(localTheme as Theme);
-        } else {
-          // If no theme is set, force dark mode
-          setTheme('dark');
-          localStorage.setItem(storageKey, 'dark');
-          await db.saveTheme('dark');
-        }
-      } catch (error) {
-        console.error('Failed to load theme:', error);
-        // On error, force dark mode
-        setTheme('dark');
-        try {
-          localStorage.setItem(storageKey, 'dark');
-        } catch (e) {
-          console.error('Failed to save theme to localStorage:', e);
-        }
-      }
-    };
-
-    // Force dark mode immediately while loading
-    document.documentElement.classList.add('dark');
-    loadTheme();
-
-    // Cleanup function to prevent theme flash on unmount
-    return () => {
-      if (localStorage.getItem(storageKey) !== 'light') {
-        document.documentElement.classList.add('dark');
-      }
-    };
-  }, [storageKey]);
+  // Initialize from localStorage or default to dark
+  const [theme, setTheme] = useState<Theme>(() => {
+    const savedTheme = localStorage.getItem(storageKey);
+    return savedTheme === 'light' ? 'light' : 'dark';
+  });
 
   // Update theme class and storage when theme changes
   useEffect(() => {
-    const root = window.document.documentElement;
+    const root = document.documentElement;
     
     if (theme === 'light') {
       root.classList.remove('dark');
@@ -89,24 +43,31 @@ export function ThemeProvider({
       root.classList.add('dark');
     }
 
-    // Save theme preference
-    try {
-      localStorage.setItem(storageKey, theme);
-      db.saveTheme(theme).catch(console.error);
-    } catch (error) {
-      console.error('Failed to save theme:', error);
-    }
+    localStorage.setItem(storageKey, theme);
   }, [theme, storageKey]);
 
-  const value = {
-    theme,
-    setTheme: (newTheme: Theme) => {
-      setTheme(newTheme);
-    },
-  };
+  // Listen for theme changes from other tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === storageKey) {
+        setTheme(e.newValue === 'light' ? 'light' : 'dark');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [storageKey]);
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider
+      value={{
+        theme,
+        setTheme: (newTheme: Theme) => {
+          setTheme(newTheme);
+        },
+      }}
+      {...props}
+    >
       {children}
     </ThemeProviderContext.Provider>
   );

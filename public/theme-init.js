@@ -1,13 +1,23 @@
-// Force dark mode by default, run before page load
+// Immediately execute before anything else loads
 (function() {
-  try {
-    // Only switch to light if explicitly set
-    if (localStorage.getItem('editor-theme') !== 'light') {
-      document.documentElement.classList.add('dark');
+  function setTheme() {
+    const savedTheme = localStorage.getItem('editor-theme');
+    const html = document.documentElement;
+    
+    if (savedTheme === 'light') {
+      html.classList.remove('dark');
+      html.classList.add('light');
+    } else {
+      // For any other case (null, 'dark', invalid value), force dark mode
+      html.classList.remove('light');
+      html.classList.add('dark');
       localStorage.setItem('editor-theme', 'dark');
     }
-  } catch (e) {
-    // If localStorage fails, force dark mode
-    document.documentElement.classList.add('dark');
   }
+
+  // Run immediately
+  setTheme();
+
+  // Also run on storage changes
+  window.addEventListener('storage', setTheme);
 })(); 
