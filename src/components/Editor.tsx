@@ -17,7 +17,7 @@ import {
   MoonIcon, 
   SunIcon, 
   Type, 
-  Menu,
+  PanelRight,
   Undo2,
   Redo2,
   Settings
@@ -255,10 +255,11 @@ export function Editor() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
             onClick={() => setIsSidebarOpen(true)}
           >
-            <Menu className="h-4 w-4" />
+            <PanelRight className="h-4 w-4" />
+            <span className="sr-only">Open Sidebar</span>
           </Button>
           <Select value={selectedFont} onValueChange={setSelectedFont}>
             <SelectTrigger 

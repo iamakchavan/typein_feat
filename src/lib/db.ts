@@ -16,7 +16,7 @@ interface DBSchema {
 class TypeInDB {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'typein-db';
-  private readonly DB_VERSION = 2;
+  private readonly DB_VERSION = 3;
   private initPromise: Promise<void> | null = null;
 
   async init() {

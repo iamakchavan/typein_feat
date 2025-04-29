@@ -82,7 +82,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
       >
         {/* Header */}
         <div className="h-12 px-4 flex items-center justify-between border-b border-border/10 bg-background/50">
-          <h2 className="text-sm font-semibold">Entries</h2>
+          <h2 className="text-sm font-semibold">Your life history</h2>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
