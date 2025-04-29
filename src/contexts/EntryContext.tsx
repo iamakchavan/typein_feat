@@ -37,31 +37,55 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           loadedEntries = await db.getEntries();
         }
 
-        // Remove any empty entries
-        loadedEntries = loadedEntries.filter(entry => entry.content.trim() !== '');
+        // Remove any empty entries except today's entry
+        const today = new Date().toISOString().split('T')[0];
+        loadedEntries = loadedEntries.filter(entry => {
+          const entryDate = new Date(entry.date).toISOString().split('T')[0];
+          return entry.content.trim() !== '' || entryDate === today;
+        });
         
         // Sort entries by date (newest first)
         loadedEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
-        // Try to get the last edited entry from localStorage
-        const lastEditedId = localStorage.getItem('last-edited-entry');
-        let lastEditedEntry = lastEditedId ? loadedEntries.find(e => e.id === lastEditedId) : null;
 
-        // If no last edited entry or it doesn't exist anymore, use the most recent entry
-        if (!lastEditedEntry && loadedEntries.length > 0) {
-          lastEditedEntry = loadedEntries[0];
-        }
+        // Check if we have an entry for today
+        const todayEntry = loadedEntries.find(entry => {
+          const entryDate = new Date(entry.date).toISOString().split('T')[0];
+          return entryDate === today;
+        });
 
-        // Set the current entry
-        if (lastEditedEntry) {
-          setCurrentEntry(lastEditedEntry);
+        // If no entry for today exists, create one
+        if (!todayEntry) {
+          const newEntry: Entry = {
+            id: uuidv4(),
+            date: new Date().toISOString(),
+            content: ''
+          };
+          await db.saveEntry(newEntry);
+          loadedEntries = [newEntry, ...loadedEntries];
+          setCurrentEntry(newEntry);
+        } else {
+          // If today's entry exists, make it the current entry
+          setCurrentEntry(todayEntry);
         }
 
         setEntries(loadedEntries);
       } catch (error) {
         console.error('Failed to initialize entries:', error);
-        setEntries([]);
-        setCurrentEntry(null);
+        // Even if loading fails, try to create a today's entry
+        try {
+          const newEntry: Entry = {
+            id: uuidv4(),
+            date: new Date().toISOString(),
+            content: ''
+          };
+          await db.saveEntry(newEntry);
+          setEntries([newEntry]);
+          setCurrentEntry(newEntry);
+        } catch (fallbackError) {
+          console.error('Failed to create fallback entry:', fallbackError);
+          setEntries([]);
+          setCurrentEntry(null);
+        }
       } finally {
         setIsLoading(false);
       }
