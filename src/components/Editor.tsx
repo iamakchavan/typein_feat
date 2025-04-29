@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useEntries } from '@/contexts/EntryContext';
 import { editorReducer } from '@/lib/editorReducer';
-import { loadEditorState, saveEditorState } from '@/lib/storage';
+import { loadEditorState, saveEditorState, initStorage } from '@/lib/storage';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { cn } from '@/lib/utils';
 import { fonts } from '@/lib/fonts';
@@ -260,6 +260,20 @@ export function Editor() {
     return () => {
       window.removeEventListener('db-error', handleDbError as EventListener);
     };
+  }, []);
+
+  // Initialize storage
+  useEffect(() => {
+    const init = async () => {
+      const isStorageWorking = await initStorage();
+      if (!isStorageWorking) {
+        console.warn('Storage initialization failed, falling back to localStorage');
+        window.dispatchEvent(new CustomEvent('db-error', { 
+          detail: { message: 'Storage initialization failed, some features may not work properly' } 
+        }));
+      }
+    };
+    init();
   }, []);
 
   return (
