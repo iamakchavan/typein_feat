@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { EntryProvider } from '@/contexts/EntryContext';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy load the Editor component
 const Editor = lazy(() => import('@/components/Editor').then(module => ({ default: module.Editor })));
@@ -25,6 +26,7 @@ function App() {
           <Toaster />
         </EntryProvider>
       </ThemeProvider>
+      <Analytics />
     </ErrorBoundary>
   );
 }
