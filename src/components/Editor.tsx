@@ -64,7 +64,7 @@ const ExitFullscreenIcon = () => (
   </svg>
 );
 
-export function Editor() {
+export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) {
   // Theme handling
   const { theme, setTheme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -353,20 +353,20 @@ export function Editor() {
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-6">
-              <div className="space-y-4">
-                <h4 className="font-medium leading-none">Font Size</h4>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    value={[fontSize]}
-                    onValueChange={([value]) => setFontSize(value)}
-                    max={28}
-                    min={16}
-                    step={1}
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-sm text-muted-foreground">
-                    {fontSize}px
-                  </span>
+                <div className="space-y-4">
+                  <h4 className="font-medium leading-none">Font Size</h4>
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      value={[fontSize]}
+                      onValueChange={([value]) => setFontSize(value)}
+                      max={28}
+                      min={16}
+                      step={1}
+                      className="flex-1"
+                    />
+                    <span className="w-12 text-sm text-muted-foreground">
+                      {fontSize}px
+                    </span>
                   </div>
                 </div>
 
@@ -414,6 +414,15 @@ export function Editor() {
                       Dark
                     </Button>
                   </div>
+                </div>
+                <div>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => onShowOnboarding && onShowOnboarding()}
+                  >
+                    Show Onboarding
+                  </Button>
                 </div>
               </div>
             </PopoverContent>

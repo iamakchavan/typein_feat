@@ -4,6 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { EntryProvider } from '@/contexts/EntryContext';
 import { Analytics } from '@vercel/analytics/react';
+import OnboardingModal from './components/OnboardingModal';
+import React from 'react';
 
 // Lazy load the Editor component
 const Editor = lazy(() => import('@/components/Editor').then(module => ({ default: module.Editor })));
@@ -16,12 +18,22 @@ const Loading = () => (
 );
 
 function App() {
+  const [showOnboarding, setShowOnboarding] = React.useState(() => {
+    return localStorage.getItem('typein_onboarding_complete') !== 'true';
+  });
+
+  const handleCloseOnboarding = React.useCallback(() => {
+    setShowOnboarding(false);
+    localStorage.setItem('typein_onboarding_complete', 'true');
+  }, []);
+
   return (
     <ErrorBoundary>
       <ThemeProvider storageKey="editor-theme">
         <EntryProvider>
+          {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
           <Suspense fallback={<Loading />}>
-            <Editor />
+            <Editor onShowOnboarding={() => setShowOnboarding(true)} />
           </Suspense>
           <Toaster />
         </EntryProvider>
