@@ -365,11 +365,11 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                 <span className="sr-only">Settings</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium leading-none">Font Size</h4>
-                  <div className="flex items-center gap-4">
+            <PopoverContent className="w-80 rounded-xl shadow-lg border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 p-0 overflow-hidden">
+              <div className="px-5 py-5">
+                <div className="mb-3">
+                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Font Size</span>
+                  <div className="flex items-center gap-3">
                     <Slider
                       value={[fontSize]}
                       onValueChange={([value]) => setFontSize(value)}
@@ -378,66 +378,45 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                       step={1}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">
-                      {fontSize}px
-                    </span>
+                    <span className="w-10 text-sm text-muted-foreground text-right">{fontSize}px</span>
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-medium leading-none">Theme</h4>
-                  <div className="flex items-center justify-between gap-2 p-1 bg-muted/30 rounded-xl">
+                <div className="border-t border-border my-4" />
+                <div className="mb-3">
+                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Theme</span>
+                  <div className="flex items-center gap-2">
                     <Button
                       variant={theme === 'light' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setTheme('light')}
                       className={cn(
-                        'w-1/2 gap-2 rounded-lg transition-colors duration-300',
-                        theme === 'light'
-                          ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90'
-                          : 'hover:bg-muted/60 hover:text-foreground',
-                        'border border-border',
+                        'flex-1 rounded-md',
                         theme === 'light' ? 'ring-2 ring-primary/40' : ''
                       )}
-                      style={{
-                        boxShadow: theme === 'light' ? '0 0 0 2px var(--tw-ring-color)' : undefined,
-                        transition: 'background 0.3s, color 0.3s, box-shadow 0.3s',
-                      }}
                     >
-                      <SunIcon className="h-4 w-4 transition-colors duration-300" />
-                      Light
+                      <SunIcon className="h-4 w-4 mr-1" /> Light
                     </Button>
                     <Button
                       variant={theme === 'dark' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setTheme('dark')}
                       className={cn(
-                        'w-1/2 gap-2 rounded-lg transition-colors duration-300',
-                        theme === 'dark'
-                          ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90'
-                          : 'hover:bg-muted/60 hover:text-foreground',
-                        'border border-border',
+                        'flex-1 rounded-md',
                         theme === 'dark' ? 'ring-2 ring-primary/40' : ''
                       )}
-                      style={{
-                        boxShadow: theme === 'dark' ? '0 0 0 2px var(--tw-ring-color)' : undefined,
-                        transition: 'background 0.3s, color 0.3s, box-shadow 0.3s',
-                      }}
                     >
-                      <MoonIcon className="h-4 w-4 transition-colors duration-300" />
-                      Dark
+                      <MoonIcon className="h-4 w-4 mr-1" /> Dark
                     </Button>
                   </div>
                 </div>
-                <div>
-                  <Button
-                    variant="outline"
-                    className="w-full mt-2"
-                    onClick={() => onShowOnboarding && onShowOnboarding()}
-                  >
-                    Show Onboarding
-                  </Button>
-                </div>
+                <div className="border-t border-border my-4" />
+                <Button
+                  variant="default"
+                  className="w-full text-sm font-medium"
+                  onClick={() => onShowOnboarding && onShowOnboarding()}
+                >
+                  Show Onboarding
+                </Button>
               </div>
             </PopoverContent>
           </Popover>
