@@ -34,4 +34,4 @@ Built by [AK CHAVAN](https://github.com/iamakchavan)
 
 ## Source Code
 
-Check out the code on [GitHub](https://github.com/iamakchavan/typein)
+Check out the code on [GitHub](https://github.com/iamakchavan/typein_feat)
