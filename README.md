@@ -16,7 +16,7 @@ A minimalist writing app that lets you focus on what matters - your thoughts. No
 
 ## Try It Out
 
-Visit [typein.vercel.app](https://typein.vercel.app) to start writing!
+Visit [typein.space](https://typein.space) to start writing!
 
 ## Quick Start
 
