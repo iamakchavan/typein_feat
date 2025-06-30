@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { MusicPlayer } from '@/components/MusicPlayer';
 
 interface StatusBarProps {
   wordCount: number;
@@ -21,8 +22,8 @@ export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts 
   };
 
   return (
-    <footer className="border-t border-border py-2 px-4 text-xs text-muted-foreground bg-muted/10">
-      <div className="flex justify-between items-center">
+    <footer className="border-t border-border py-2 px-4 text-xs text-muted-foreground bg-muted/10 flex-shrink-0">
+      <div className="flex justify-between items-center min-h-[2rem]">
         <div className="flex items-center gap-4">
           <div className="flex gap-4">
             <span className="flex items-center">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
@@ -39,21 +40,29 @@ export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts 
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "transition-opacity duration-300 flex items-center",
-              isDirty ? "opacity-50" : "opacity-100"
-            )}
-          >
-            {getLastSavedText()}
-          </span>
-          <div 
-            className={cn(
-              "h-2 w-2 rounded-full transition-colors duration-300",
-              isDirty ? "bg-amber-500" : "bg-green-500"
-            )} 
-          />
+        <div className="flex items-center gap-4">
+          {/* Music Player - Hidden on mobile */}
+          <div className="hidden md:block">
+            <MusicPlayer />
+          </div>
+          
+          {/* Save Status */}
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "transition-opacity duration-300 flex items-center",
+                isDirty ? "opacity-50" : "opacity-100"
+              )}
+            >
+              {getLastSavedText()}
+            </span>
+            <div 
+              className={cn(
+                "h-2 w-2 rounded-full transition-colors duration-300",
+                isDirty ? "bg-amber-500" : "bg-green-500"
+              )} 
+            />
+          </div>
         </div>
       </div>
     </footer>

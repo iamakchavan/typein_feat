@@ -311,8 +311,8 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
   }, [selectedFont, fontSize]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="h-12 px-4 flex justify-between items-center border-b border-border/10">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <header className="h-12 px-4 flex justify-between items-center border-b border-border/10 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -444,6 +444,64 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                     </Button>
                   </div>
                 </div>
+                <div className="mb-3">
+                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Special Themes</span>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a special theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="amethyst-light">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-300 to-pink-300"></div>
+                          Amethyst Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="amethyst-dark">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"></div>
+                          Amethyst Dark
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="cosmic-light">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-300 to-purple-400"></div>
+                          Cosmic Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="cosmic-dark">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-800 to-purple-900"></div>
+                          Cosmic Dark
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="perpetuity-light">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-300 to-cyan-400"></div>
+                          Perpetuity Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="perpetuity-dark">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-600 to-cyan-700"></div>
+                          Perpetuity Dark
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="quantum-rose-light">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-300 to-rose-400"></div>
+                          Quantum Rose Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="quantum-rose-dark">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"></div>
+                          Quantum Rose Dark
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="border-t border-border my-4" />
                 <Button
                   variant="default"
@@ -463,12 +521,12 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full">
-        <div className="relative h-full">
+      <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
+        <div className="relative flex-1 min-h-0">
           <textarea
             key={currentEntry?.id}
             className={cn(
-              "w-full min-h-[calc(100vh-10rem)] resize-none bg-transparent",
+              "w-full h-full resize-none bg-transparent",
               "text-lg leading-relaxed outline-none whitespace-pre-wrap",
               "transition-all duration-200",
               "placeholder:text-muted-foreground/50 md:text-[20px] text-[18px]",

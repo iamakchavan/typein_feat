@@ -3,13 +3,15 @@
   function setTheme() {
     const savedTheme = localStorage.getItem('editor-theme');
     const html = document.documentElement;
+    const validThemes = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
     
-    if (savedTheme === 'light') {
-      html.classList.remove('dark');
-      html.classList.add('light');
+    // Remove all theme classes
+    html.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark');
+    
+    if (validThemes.includes(savedTheme)) {
+      html.classList.add(savedTheme);
     } else {
-      // For any other case (null, 'dark', invalid value), force dark mode
-      html.classList.remove('light');
+      // Default to dark mode
       html.classList.add('dark');
       localStorage.setItem('editor-theme', 'dark');
     }

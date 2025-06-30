@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+type Theme = 'dark' | 'light' | 'amethyst-light' | 'amethyst-dark' | 'cosmic-light' | 'cosmic-dark' | 'perpetuity-light' | 'perpetuity-dark' | 'quantum-rose-light' | 'quantum-rose-dark';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -27,21 +27,20 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   // Initialize from localStorage or default to dark
   const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem(storageKey);
-    return savedTheme === 'light' ? 'light' : 'dark';
+    const savedTheme = localStorage.getItem(storageKey) as Theme;
+    const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
+    return validThemes.includes(savedTheme) ? savedTheme : 'dark';
   });
 
   // Update theme class and storage when theme changes
   useEffect(() => {
     const root = document.documentElement;
     
-    if (theme === 'light') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
-    }
+    // Remove all theme classes
+    root.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark');
+    
+    // Add the current theme class
+    root.classList.add(theme);
 
     localStorage.setItem(storageKey, theme);
   }, [theme, storageKey]);
@@ -49,8 +48,12 @@ export function ThemeProvider({
   // Listen for theme changes from other tabs/windows
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === storageKey) {
-        setTheme(e.newValue === 'light' ? 'light' : 'dark');
+      if (e.key === storageKey && e.newValue) {
+        const newTheme = e.newValue as Theme;
+        const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
+        if (validThemes.includes(newTheme)) {
+          setTheme(newTheme);
+        }
       }
     };
 
