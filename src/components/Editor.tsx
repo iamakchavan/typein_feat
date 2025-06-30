@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useEntries } from '@/contexts/EntryContext';
 import { editorReducer } from '@/lib/editorReducer';
-import { loadEditorState, saveEditorState, initStorage } from '@/lib/storage';
+import { loadEditorState, saveEditorState, initStorage, loadFontPreferences, saveFontPreferences } from '@/lib/storage';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { cn } from '@/lib/utils';
 import { fonts } from '@/lib/fonts';
@@ -274,6 +274,41 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
     };
     init();
   }, []);
+
+  // Load font preferences on component mount
+  useEffect(() => {
+    const loadFontSettings = async () => {
+      try {
+        const savedPreferences = await loadFontPreferences();
+        if (savedPreferences) {
+          setSelectedFont(savedPreferences.selectedFont);
+          setFontSize(savedPreferences.fontSize);
+        }
+      } catch (error) {
+        console.error('Failed to load font preferences:', error);
+      }
+    };
+    loadFontSettings();
+  }, []);
+
+  // Save font preferences when they change
+  useEffect(() => {
+    const saveFontSettings = async () => {
+      try {
+        await saveFontPreferences({
+          selectedFont,
+          fontSize
+        });
+      } catch (error) {
+        console.error('Failed to save font preferences:', error);
+      }
+    };
+    
+    // Only save if we have non-default values (to avoid saving on initial load)
+    if (selectedFont !== 'geist' || fontSize !== 20) {
+      saveFontSettings();
+    }
+  }, [selectedFont, fontSize]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

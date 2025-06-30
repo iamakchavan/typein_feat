@@ -6,6 +6,11 @@ interface StorageData {
   historyIndex: number;
 }
 
+interface FontPreferences {
+  selectedFont: string;
+  fontSize: number;
+}
+
 // Initialize and verify database access
 export const initStorage = async (): Promise<boolean> => {
   try {
@@ -69,6 +74,53 @@ export const loadEditorState = async (): Promise<StorageData | null> => {
       }
     } catch (localError) {
       console.error('Failed to load from localStorage:', localError);
+    }
+    return null;
+  }
+};
+
+/**
+ * Save font preferences to IndexedDB with localStorage fallback
+ */
+export const saveFontPreferences = async (preferences: FontPreferences): Promise<void> => {
+  try {
+    await db.saveFontPreferences(preferences);
+  } catch (error) {
+    console.error('Failed to save font preferences to IndexedDB:', error);
+    // Fallback to localStorage
+    try {
+      localStorage.setItem('font-preferences', JSON.stringify(preferences));
+    } catch (localError) {
+      console.error('Failed to save font preferences to localStorage:', localError);
+    }
+  }
+};
+
+/**
+ * Load font preferences from IndexedDB with localStorage fallback
+ */
+export const loadFontPreferences = async (): Promise<FontPreferences | null> => {
+  try {
+    const preferences = await db.getFontPreferences();
+    if (preferences) return preferences;
+
+    // Try localStorage if IndexedDB returns null
+    const localPreferences = localStorage.getItem('font-preferences');
+    if (localPreferences) {
+      return JSON.parse(localPreferences);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to load font preferences from IndexedDB:', error);
+    // Try localStorage as fallback
+    try {
+      const localPreferences = localStorage.getItem('font-preferences');
+      if (localPreferences) {
+        return JSON.parse(localPreferences);
+      }
+    } catch (localError) {
+      console.error('Failed to load font preferences from localStorage:', localError);
     }
     return null;
   }

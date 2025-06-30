@@ -7,16 +7,22 @@ interface StorageData {
   historyIndex: number;
 }
 
+interface FontPreferences {
+  selectedFont: string;
+  fontSize: number;
+}
+
 interface DBSchema {
   entries: Entry;
   editor: StorageData;
   theme: string;
+  fontPreferences: FontPreferences;
 }
 
 class TypeInDB {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'typein-db';
-  private readonly DB_VERSION = 3;
+  private readonly DB_VERSION = 4;
   private initPromise: Promise<void> | null = null;
 
   async init() {
@@ -82,6 +88,11 @@ class TypeInDB {
             if (!db.objectStoreNames.contains('theme')) {
               console.log('Creating theme store...');
               db.createObjectStore('theme');
+            }
+
+            if (!db.objectStoreNames.contains('fontPreferences')) {
+              console.log('Creating fontPreferences store...');
+              db.createObjectStore('fontPreferences');
             }
           } catch (error) {
             console.error('Error during database upgrade:', error);
@@ -194,6 +205,21 @@ class TypeInDB {
     console.log('Fetching theme from IndexedDB...');
     return this.performTransaction('theme', 'readonly', (store) => {
       return store.get('current') as unknown as Promise<string | null>;
+    });
+  }
+
+  // Font preferences operations
+  async saveFontPreferences(preferences: FontPreferences): Promise<void> {
+    console.log('Saving font preferences to IndexedDB:', preferences);
+    return this.performTransaction('fontPreferences', 'readwrite', (store) => {
+      store.put(preferences, 'current');
+    });
+  }
+
+  async getFontPreferences(): Promise<FontPreferences | null> {
+    console.log('Fetching font preferences from IndexedDB...');
+    return this.performTransaction('fontPreferences', 'readonly', (store) => {
+      return store.get('current') as unknown as Promise<FontPreferences | null>;
     });
   }
 
@@ -333,6 +359,19 @@ class TypeInDB {
         console.log('Successfully migrated theme');
       }
 
+      // Migrate font preferences if they exist
+      const fontPreferences = localStorage.getItem('font-preferences');
+      if (fontPreferences) {
+        console.log('Migrating font preferences from localStorage...');
+        try {
+          const preferences = JSON.parse(fontPreferences);
+          await this.saveFontPreferences(preferences);
+          console.log('Successfully migrated font preferences');
+        } catch (error) {
+          console.error('Failed to migrate font preferences:', error);
+        }
+      }
+
       // Clear localStorage after successful migration
       localStorage.clear();
       console.log('Migration completed successfully, localStorage cleared');
@@ -348,7 +387,7 @@ class TypeInDB {
       await this.init();
       
       // Verify stores exist
-      const storeNames = ['entries', 'editor', 'theme'];
+      const storeNames = ['entries', 'editor', 'theme', 'fontPreferences'];
       const missingStores = storeNames.filter(name => !this.db?.objectStoreNames.contains(name));
       
       if (missingStores.length > 0) {
