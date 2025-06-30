@@ -420,43 +420,6 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
               </div>
             </PopoverContent>
           </Popover>
-          
-          {/* Powered by bolt badge */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <div className="ml-2 flex items-center">
-                <div className="relative">
-                  {/* Aurora effect layers */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 opacity-20 blur-sm animate-pulse"></div>
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 via-blue-500 to-purple-500 opacity-15 blur-md animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 opacity-10 blur-lg animate-pulse" style={{ animationDelay: '1s' }}></div>
-                  
-                  <img 
-                    src="/bolt.png" 
-                    alt="Powered by" 
-                    className="relative h-6 w-6 rounded-full opacity-60 hover:opacity-100 transition-all duration-300 cursor-pointer hover:scale-110"
-                    title="Powered by bolt.new"
-                  />
-                </div>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 rounded-xl shadow-lg border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 p-6">
-              <div className="flex items-center gap-4 mb-3">
-                <img 
-                  src="/bolt.png" 
-                  alt="bolt.new" 
-                  className="h-16 w-16 rounded-full"
-                />
-                <div>
-                  <h3 className="font-semibold text-sm">Powered by bolt.new</h3>
-                  <p className="text-xs text-muted-foreground">AI-Powered Web Development</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Built with bolt.new, (for the largest hackathon in the world)- an AI-powered platform that enables prompt-to-code web development directly in the browser.
-              </p>
-            </PopoverContent>
-          </Popover>
         </div>
       </header>
       
