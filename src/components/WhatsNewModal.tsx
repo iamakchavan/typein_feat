@@ -11,8 +11,8 @@ interface WhatsNewModalProps {
 export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] p-0 overflow-hidden">
-        <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10 p-4 sm:p-6">
+      <DialogContent className="w-[95vw] max-w-[500px] h-[90vh] max-h-[600px] p-0 flex flex-col">
+        <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10 p-4 sm:p-6 flex-shrink-0">
           <DialogHeader className="space-y-2 sm:space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -27,7 +27,8 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
           </DialogHeader>
         </div>
         
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border hover:scrollbar-thumb-muted-foreground/20">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Music Player Feature */}
           <div className="flex gap-3 sm:gap-4">
             <div className="flex-shrink-0">
@@ -82,8 +83,9 @@ export function WhatsNewModal({ isOpen, onClose }: WhatsNewModalProps) {
             </div>
           </div>
         </div>
+        </div>
 
-        <div className="p-4 sm:p-6 pt-0">
+        <div className="p-4 sm:p-6 pt-0 flex-shrink-0">
           <Button onClick={onClose} className="w-full text-sm sm:text-base">
             Awesome, let's write! ✨
           </Button>
