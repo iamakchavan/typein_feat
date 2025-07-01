@@ -10,8 +10,9 @@ A minimalist writing app that lets you focus on what matters - your thoughts. No
 
 - 🎨 Clean, distraction-free writing space
 - 💾 Auto-saves everything you write
-- 🌓 Light/Dark mode for day and night writing
-- 🔤 Multiple font choices to match your style
+- 🌓 Light/Dark mode + 6 beautiful special themes
+- 🔤 Multiple font choices with persistent settings
+- 🎵 Ambient music player for the perfect writing mood
 - 📱 Works great on all devices
 
 ## Try It Out
