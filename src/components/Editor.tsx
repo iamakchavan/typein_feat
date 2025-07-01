@@ -347,6 +347,18 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
             </SelectContent>
           </Select>
         </div>
+        
+        {/* Centered ⌘K hint */}
+        <div className="hidden md:flex items-center text-xs text-muted-foreground/60 bg-muted/20 px-2 py-1 rounded-md relative overflow-hidden border border-primary/20 shadow-sm">
+          {/* Aurora glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
+          <div className="relative z-10 flex items-center">
+            <kbd className="text-[10px] font-medium">⌘K</kbd>
+            <span className="ml-1">for quick search</span>
+          </div>
+        </div>
+        
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

@@ -117,6 +117,10 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
               className="pl-9 bg-transparent"
             />
           </div>
+          <div className="hidden md:flex items-center justify-center mt-2 text-xs text-muted-foreground/60">
+            <kbd className="text-[10px] font-medium bg-muted/30 px-1.5 py-0.5 rounded">⌘K</kbd>
+            <span className="ml-1">for advanced search</span>
+          </div>
         </div>
 
         {/* Entries List */}
