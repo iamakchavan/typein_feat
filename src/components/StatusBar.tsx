@@ -47,21 +47,21 @@ export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts 
           </div>
           
           {/* Save Status */}
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "transition-opacity duration-300 flex items-center",
-                isDirty ? "opacity-50" : "opacity-100"
-              )}
-            >
-              {getLastSavedText()}
-            </span>
-            <div 
-              className={cn(
-                "h-2 w-2 rounded-full transition-colors duration-300",
-                isDirty ? "bg-amber-500" : "bg-green-500"
-              )} 
-            />
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "transition-opacity duration-300 flex items-center",
+              isDirty ? "opacity-50" : "opacity-100"
+            )}
+          >
+            {getLastSavedText()}
+          </span>
+          <div 
+            className={cn(
+              "h-2 w-2 rounded-full transition-colors duration-300",
+              isDirty ? "bg-amber-500" : "bg-green-500"
+            )} 
+          />
           </div>
         </div>
       </div>

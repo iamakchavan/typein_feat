@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useEntries } from '@/contexts/EntryContext';
 import { editorReducer } from '@/lib/editorReducer';
-import { loadEditorState, saveEditorState, initStorage, loadFontPreferences, saveFontPreferences } from '@/lib/storage';
+import { loadEditorState, saveEditorState, initStorage } from '@/lib/storage';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { cn } from '@/lib/utils';
 import { fonts } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sidebar } from '@/components/Sidebar';
 import { StatusBar } from '@/components/StatusBar';
+import { CommandPalette } from '@/components/CommandPalette';
 import { 
   ArrowDownToLine, 
   MoonIcon, 
@@ -64,19 +66,18 @@ const ExitFullscreenIcon = () => (
 );
 
 export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) {
-  // Theme handling
-  const { theme, setTheme } = useTheme();
+  // Theme and font handling
+  const { theme, setTheme, selectedFont, setSelectedFont, fontSize, setFontSize } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  // Font handling
-  const [selectedFont, setSelectedFont] = useState('geist');
-  const [fontSize, setFontSize] = useState(20);
 
   // Scroll state
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Command palette
+  const { isOpen: isCommandPaletteOpen, closePalette: closeCommandPalette } = useCommandPalette();
 
   // Get entries context
   const { currentEntry, updateEntryContent } = useEntries();
@@ -275,40 +276,7 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
     init();
   }, []);
 
-  // Load font preferences on component mount
-  useEffect(() => {
-    const loadFontSettings = async () => {
-      try {
-        const savedPreferences = await loadFontPreferences();
-        if (savedPreferences) {
-          setSelectedFont(savedPreferences.selectedFont);
-          setFontSize(savedPreferences.fontSize);
-        }
-      } catch (error) {
-        console.error('Failed to load font preferences:', error);
-      }
-    };
-    loadFontSettings();
-  }, []);
 
-  // Save font preferences when they change
-  useEffect(() => {
-    const saveFontSettings = async () => {
-      try {
-        await saveFontPreferences({
-          selectedFont,
-          fontSize
-        });
-      } catch (error) {
-        console.error('Failed to save font preferences:', error);
-      }
-    };
-    
-    // Only save if we have non-default values (to avoid saving on initial load)
-    if (selectedFont !== 'geist' || fontSize !== 20) {
-      saveFontSettings();
-    }
-  }, [selectedFont, fontSize]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -421,23 +389,65 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                   <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Theme</span>
                   <div className="flex items-center gap-2">
                     <Button
-                      variant={theme === 'light' ? 'default' : 'ghost'}
+                      variant={theme === 'light' || theme.endsWith('-light') ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => setTheme('light')}
+                      onClick={() => {
+                        // If currently on a special theme, switch to its light variant, otherwise use light
+                        if (theme.includes('-')) {
+                          const baseTheme = theme.split('-')[0];
+                          const lightVariant = `${baseTheme}-light` as const;
+                          // Type-safe mapping of valid light themes
+                          const validLightThemes = {
+                            'amethyst-light': 'amethyst-light',
+                            'cosmic-light': 'cosmic-light', 
+                            'perpetuity-light': 'perpetuity-light',
+                            'quantum-rose-light': 'quantum-rose-light'
+                          } as const;
+                          
+                          if (lightVariant in validLightThemes) {
+                            setTheme(validLightThemes[lightVariant as keyof typeof validLightThemes]);
+                          } else {
+                            setTheme('light');
+                          }
+                        } else {
+                          setTheme('light');
+                        }
+                      }}
                       className={cn(
                         'flex-1 rounded-md',
-                        theme === 'light' ? 'ring-2 ring-primary/40' : ''
+                        (theme === 'light' || theme.endsWith('-light')) ? 'ring-2 ring-primary/40' : ''
                       )}
                     >
                       <SunIcon className="h-4 w-4 mr-1" /> Light
                     </Button>
                     <Button
-                      variant={theme === 'dark' ? 'default' : 'ghost'}
+                      variant={theme === 'dark' || theme.endsWith('-dark') ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => setTheme('dark')}
+                      onClick={() => {
+                        // If currently on a special theme, switch to its dark variant, otherwise use dark
+                        if (theme.includes('-')) {
+                          const baseTheme = theme.split('-')[0];
+                          const darkVariant = `${baseTheme}-dark` as const;
+                          // Type-safe mapping of valid dark themes
+                          const validDarkThemes = {
+                            'amethyst-dark': 'amethyst-dark',
+                            'cosmic-dark': 'cosmic-dark',
+                            'perpetuity-dark': 'perpetuity-dark', 
+                            'quantum-rose-dark': 'quantum-rose-dark'
+                          } as const;
+                          
+                          if (darkVariant in validDarkThemes) {
+                            setTheme(validDarkThemes[darkVariant as keyof typeof validDarkThemes]);
+                          } else {
+                            setTheme('dark');
+                          }
+                        } else {
+                          setTheme('dark');
+                        }
+                      }}
                       className={cn(
                         'flex-1 rounded-md',
-                        theme === 'dark' ? 'ring-2 ring-primary/40' : ''
+                        (theme === 'dark' || theme.endsWith('-dark')) ? 'ring-2 ring-primary/40' : ''
                       )}
                     >
                       <MoonIcon className="h-4 w-4 mr-1" /> Dark
@@ -446,59 +456,84 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                 </div>
                 <div className="mb-3">
                   <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Special Themes</span>
-                  <Select value={theme} onValueChange={setTheme}>
+                  <Select 
+                    value={theme} 
+                    onValueChange={setTheme}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a special theme" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="amethyst-light">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-300 to-pink-300"></div>
-                          Amethyst Light
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="amethyst-dark">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"></div>
-                          Amethyst Dark
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cosmic-light">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-300 to-purple-400"></div>
-                          Cosmic Light
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cosmic-dark">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-800 to-purple-900"></div>
-                          Cosmic Dark
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="perpetuity-light">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-300 to-cyan-400"></div>
-                          Perpetuity Light
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="perpetuity-dark">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-600 to-cyan-700"></div>
-                          Perpetuity Dark
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="quantum-rose-light">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-300 to-rose-400"></div>
-                          Quantum Rose Light
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="quantum-rose-dark">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"></div>
-                          Quantum Rose Dark
-                        </div>
-                      </SelectItem>
+                      {/* Show light variants when light theme is selected */}
+                      {(theme === 'light' || theme.endsWith('-light')) && (
+                        <>
+                          <SelectItem value="light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300"></div>
+                              Default Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="amethyst-light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-300 to-pink-300"></div>
+                              Amethyst Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="cosmic-light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-300 to-purple-400"></div>
+                              Cosmic Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="perpetuity-light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-300 to-cyan-400"></div>
+                              Perpetuity Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="quantum-rose-light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-300 to-rose-400"></div>
+                              Quantum Rose Light
+                            </div>
+                          </SelectItem>
+                        </>
+                      )}
+                      {/* Show dark variants when dark theme is selected */}
+                      {(theme === 'dark' || theme.endsWith('-dark')) && (
+                        <>
+                          <SelectItem value="dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-gray-700 to-gray-800 border border-gray-600"></div>
+                              Default Dark
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="amethyst-dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"></div>
+                              Amethyst Dark
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="cosmic-dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-800 to-purple-900"></div>
+                              Cosmic Dark
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="perpetuity-dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-600 to-cyan-700"></div>
+                              Perpetuity Dark
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="quantum-rose-dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"></div>
+                              Quantum Rose Dark
+                            </div>
+                          </SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -521,6 +556,11 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
         onClose={() => setIsSidebarOpen(false)}
       />
 
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={closeCommandPalette}
+      />
+
       <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
         <div className="relative flex-1 min-h-0">
           <textarea
@@ -529,16 +569,9 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
               "w-full h-full resize-none bg-transparent",
               "text-lg leading-relaxed outline-none whitespace-pre-wrap",
               "transition-all duration-200",
-              "placeholder:text-muted-foreground/50 md:text-[20px] text-[18px]",
-              {
-                'font-geist': selectedFont === 'geist',
-                'font-space': selectedFont === 'space',
-                'font-lora': selectedFont === 'lora',
-                'font-instrument-italic': selectedFont === 'instrument-italic',
-                'italic': selectedFont === 'instrument-italic',
-              }
+              "placeholder:text-muted-foreground/50 md:text-[20px] text-[18px]"
             )}
-            style={{ fontSize: `${fontSize}px` }}
+            style={{ fontSize: `var(--editor-font-size)` }}
             value={state.content}
             onChange={handleChange}
             onScroll={handleScroll}

@@ -8,12 +8,31 @@
   font-family: 'Geist', sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  --editor-font-size: 20px;
 
   color-scheme: light dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global font classes for system-wide application */
+.font-geist {
+  font-family: 'Geist', sans-serif !important;
+}
+
+.font-space {
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+
+.font-lora {
+  font-family: 'Lora', serif !important;
+}
+
+.font-instrument-italic {
+  font-family: 'Instrument Serif', serif !important;
+  font-style: italic !important;
 }
 
 @layer base {
@@ -288,5 +307,52 @@
   
   .scrollbar-thumb-border::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground) / 0.2);
+  }
+
+  /* Command Palette Custom Scrollbar - Visible State */
+  .custom-scrollbar-visible {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  }
+  
+  .custom-scrollbar-visible::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .custom-scrollbar-visible::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar-visible::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.15);
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .custom-scrollbar-visible::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+  }
+  
+  .custom-scrollbar-visible::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Command Palette Custom Scrollbar - Hidden State */
+  .custom-scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .custom-scrollbar-hidden::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  
+  .custom-scrollbar-hidden::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar-hidden::-webkit-scrollbar-thumb {
+    background: transparent;
   }
 }
