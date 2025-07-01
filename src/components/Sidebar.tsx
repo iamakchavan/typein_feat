@@ -124,7 +124,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
         </div>
 
         {/* Entries List */}
-        <div className="h-[calc(100vh-8.5rem)] overflow-y-auto">
+        <div className="h-[calc(100vh-8.5rem)] overflow-y-auto custom-scrollbar-visible">
           <div className="p-2 space-y-1">
             {filteredEntries.length === 0 ? (
               <div className="px-2 py-4 text-center">
