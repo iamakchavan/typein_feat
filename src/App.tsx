@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { EntryProvider } from '@/contexts/EntryContext';
+import { AudioPlayerProvider } from '@/contexts/AudioPlayerContext';
 import { Analytics } from '@vercel/analytics/react';
 import OnboardingModal from './components/OnboardingModal';
 import { WhatsNewModal } from './components/WhatsNewModal';
@@ -43,14 +44,16 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider storageKey="editor-theme">
-        <EntryProvider>
-          {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
-          {showWhatsNew && <WhatsNewModal isOpen={showWhatsNew} onClose={handleCloseWhatsNew} />}
-          <Suspense fallback={<Loading />}>
-            <Editor onShowOnboarding={() => setShowOnboarding(true)} />
-          </Suspense>
-          <Toaster />
-        </EntryProvider>
+        <AudioPlayerProvider>
+          <EntryProvider>
+            {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
+            {showWhatsNew && <WhatsNewModal isOpen={showWhatsNew} onClose={handleCloseWhatsNew} />}
+            <Suspense fallback={<Loading />}>
+              <Editor onShowOnboarding={() => setShowOnboarding(true)} />
+            </Suspense>
+            <Toaster />
+          </EntryProvider>
+        </AudioPlayerProvider>
       </ThemeProvider>
       <Analytics />
     </ErrorBoundary>

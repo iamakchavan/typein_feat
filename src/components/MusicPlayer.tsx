@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAudioPlayer } from '@/hooks/useAudioPlayer';
+import { useAudioPlayerContext } from '@/contexts/AudioPlayerContext';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
@@ -25,7 +25,7 @@ export function MusicPlayer() {
     selectTrack,
     setVolume,
     tracks
-  } = useAudioPlayer();
+  } = useAudioPlayerContext();
 
   const [showTrackList, setShowTrackList] = useState(false);
   const [showVolumeControl, setShowVolumeControl] = useState(false);

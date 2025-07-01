@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, FileText, Plus, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type } from 'lucide-react';
+import { Search, FileText, Plus, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
 import { fonts } from '@/lib/fonts';
+import { Track } from '@/lib/musicLibrary';
+import { useAudioPlayerContext } from '@/contexts/AudioPlayerContext';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -20,10 +22,11 @@ interface Command {
   description?: string;
   icon: React.ReactNode;
   action?: () => void;
-  type: 'entry' | 'action' | 'theme' | 'special-themes' | 'fonts';
+  type: 'entry' | 'action' | 'theme' | 'special-themes' | 'fonts' | 'music' | 'music-selector';
   lastModified?: Date;
   isSpecialThemes?: boolean;
   isFonts?: boolean;
+  isMusic?: boolean;
   fullContent?: string;
   dateString?: string;
 }
@@ -33,13 +36,22 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);
   const [showFonts, setShowFonts] = useState<string | null>(null);
+  const [showMusic, setShowMusic] = useState<string | null>(null);
   const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
   const { entries, createNewEntry, setCurrentEntry, deleteEntry } = useEntries();
   const { theme, setTheme, selectedFont, setSelectedFont } = useTheme();
+  const { isPlaying, currentTrack, togglePlayPause, selectTrack, tracks, play } = useAudioPlayerContext();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Function to select track and always start playing
+  const selectAndPlayTrack = useCallback((track: Track) => {
+    selectTrack(track);
+    // Small delay to ensure track is loaded before playing
+    setTimeout(() => play(), 150);
+  }, [selectTrack, play]);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -50,6 +62,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       setSelectedIndex(0);
       setShowSpecialThemes(null);
       setShowFonts(null);
+      setShowMusic(null);
       setDropdownSelectedIndex(0);
       setIsScrolling(false);
       // Focus search input when opened
@@ -174,6 +187,22 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: <Type className="h-4 w-4" />,
       type: 'fonts',
       isFonts: true
+    },
+    {
+      id: 'music-toggle',
+      title: 'Play/Pause',
+      description: currentTrack ? `${isPlaying ? 'Currently playing' : 'Currently paused'}: "${currentTrack.title}"` : 'No track selected',
+      icon: isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />,
+      type: 'music',
+      action: togglePlayPause
+    },
+    {
+      id: 'music-selector',
+      title: 'Select Music',
+      description: currentTrack ? `Currently: ${currentTrack.title}` : 'Choose a track to play',
+      icon: <Music className="h-4 w-4" />,
+      type: 'music-selector',
+      isMusic: true
     }
   ];
 
@@ -346,6 +375,34 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         return;
       }
 
+      // If music dropdown is open, handle music navigation
+      if (showMusic) {
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            setDropdownSelectedIndex(prev => Math.min(prev + 1, tracks.length - 1));
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+            break;
+          case 'Enter':
+            e.preventDefault();
+            if (tracks[dropdownSelectedIndex]) {
+              selectAndPlayTrack(tracks[dropdownSelectedIndex]);
+              setShowMusic(null);
+              onClose();
+            }
+            break;
+          case 'Escape':
+            e.preventDefault();
+            setShowMusic(null);
+            setDropdownSelectedIndex(0);
+            break;
+        }
+        return;
+      }
+
       // Main command palette navigation
       switch (e.key) {
         case 'ArrowDown':
@@ -368,6 +425,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             } else if (command.isFonts) {
               setShowFonts(command.id);
               setDropdownSelectedIndex(0);
+            } else if (command.isMusic) {
+              setShowMusic(command.id);
+              setDropdownSelectedIndex(0);
             } else if (command.action) {
               command.action();
             }
@@ -382,7 +442,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont]);
+  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks]);
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -622,6 +682,82 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                  <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>
                                )}
                              </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : command.isMusic ? (
+                    <Popover 
+                      open={showMusic === command.id} 
+                      onOpenChange={(open) => setShowMusic(open ? command.id : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          onClick={() => setShowMusic(command.id)}
+                          className={cn(
+                            "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative",
+                            index === selectedIndex 
+                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm" 
+                              : "hover:bg-muted/30"
+                          )}
+                        >
+                          <div className={cn(
+                            "flex-shrink-0 transition-colors",
+                            index === selectedIndex ? "text-primary" : "text-muted-foreground/70"
+                          )}>
+                            {command.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className={cn(
+                                "text-[14px] font-medium truncate transition-colors",
+                                index === selectedIndex ? "text-foreground" : "text-foreground/90"
+                              )}>
+                                {command.title}
+                              </span>
+                              <ChevronDown className={cn(
+                                "h-3 w-3 transition-colors",
+                                index === selectedIndex ? "text-primary/70" : "text-muted-foreground/50"
+                              )} />
+                            </div>
+                            {command.description && (
+                              <p className={cn(
+                                "text-[12px] line-clamp-1 transition-colors",
+                                index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
+                              )}>
+                                {command.description}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" align="start">
+                        <div className="space-y-0.5">
+                          {tracks.map((track, trackIndex) => (
+                            <button
+                              key={track.id}
+                              onClick={() => {
+                                selectAndPlayTrack(track);
+                                setShowMusic(null);
+                                onClose();
+                              }}
+                              className={cn(
+                                "w-full px-3 py-2.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
+                                trackIndex === dropdownSelectedIndex 
+                                  ? "bg-primary/20 text-primary" 
+                                  : "hover:bg-muted/50",
+                                currentTrack?.id === track.id && "bg-primary/10 border border-primary/30"
+                              )}
+                            >
+                              <Music className="h-3 w-3" />
+                                                             <div className="flex-1 min-w-0">
+                                 <div className="font-medium truncate">{track.title}</div>
+                                 <div className="text-[11px] text-muted-foreground/70 truncate">{track.filename}</div>
+                               </div>
+                              {currentTrack?.id === track.id && (
+                                <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>
+                              )}
+                            </button>
                           ))}
                         </div>
                       </PopoverContent>
