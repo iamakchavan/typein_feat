@@ -65,7 +65,15 @@ const ExitFullscreenIcon = () => (
   </svg>
 );
 
-export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) {
+export function Editor({ 
+  onShowOnboarding, 
+  openCommandPalette: externalOpenCommandPalette, 
+  setOpenCommandPalette: setExternalOpenCommandPalette 
+}: { 
+  onShowOnboarding?: () => void;
+  openCommandPalette?: boolean;
+  setOpenCommandPalette?: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   // Theme and font handling
   const { theme, setTheme, selectedFont, setSelectedFont, fontSize, setFontSize } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -77,10 +85,18 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Command palette
-  const { isOpen: isCommandPaletteOpen, closePalette: closeCommandPalette } = useCommandPalette();
+  const { isOpen: isCommandPaletteOpen, openPalette, closePalette: closeCommandPalette } = useCommandPalette();
 
   // Get entries context
   const { currentEntry, updateEntryContent } = useEntries();
+
+  // Handle external command palette trigger
+  useEffect(() => {
+    if (externalOpenCommandPalette && setExternalOpenCommandPalette) {
+      openPalette();
+      setExternalOpenCommandPalette(false);
+    }
+  }, [externalOpenCommandPalette, setExternalOpenCommandPalette, openPalette]);
 
   // Initialize editor state
   const [state, dispatch] = useReducer(editorReducer, {
