@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, FileText, Plus, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music } from 'lucide-react';
+import { Search, FileText, Plus, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -210,6 +210,17 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: <Music className="h-4 w-4" />,
       type: 'music-selector',
       isMusic: true
+    },
+    {
+      id: 'contact-support',
+      title: 'Contact Support',
+      description: 'For queries and feedback: akc@typein.space',
+      icon: <Mail className="h-4 w-4" />,
+      action: () => {
+        window.open('mailto:akc@typein.space', '_blank');
+        onClose();
+      },
+      type: 'action'
     }
   ];
 

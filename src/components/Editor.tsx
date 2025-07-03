@@ -597,6 +597,34 @@ export function Editor({
                 >
                   Show Onboarding
                 </Button>
+                <div className="border-t border-border my-4" />
+                <div className="space-y-2">
+                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase text-center">Support</span>
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-2">For queries and feedback</p>
+                    <a
+                      href="mailto:akc@typein.space"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-primary/10 border border-border/50 hover:border-primary/30"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
+                        <rect width="20" height="16" x="2" y="4" rx="2"/>
+                        <path d="m22 7-10 5L2 7"/>
+                      </svg>
+                      akc@typein.space
+                    </a>
+                  </div>
+                </div>
               </div>
             </PopoverContent>
           </Popover>
