@@ -406,14 +406,20 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                       onClick={() => {
                         // If currently on a special theme, switch to its light variant, otherwise use light
                         if (theme.includes('-')) {
-                          const baseTheme = theme.split('-')[0];
+                          // Handle multi-word theme names (e.g., quantum-rose-dark -> quantum-rose)
+                          const baseTheme = theme.endsWith('-dark') 
+                            ? theme.slice(0, -5) // Remove '-dark'
+                            : theme.endsWith('-light') 
+                              ? theme.slice(0, -6) // Remove '-light'
+                              : theme;
                           const lightVariant = `${baseTheme}-light` as const;
                           // Type-safe mapping of valid light themes
                           const validLightThemes = {
                             'amethyst-light': 'amethyst-light',
                             'cosmic-light': 'cosmic-light', 
                             'perpetuity-light': 'perpetuity-light',
-                            'quantum-rose-light': 'quantum-rose-light'
+                            'quantum-rose-light': 'quantum-rose-light',
+                            'clean-slate-light': 'clean-slate-light'
                           } as const;
                           
                           if (lightVariant in validLightThemes) {
@@ -438,14 +444,20 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                       onClick={() => {
                         // If currently on a special theme, switch to its dark variant, otherwise use dark
                         if (theme.includes('-')) {
-                          const baseTheme = theme.split('-')[0];
+                          // Handle multi-word theme names (e.g., quantum-rose-light -> quantum-rose)
+                          const baseTheme = theme.endsWith('-dark') 
+                            ? theme.slice(0, -5) // Remove '-dark'
+                            : theme.endsWith('-light') 
+                              ? theme.slice(0, -6) // Remove '-light'
+                              : theme;
                           const darkVariant = `${baseTheme}-dark` as const;
                           // Type-safe mapping of valid dark themes
                           const validDarkThemes = {
                             'amethyst-dark': 'amethyst-dark',
                             'cosmic-dark': 'cosmic-dark',
                             'perpetuity-dark': 'perpetuity-dark', 
-                            'quantum-rose-dark': 'quantum-rose-dark'
+                            'quantum-rose-dark': 'quantum-rose-dark',
+                            'clean-slate-dark': 'clean-slate-dark'
                           } as const;
                           
                           if (darkVariant in validDarkThemes) {
@@ -509,6 +521,12 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                               Quantum Rose Light
                             </div>
                           </SelectItem>
+                          <SelectItem value="clean-slate-light">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-slate-200 to-indigo-300"></div>
+                              Clean Slate Light
+                            </div>
+                          </SelectItem>
                         </>
                       )}
                       {/* Show dark variants when dark theme is selected */}
@@ -542,6 +560,12 @@ export function Editor({ onShowOnboarding }: { onShowOnboarding?: () => void }) 
                             <div className="flex items-center gap-2">
                               <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"></div>
                               Quantum Rose Dark
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="clean-slate-dark">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-slate-600 to-indigo-600"></div>
+                              Clean Slate Dark
                             </div>
                           </SelectItem>
                         </>

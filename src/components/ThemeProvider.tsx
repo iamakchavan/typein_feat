@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { loadFontPreferences, saveFontPreferences } from '@/lib/storage';
 
-type Theme = 'dark' | 'light' | 'amethyst-light' | 'amethyst-dark' | 'cosmic-light' | 'cosmic-dark' | 'perpetuity-light' | 'perpetuity-dark' | 'quantum-rose-light' | 'quantum-rose-dark';
+type Theme = 'dark' | 'light' | 'amethyst-light' | 'amethyst-dark' | 'cosmic-light' | 'cosmic-dark' | 'perpetuity-light' | 'perpetuity-dark' | 'quantum-rose-light' | 'quantum-rose-dark' | 'clean-slate-light' | 'clean-slate-dark';
 
 type Font = 'geist' | 'space' | 'lora' | 'instrument-italic';
 
@@ -39,7 +39,7 @@ export function ThemeProvider({
   // Initialize from localStorage or default to dark
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem(storageKey) as Theme;
-    const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
+    const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark', 'clean-slate-light', 'clean-slate-dark'];
     return validThemes.includes(savedTheme) ? savedTheme : 'dark';
   });
 
@@ -87,7 +87,7 @@ export function ThemeProvider({
     const root = document.documentElement;
     
     // Remove all theme classes
-    root.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark');
+    root.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark', 'clean-slate-light', 'clean-slate-dark');
     
     // Add the current theme class
     root.classList.add(theme);
@@ -114,7 +114,7 @@ export function ThemeProvider({
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === storageKey && e.newValue) {
         const newTheme = e.newValue as Theme;
-        const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
+        const validThemes: Theme[] = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark', 'clean-slate-light', 'clean-slate-dark'];
         if (validThemes.includes(newTheme)) {
           setTheme(newTheme);
         }

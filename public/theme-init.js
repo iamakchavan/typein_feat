@@ -3,10 +3,10 @@
   function setTheme() {
     const savedTheme = localStorage.getItem('editor-theme');
     const html = document.documentElement;
-    const validThemes = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark'];
+    const validThemes = ['light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark', 'clean-slate-light', 'clean-slate-dark'];
     
     // Remove all theme classes
-    html.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark');
+    html.classList.remove('light', 'dark', 'amethyst-light', 'amethyst-dark', 'cosmic-light', 'cosmic-dark', 'perpetuity-light', 'perpetuity-dark', 'quantum-rose-light', 'quantum-rose-dark', 'clean-slate-light', 'clean-slate-dark');
     
     if (validThemes.includes(savedTheme)) {
       html.classList.add(savedTheme);

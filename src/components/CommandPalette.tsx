@@ -134,14 +134,20 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         
         if (theme.includes('-')) {
           // If we're on a special theme, switch to its opposite variant
-          const baseTheme = theme.split('-')[0];
+          // Handle multi-word theme names (e.g., quantum-rose-dark -> quantum-rose)
+          const baseTheme = theme.endsWith('-dark') 
+            ? theme.slice(0, -5) // Remove '-dark'
+            : theme.endsWith('-light') 
+              ? theme.slice(0, -6) // Remove '-light'
+              : theme;
           if (isCurrentlyLight) {
             // Switch to dark variant
             const validDarkThemes = {
               'amethyst-dark': 'amethyst-dark',
               'cosmic-dark': 'cosmic-dark',
               'perpetuity-dark': 'perpetuity-dark', 
-              'quantum-rose-dark': 'quantum-rose-dark'
+              'quantum-rose-dark': 'quantum-rose-dark',
+              'clean-slate-dark': 'clean-slate-dark'
             } as const;
             const darkVariant = `${baseTheme}-dark` as const;
             if (darkVariant in validDarkThemes) {
@@ -155,7 +161,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               'amethyst-light': 'amethyst-light',
               'cosmic-light': 'cosmic-light', 
               'perpetuity-light': 'perpetuity-light',
-              'quantum-rose-light': 'quantum-rose-light'
+              'quantum-rose-light': 'quantum-rose-light',
+              'clean-slate-light': 'clean-slate-light'
             } as const;
             const lightVariant = `${baseTheme}-light` as const;
             if (lightVariant in validLightThemes) {
@@ -278,7 +285,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         { id: 'amethyst-light', name: 'Amethyst Light', action: () => setTheme('amethyst-light') },
         { id: 'cosmic-light', name: 'Cosmic Light', action: () => setTheme('cosmic-light') },
         { id: 'perpetuity-light', name: 'Perpetuity Light', action: () => setTheme('perpetuity-light') },
-        { id: 'quantum-rose-light', name: 'Quantum Rose Light', action: () => setTheme('quantum-rose-light') }
+        { id: 'quantum-rose-light', name: 'Quantum Rose Light', action: () => setTheme('quantum-rose-light') },
+        { id: 'clean-slate-light', name: 'Clean Slate Light', action: () => setTheme('clean-slate-light') }
       ];
     } else {
       return [
@@ -286,7 +294,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         { id: 'amethyst-dark', name: 'Amethyst Dark', action: () => setTheme('amethyst-dark') },
         { id: 'cosmic-dark', name: 'Cosmic Dark', action: () => setTheme('cosmic-dark') },
         { id: 'perpetuity-dark', name: 'Perpetuity Dark', action: () => setTheme('perpetuity-dark') },
-        { id: 'quantum-rose-dark', name: 'Quantum Rose Dark', action: () => setTheme('quantum-rose-dark') }
+        { id: 'quantum-rose-dark', name: 'Quantum Rose Dark', action: () => setTheme('quantum-rose-dark') },
+        { id: 'clean-slate-dark', name: 'Clean Slate Dark', action: () => setTheme('clean-slate-dark') }
       ];
     }
   };
@@ -584,7 +593,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 'perpetuity-light': 'from-teal-300 to-cyan-400',
                                 'perpetuity-dark': 'from-teal-600 to-cyan-700',
                                 'quantum-rose-light': 'from-pink-300 to-rose-400',
-                                'quantum-rose-dark': 'from-pink-600 to-fuchsia-700'
+                                'quantum-rose-dark': 'from-pink-600 to-fuchsia-700',
+                                'clean-slate-light': 'from-slate-200 to-indigo-300',
+                                'clean-slate-dark': 'from-slate-600 to-indigo-600'
                               };
                               return gradients[themeId] || 'from-gray-300 to-gray-400';
                             };
