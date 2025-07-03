@@ -19,7 +19,7 @@ interface DBSchema {
   fontPreferences: FontPreferences;
 }
 
-class TypeInDB {
+class typeinDB {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'typein-db';
   private readonly DB_VERSION = 4;
@@ -442,4 +442,4 @@ class TypeInDB {
   }
 }
 
-export const db = new TypeInDB(); 
+export const db = new typeinDB(); 

@@ -1,0 +1,52 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://typein.space/sitemap.xml
+
+# Block crawling of specific file types that aren't useful for SEO
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.json$
+Disallow: /src/
+Disallow: /node_modules/
+
+# Allow crawling of main content and assets
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.ico$
+Allow: /*.mp3$
+
+# Crawl delay (optional - helps prevent overwhelming the server)
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# AI/LLM Crawlers
+User-agent: OpenAI-GPTBot
+Allow: /
+Disallow: /src/
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: / 

@@ -45,14 +45,14 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider storageKey="editor-theme">
         <AudioPlayerProvider>
-          <EntryProvider>
-            {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
+        <EntryProvider>
+          {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
             {showWhatsNew && <WhatsNewModal isOpen={showWhatsNew} onClose={handleCloseWhatsNew} />}
-            <Suspense fallback={<Loading />}>
-              <Editor onShowOnboarding={() => setShowOnboarding(true)} />
-            </Suspense>
-            <Toaster />
-          </EntryProvider>
+          <Suspense fallback={<Loading />}>
+            <Editor onShowOnboarding={() => setShowOnboarding(true)} />
+          </Suspense>
+          <Toaster />
+        </EntryProvider>
         </AudioPlayerProvider>
       </ThemeProvider>
       <Analytics />

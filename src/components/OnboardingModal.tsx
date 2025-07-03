@@ -3,13 +3,13 @@ import { Button } from './ui/button';
 
 const steps = [
   {
-    title: 'Welcome to TypeIn!',
+    title: 'Welcome to typein!',
     description: 'A minimal, beautiful journaling app. Your private writing space, organized by day.',
     image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
   },
   {
     title: 'Daily Entries',
-    description: 'TypeIn automatically creates a new entry for each day. Use the sidebar to browse your history.',
+    description: 'typein automatically creates a new entry for each day. Use the sidebar to browse your history.',
     image: '',
   },
   {

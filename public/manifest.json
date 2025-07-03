@@ -1,0 +1,69 @@
+{
+  "name": "typein - Minimalist Writing App",
+  "short_name": "typein",
+  "description": "A clean, distraction-free writing space for your thoughts. Perfect for daily journaling, freewriting, and quick notes. Free alternative to other writing apps.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "writing", "utilities"],
+  "icons": [
+    {
+      "src": "/typeinfavicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/typein.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/typeinbanner.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "typein Writing Interface"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "New Entry",
+      "short_name": "New",
+      "description": "Create a new writing entry",
+      "url": "/?action=new",
+      "icons": [
+        {
+          "src": "/typeinfavicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Command Palette",
+      "short_name": "Commands",
+      "description": "Open command palette",
+      "url": "/?action=commands",
+      "icons": [
+        {
+          "src": "/typeinfavicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+} 

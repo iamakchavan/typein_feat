@@ -1,7 +1,7 @@
 # /typein ✍️
 
 <div align="center">
-  <img src="public/typein.png" alt="TypeIn" width="800"/>
+  <img src="public/typein.png" alt="typein" width="800"/>
 </div>
 
 A minimalist writing app that lets you focus on what matters - your thoughts. No distractions, just you and your words. Perfect for daily journaling, quick notes, or getting those creative juices flowing.
