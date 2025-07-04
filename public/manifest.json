@@ -42,7 +42,7 @@
       "url": "/?action=new",
       "icons": [
         {
-          "src": "/typeinfavicon.png",
+          "src": "/newentry.png",
           "sizes": "96x96"
         }
       ]
@@ -54,7 +54,7 @@
       "url": "/?action=commands",
       "icons": [
         {
-          "src": "/typeinfavicon.png",
+          "src": "/cmmdp.png",
           "sizes": "96x96"
         }
       ]
