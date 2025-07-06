@@ -222,7 +222,10 @@ export function Editor({
   const scrollToBottom = () => {
     const textarea = document.querySelector('textarea');
     if (textarea) {
-      textarea.scrollTop = textarea.scrollHeight;
+      textarea.scrollTo({
+        top: textarea.scrollHeight,
+        behavior: 'smooth'
+      });
       setShowScrollButton(false);
     }
   };
