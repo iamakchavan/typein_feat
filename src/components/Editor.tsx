@@ -370,7 +370,7 @@ export function Editor({
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
           <div className="relative z-10 flex items-center">
-            <kbd className="text-[10px] font-medium">⌘K</kbd>
+            <kbd className="text-[14px] font-medium">⌘K</kbd>
             <span className="ml-1">for quick search</span>
           </div>
         </div>
