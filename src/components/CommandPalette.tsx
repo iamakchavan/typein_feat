@@ -1002,13 +1002,13 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           }}
                         >
                           <PopoverTrigger asChild>
-                            <button
+                        <button
                               onClick={() => {
                                 setShowKebabMenu(command.id);
                                 setDropdownSelectedIndex(0); // Reset to first option when opening
-                              }}
-                              className={cn(
-                                "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
+                          }}
+                          className={cn(
+                            "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
                                 "text-muted-foreground hover:text-foreground hover:bg-primary/10"
                               )}
                               title="Entry options"
@@ -1062,7 +1062,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                     : entries.find(e => e.id === command.id)?.content.trim()
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
-                                )}
+                          )}
                               >
                                 <Download className="h-4 w-4" />
                                 Export as .txt
@@ -1079,10 +1079,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                     ? "bg-destructive/20 text-destructive" 
                                     : "text-destructive hover:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
                                 )}
-                              >
-                                <Trash2 className="h-4 w-4" />
+                        >
+                          <Trash2 className="h-4 w-4" />
                                 Delete
-                              </button>
+                        </button>
                             </div>
                           </PopoverContent>
                         </Popover>

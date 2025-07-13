@@ -144,17 +144,17 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
 
   const filteredEntries = entries
     .filter(entry => {
-      const searchLower = searchQuery.toLowerCase();
-      const contentLower = entry.content.toLowerCase();
-      const dateLower = format(new Date(entry.date), 'MMMM dd, yyyy').toLowerCase();
-      return contentLower.includes(searchLower) || dateLower.includes(searchLower);
+    const searchLower = searchQuery.toLowerCase();
+    const contentLower = entry.content.toLowerCase();
+    const dateLower = format(new Date(entry.date), 'MMMM dd, yyyy').toLowerCase();
+    return contentLower.includes(searchLower) || dateLower.includes(searchLower);
     })
     .sort((a, b) => {
       // Sort pinned entries first, then by date
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
+  });
 
   const entryToDelete = entries.find(entry => entry.id === deleteEntryId);
 
@@ -271,80 +271,156 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                         </div>
                       </div>
                       
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                              "h-6 w-6 transition-all duration-200",
-                              "text-muted-foreground hover:text-foreground",
-                              "hover:bg-primary/10",
-                              "opacity-0 group-hover:opacity-100",
-                              isSelected ? "opacity-100" : ""
-                            )}
-                            onClick={(e) => e.stopPropagation()}
+                      {/* Desktop version: always rendered, controlled by CSS visibility */}
+                      <div className="hidden md:block">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                "h-6 w-6 transition-all duration-200",
+                                "text-muted-foreground hover:text-foreground hover:bg-primary/10",
+                                "opacity-0 group-hover:opacity-100",
+                                isSelected && "opacity-100"
+                              )}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                              <span className="sr-only">Entry Options</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent 
+                            align="end" 
+                            className="w-40 bg-background border border-border shadow-lg rounded-md"
+                            sideOffset={4}
                           >
-                            <MoreVertical className="h-3.5 w-3.5" />
-                            <span className="sr-only">Entry Options</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent 
-                          align="end" 
-                          className="w-40 bg-background border border-border shadow-lg rounded-md"
-                          sideOffset={4}
-                        >
-                          <DropdownMenuItem 
-                            onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
-                            disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
-                            className={cn(
-                              "cursor-pointer",
-                              entry.content.trim() && (entry.pinned || pinnedCount < 5)
-                                ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                : "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <Pin className="h-4 w-4 mr-2" />
-                            {entry.pinned ? 'Unpin note' : 'Pin note'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
-                            disabled={!entry.content.trim()}
-                            className={cn(
-                              "cursor-pointer",
-                              entry.content.trim() 
-                                ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                : "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copy Note
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
-                            disabled={!entry.content.trim()}
-                            className={cn(
-                              "cursor-pointer",
-                              entry.content.trim() 
-                                ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                : "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Export as .txt
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(entry.id, e);
-                            }}
-                            className="text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <DropdownMenuItem 
+                              onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
+                              disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
+                              className={cn(
+                                "cursor-pointer",
+                                entry.content.trim() && (entry.pinned || pinnedCount < 5)
+                                  ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                  : "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Pin className="h-4 w-4 mr-2" />
+                              {entry.pinned ? 'Unpin note' : 'Pin note'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
+                              disabled={!entry.content.trim()}
+                              className={cn(
+                                "cursor-pointer",
+                                entry.content.trim() 
+                                  ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                  : "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copy Note
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
+                              disabled={!entry.content.trim()}
+                              className={cn(
+                                "cursor-pointer",
+                                entry.content.trim() 
+                                  ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                  : "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Export as .txt
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(entry.id, e);
+                              }}
+                              className="text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      
+                      {/* Mobile version: only rendered when selected */}
+                      {isSelected && (
+                        <div className="block md:hidden">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-3.5 w-3.5" />
+                                <span className="sr-only">Entry Options</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              align="end" 
+                              className="w-40 bg-background border border-border shadow-lg rounded-md"
+                              sideOffset={4}
+                            >
+                              <DropdownMenuItem 
+                                onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
+                                disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
+                                className={cn(
+                                  "cursor-pointer",
+                                  entry.content.trim() && (entry.pinned || pinnedCount < 5)
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Pin className="h-4 w-4 mr-2" />
+                                {entry.pinned ? 'Unpin note' : 'Pin note'}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
+                                disabled={!entry.content.trim()}
+                                className={cn(
+                                  "cursor-pointer",
+                                  entry.content.trim() 
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Note
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
+                                disabled={!entry.content.trim()}
+                                className={cn(
+                                  "cursor-pointer",
+                                  entry.content.trim() 
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export as .txt
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(entry.id, e);
+                                }}
+                                className="text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
