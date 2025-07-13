@@ -6,6 +6,7 @@ export interface Entry {
   id: string;
   date: string;
   content: string;
+  pinned?: boolean;
 }
 
 interface EntryContextType {
@@ -15,6 +16,7 @@ interface EntryContextType {
   updateEntryContent: (id: string, content: string) => void;
   createNewEntry: () => void;
   deleteEntry: (id: string) => void;
+  togglePinEntry: (id: string) => void;
 }
 
 const EntryContext = createContext<EntryContextType | null>(null);
@@ -165,6 +167,30 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const togglePinEntry = async (id: string) => {
+    try {
+      const entryToUpdate = entries.find(entry => entry.id === id);
+      if (!entryToUpdate) return;
+
+      const updatedEntry = { ...entryToUpdate, pinned: !entryToUpdate.pinned };
+      
+      // Update in database
+      await db.saveEntry(updatedEntry);
+      
+      // Update state
+      setEntries(prev => prev.map(entry => 
+        entry.id === id ? updatedEntry : entry
+      ));
+      
+      // Update current entry if it's the one being pinned/unpinned
+      if (currentEntry?.id === id) {
+        setCurrentEntry(updatedEntry);
+      }
+    } catch (error) {
+      console.error('Failed to toggle pin entry:', error);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -177,7 +203,8 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         setCurrentEntry,
         updateEntryContent,
         createNewEntry,
-        deleteEntry
+        deleteEntry,
+        togglePinEntry
       }}
     >
       {children}

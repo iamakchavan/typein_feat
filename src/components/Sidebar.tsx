@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { X, Plus, Trash2, Search } from 'lucide-react';
+import { X, Trash2, Search, MoreVertical, Copy, Download, Pin } from 'lucide-react';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { useEntries, Entry } from '@/contexts/EntryContext';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,11 +21,33 @@ function getContentPreview(content: string): string {
   return firstLine.trim().slice(0, 50) + (firstLine.length > 50 ? '...' : '');
 }
 
+// Custom New Entry icon
+const NewEntryIcon = () => (
+  <svg 
+    width="12" 
+    height="12" 
+    viewBox="0 0 12 12" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-4 w-4"
+  >
+    <path 
+      d="M11.4875 0.512563C10.804 -0.170854 9.696 -0.170854 9.01258 0.512563L4.75098 4.77417C4.49563 5.02951 4.29308 5.33265 4.15488 5.66628L3.30712 7.71282C3.19103 7.99307 3.25519 8.31566 3.46968 8.53017C3.68417 8.74467 4.00676 8.80885 4.28702 8.69277L6.33382 7.84501C6.66748 7.70681 6.97066 7.50423 7.22604 7.24886L11.4875 2.98744C12.1709 2.30402 12.1709 1.19598 11.4875 0.512563Z" 
+      fill="currentColor"
+    />
+    <path 
+      d="M2.75 1.5C2.05964 1.5 1.5 2.05964 1.5 2.75V9.25C1.5 9.94036 2.05964 10.5 2.75 10.5H9.25C9.94036 10.5 10.5 9.94036 10.5 9.25V7C10.5 6.58579 10.8358 6.25 11.25 6.25C11.6642 6.25 12 6.58579 12 7V9.25C12 10.7688 10.7688 12 9.25 12H2.75C1.23122 12 0 10.7688 0 9.25V2.75C0 1.23122 1.23122 4.84288e-08 2.75 4.84288e-08H5C5.41421 4.84288e-08 5.75 0.335786 5.75 0.75C5.75 1.16421 5.41421 1.5 5 1.5H2.75Z" 
+      fill="currentColor"
+    />
+  </svg>
+);
+
 export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
-  const { entries, currentEntry, setCurrentEntry, createNewEntry, deleteEntry } = useEntries();
+  const { entries, currentEntry, setCurrentEntry, createNewEntry, deleteEntry, togglePinEntry } = useEntries();
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { toast } = useToast();
 
   const handleEntryClick = (entry: Entry) => {
     if (currentEntry?.id === entry.id) return;
@@ -48,12 +72,89 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
     setDeleteEntryId(null);
   };
 
-  const filteredEntries = entries.filter(entry => {
-    const searchLower = searchQuery.toLowerCase();
-    const contentLower = entry.content.toLowerCase();
-    const dateLower = format(new Date(entry.date), 'MMMM dd, yyyy').toLowerCase();
-    return contentLower.includes(searchLower) || dateLower.includes(searchLower);
-  });
+  const handleCopyClick = async (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(entry.content);
+      // Show toast only on desktop (not mobile)
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        toast({
+          description: "Note copied to clipboard",
+          duration: 2000,
+        });
+      }
+      console.log('Entry copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy entry:', err);
+    }
+  };
+
+  const handleExportClick = (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Create a blob with the entry content
+      const blob = new Blob([entry.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary download link
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename from first line or use date
+      const firstLine = entry.content.split('\n')[0].trim();
+      const filename = firstLine 
+        ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
+        : `note-${format(new Date(entry.date), 'yyyy-MM-dd')}.txt`;
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      // Show toast only on desktop (not mobile)
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        toast({
+          description: "Note exported as .txt file",
+          duration: 2000,
+        });
+      }
+      console.log('Entry exported as .txt file');
+    } catch (err) {
+      console.error('Failed to export entry:', err);
+    }
+  };
+
+  const handlePinClick = (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    togglePinEntry(entry.id);
+    // Show toast only on desktop (not mobile)
+    if (window.matchMedia('(min-width: 768px)').matches) {
+      toast({
+        description: entry.pinned ? "Note unpinned" : "Note pinned",
+        duration: 2000,
+      });
+    }
+  };
+
+  const pinnedEntries = entries.filter(entry => entry.pinned);
+  const pinnedCount = pinnedEntries.length;
+
+  const filteredEntries = entries
+    .filter(entry => {
+      const searchLower = searchQuery.toLowerCase();
+      const contentLower = entry.content.toLowerCase();
+      const dateLower = format(new Date(entry.date), 'MMMM dd, yyyy').toLowerCase();
+      return contentLower.includes(searchLower) || dateLower.includes(searchLower);
+    })
+    .sort((a, b) => {
+      // Sort pinned entries first, then by date
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
 
   const entryToDelete = entries.find(entry => entry.id === deleteEntryId);
 
@@ -90,7 +191,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
               className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
               onClick={handleNewEntry}
             >
-              <Plus className="h-4 w-4" />
+              <NewEntryIcon />
               <span className="sr-only">New Entry</span>
             </Button>
             <Button
@@ -156,6 +257,9 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                           <span className="text-sm font-medium">
                             {format(entryDate, 'MMM dd, yyyy')}
                           </span>
+                          {entry.pinned && (
+                            <Pin className="h-3 w-3 text-primary/70 flex-shrink-0" />
+                          )}
                           {isToday(entryDate) && (
                             <span className="flex-shrink-0 text-[10px] font-medium bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
                               Today
@@ -167,20 +271,80 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                         </div>
                       </div>
                       
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "h-6 w-6 transition-all duration-200",
-                          "text-muted-foreground hover:text-destructive",
-                          "hover:bg-destructive/10",
-                          isSelected ? "opacity-100" : "opacity-70 hover:opacity-100"
-                        )}
-                        onClick={(e) => handleDeleteClick(entry.id, e)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span className="sr-only">Delete Entry</span>
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "h-6 w-6 transition-all duration-200",
+                              "text-muted-foreground hover:text-foreground",
+                              "hover:bg-primary/10",
+                              "opacity-0 group-hover:opacity-100",
+                              isSelected ? "opacity-100" : ""
+                            )}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-3.5 w-3.5" />
+                            <span className="sr-only">Entry Options</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          align="end" 
+                          className="w-40 bg-background border border-border shadow-lg rounded-md"
+                          sideOffset={4}
+                        >
+                          <DropdownMenuItem 
+                            onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
+                            disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
+                            className={cn(
+                              "cursor-pointer",
+                              entry.content.trim() && (entry.pinned || pinnedCount < 5)
+                                ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                : "opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            <Pin className="h-4 w-4 mr-2" />
+                            {entry.pinned ? 'Unpin note' : 'Pin note'}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
+                            disabled={!entry.content.trim()}
+                            className={cn(
+                              "cursor-pointer",
+                              entry.content.trim() 
+                                ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                : "opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy Note
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
+                            disabled={!entry.content.trim()}
+                            className={cn(
+                              "cursor-pointer",
+                              entry.content.trim() 
+                                ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                : "opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Export as .txt
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(entry.id, e);
+                            }}
+                            className="text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 );

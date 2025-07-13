@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, FileText, Plus, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail } from 'lucide-react';
+import { Search, FileText, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail, MoreVertical, Copy, Download } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -10,11 +10,33 @@ import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
 import { fonts } from '@/lib/fonts';
 import { Track } from '@/lib/musicLibrary';
 import { useAudioPlayerContext } from '@/contexts/AudioPlayerContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// Custom New Entry icon
+const NewEntryIcon = () => (
+  <svg 
+    width="12" 
+    height="12" 
+    viewBox="0 0 12 12" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-4 w-4"
+  >
+    <path 
+      d="M11.4875 0.512563C10.804 -0.170854 9.696 -0.170854 9.01258 0.512563L4.75098 4.77417C4.49563 5.02951 4.29308 5.33265 4.15488 5.66628L3.30712 7.71282C3.19103 7.99307 3.25519 8.31566 3.46968 8.53017C3.68417 8.74467 4.00676 8.80885 4.28702 8.69277L6.33382 7.84501C6.66748 7.70681 6.97066 7.50423 7.22604 7.24886L11.4875 2.98744C12.1709 2.30402 12.1709 1.19598 11.4875 0.512563Z" 
+      fill="currentColor"
+    />
+    <path 
+      d="M2.75 1.5C2.05964 1.5 1.5 2.05964 1.5 2.75V9.25C1.5 9.94036 2.05964 10.5 2.75 10.5H9.25C9.94036 10.5 10.5 9.94036 10.5 9.25V7C10.5 6.58579 10.8358 6.25 11.25 6.25C11.6642 6.25 12 6.58579 12 7V9.25C12 10.7688 10.7688 12 9.25 12H2.75C1.23122 12 0 10.7688 0 9.25V2.75C0 1.23122 1.23122 4.84288e-08 2.75 4.84288e-08H5C5.41421 4.84288e-08 5.75 0.335786 5.75 0.75C5.75 1.16421 5.41421 1.5 5 1.5H2.75Z" 
+      fill="currentColor"
+    />
+  </svg>
+);
 
 interface Command {
   id: string;
@@ -37,6 +59,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);
   const [showFonts, setShowFonts] = useState<string | null>(null);
   const [showMusic, setShowMusic] = useState<string | null>(null);
+  const [showKebabMenu, setShowKebabMenu] = useState<string | null>(null);
   const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
@@ -44,6 +67,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const { entries, createNewEntry, setCurrentEntry, deleteEntry } = useEntries();
   const { theme, setTheme, selectedFont, setSelectedFont } = useTheme();
   const { isPlaying, currentTrack, togglePlayPause, selectTrack, tracks, play } = useAudioPlayerContext();
+  const { toast } = useToast();
   const searchInputRef = useRef<HTMLInputElement>(null);
   
   // Function to select track and always start playing
@@ -63,6 +87,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       setShowSpecialThemes(null);
       setShowFonts(null);
       setShowMusic(null);
+      setShowKebabMenu(null);
       setDropdownSelectedIndex(0);
       setIsScrolling(false);
       // Focus search input when opened
@@ -116,7 +141,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       id: 'new-entry',
       title: 'Create New Entry',
       description: 'Start writing a new entry',
-      icon: <Plus className="h-4 w-4" />,
+              icon: <NewEntryIcon />,
       action: () => {
         createNewEntry();
         onClose();
@@ -329,6 +354,69 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     setEntryToDelete(null);
   };
 
+  const handleCopyClick = async (entry: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Find the full entry from entries array
+      const fullEntry = entries.find(e => e.id === entry.id);
+      if (fullEntry) {
+        await navigator.clipboard.writeText(fullEntry.content);
+        // Show toast only on desktop (not mobile)
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          toast({
+            description: "Note copied to clipboard",
+            duration: 2000,
+          });
+        }
+        console.log('Entry copied to clipboard');
+      }
+    } catch (err) {
+      console.error('Failed to copy entry:', err);
+    }
+  };
+
+  const handleExportClick = (entry: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Find the full entry from entries array
+      const fullEntry = entries.find(e => e.id === entry.id);
+      if (fullEntry) {
+        // Create a blob with the entry content
+        const blob = new Blob([fullEntry.content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create a temporary download link
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename from first line or use date
+        const firstLine = fullEntry.content.split('\n')[0].trim();
+        const filename = firstLine 
+          ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
+          : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
+        
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        // Show toast only on desktop (not mobile)
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          toast({
+            description: "Note exported as .txt file",
+            duration: 2000,
+          });
+        }
+        console.log('Entry exported as .txt file');
+      }
+    } catch (err) {
+      console.error('Failed to export entry:', err);
+    }
+  };
+
   // Get the title of the entry to delete
   const entryToDeleteTitle = entryToDelete 
     ? entries.find(entry => entry.id === entryToDelete)?.content.split('\n')[0].slice(0, 50) || 'Untitled Entry'
@@ -423,6 +511,74 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         return;
       }
 
+      // If kebab menu is open, handle kebab navigation
+      if (showKebabMenu) {
+        const kebabOptions = ['copy', 'export', 'delete'];
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            setDropdownSelectedIndex(prev => Math.min(prev + 1, kebabOptions.length - 1));
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+            break;
+          case 'Enter':
+            e.preventDefault();
+            if (dropdownSelectedIndex === 0) {
+              // Copy action
+              const fullEntry = entries.find(e => e.id === showKebabMenu);
+              if (fullEntry && fullEntry.content.trim()) {
+                navigator.clipboard.writeText(fullEntry.content);
+                // Show toast only on desktop (not mobile)
+                if (window.matchMedia('(min-width: 768px)').matches) {
+                  toast({
+                    description: "Note copied to clipboard",
+                    duration: 2000,
+                  });
+                }
+              }
+            } else if (dropdownSelectedIndex === 1) {
+              // Export action
+              const fullEntry = entries.find(e => e.id === showKebabMenu);
+              if (fullEntry && fullEntry.content.trim()) {
+                const blob = new Blob([fullEntry.content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const firstLine = fullEntry.content.split('\n')[0].trim();
+                const filename = firstLine 
+                  ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
+                  : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                // Show toast only on desktop (not mobile)
+                if (window.matchMedia('(min-width: 768px)').matches) {
+                  toast({
+                    description: "Note exported as .txt file",
+                    duration: 2000,
+                  });
+                }
+              }
+            } else if (dropdownSelectedIndex === 2) {
+              // Delete action
+              handleDeleteEntry(showKebabMenu);
+            }
+            setShowKebabMenu(null);
+            setDropdownSelectedIndex(0);
+            break;
+          case 'Escape':
+            e.preventDefault();
+            setShowKebabMenu(null);
+            setDropdownSelectedIndex(0);
+            break;
+        }
+        return;
+      }
+
       // Main command palette navigation
       switch (e.key) {
         case 'ArrowDown':
@@ -462,7 +618,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks]);
+  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, showKebabMenu, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks, entries, handleDeleteEntry]);
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -834,21 +990,102 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         </div>
                       </button>
                       
-                      {/* Delete button for entries */}
+                      {/* Kebab menu for entries */}
                       {command.type === 'entry' && (hoveredEntryId === command.id || index === selectedIndex) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteEntry(command.id);
+                        <Popover 
+                          open={showKebabMenu === command.id} 
+                          onOpenChange={(open) => {
+                            setShowKebabMenu(open ? command.id : null);
+                            if (open) {
+                              setDropdownSelectedIndex(0); // Reset to first option when opening
+                            }
                           }}
-                          className={cn(
-                            "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
-                            "hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
-                          )}
-                          title="Delete entry"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          <PopoverTrigger asChild>
+                            <button
+                              onClick={() => {
+                                setShowKebabMenu(command.id);
+                                setDropdownSelectedIndex(0); // Reset to first option when opening
+                              }}
+                              className={cn(
+                                "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
+                                "text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                              )}
+                              title="Entry options"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                              <span className="sr-only">Entry Options</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent 
+                            className="w-40 p-1 bg-background border border-border shadow-lg rounded-md" 
+                            align="end"
+                            sideOffset={4}
+                          >
+                            <div className="space-y-1">
+                              <button
+                                onClick={() => {
+                                  const fullEntry = entries.find(entry => entry.id === command.id);
+                                  if (fullEntry && fullEntry.content.trim()) {
+                                    handleCopyClick(command, new MouseEvent('click') as any);
+                                    setShowKebabMenu(null);
+                                    setDropdownSelectedIndex(0);
+                                  }
+                                }}
+                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                className={cn(
+                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
+                                  dropdownSelectedIndex === 0 && showKebabMenu === command.id
+                                    ? "bg-primary/20 text-primary" 
+                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Copy className="h-4 w-4" />
+                                Copy Note
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const fullEntry = entries.find(entry => entry.id === command.id);
+                                  if (fullEntry && fullEntry.content.trim()) {
+                                    handleExportClick(command, new MouseEvent('click') as any);
+                                    setShowKebabMenu(null);
+                                    setDropdownSelectedIndex(0);
+                                  }
+                                }}
+                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                className={cn(
+                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
+                                  dropdownSelectedIndex === 1 && showKebabMenu === command.id
+                                    ? "bg-primary/20 text-primary" 
+                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Download className="h-4 w-4" />
+                                Export as .txt
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleDeleteEntry(command.id);
+                                  setShowKebabMenu(null);
+                                  setDropdownSelectedIndex(0);
+                                }}
+                                className={cn(
+                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
+                                  dropdownSelectedIndex === 2 && showKebabMenu === command.id
+                                    ? "bg-destructive/20 text-destructive" 
+                                    : "text-destructive hover:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
+                                )}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </div>
                   )}
