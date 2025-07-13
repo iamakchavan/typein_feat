@@ -52,10 +52,17 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const handleEntryClick = (entry: Entry) => {
     if (currentEntry?.id === entry.id) return;
     setCurrentEntry(entry);
+    // Note: We deliberately don't close the sidebar when selecting existing entries
+    // This allows users to browse between entries while keeping the sidebar open
   };
 
   const handleNewEntry = () => {
     createNewEntry();
+    // Close sidebar on mobile when creating new entry
+    // This allows the editor to get focus and open the keyboard
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      onClose();
+    }
   };
 
   const handleDeleteClick = (entryId: string, e: React.MouseEvent) => {

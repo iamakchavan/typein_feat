@@ -108,6 +108,10 @@ export function Editor({
   // Get entries context
   const { currentEntry, updateEntryContent } = useEntries();
 
+  // Track if we should auto-focus (for new entries on mobile)
+  const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
+  const [lastEntryId, setLastEntryId] = useState<string | null>(null);
+
   // Handle external command palette trigger
   useEffect(() => {
     if (externalOpenCommandPalette && setExternalOpenCommandPalette) {
@@ -186,14 +190,30 @@ export function Editor({
         type: 'INIT', 
         payload: { content: currentEntry.content }
       });
+
+      // Determine if we should auto-focus
+      // Auto-focus if:
+      // 1. It's a new entry (different ID from last one)
+      // 2. The entry is empty (indicating it was just created)
+      // 3. We're on mobile
+      const isNewEntry = currentEntry.id !== lastEntryId;
+      const isEmptyEntry = currentEntry.content.trim() === '';
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      
+      // Only auto-focus on mobile for truly new empty entries
+      setShouldAutoFocus(isNewEntry && isEmptyEntry && isMobile);
+
+      setLastEntryId(currentEntry.id);
     } else {
       // Clear content if there's no current entry
       dispatch({
         type: 'INIT',
         payload: { content: '' }
       });
+      setShouldAutoFocus(false);
+      setLastEntryId(null);
     }
-  }, [currentEntry]);
+  }, [currentEntry, lastEntryId]);
 
   // Save content changes to current entry
   useEffect(() => {
@@ -677,7 +697,13 @@ export function Editor({
             onChange={handleChange}
             onScroll={handleScroll}
             placeholder="you can just type things..."
-            autoFocus
+            autoFocus={shouldAutoFocus || window.matchMedia('(min-width: 768px)').matches}
+            onFocus={() => {
+              // Clear the auto-focus flag after it's been used
+              if (shouldAutoFocus) {
+                setShouldAutoFocus(false);
+              }
+            }}
             spellCheck="true"
           />
           {showScrollButton && (
