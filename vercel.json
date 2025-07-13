@@ -12,6 +12,20 @@
       }
     },
     {
+      "src": "/typeinbanner.png",
+      "headers": {
+        "cache-control": "public, max-age=86400",
+        "content-type": "image/png"
+      }
+    },
+    {
+      "src": "/(.*\\.png)$",
+      "headers": {
+        "cache-control": "public, max-age=86400",
+        "content-type": "image/png"
+      }
+    },
+    {
       "handle": "filesystem"
     },
     {
