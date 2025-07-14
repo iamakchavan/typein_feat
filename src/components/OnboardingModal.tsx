@@ -5,27 +5,32 @@ const steps = [
   {
     title: 'Welcome to typein!',
     description: 'A minimal, beautiful journaling app. Your private writing space, organized by day.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
+    image: '/OB1.png',
   },
   {
     title: 'Daily Entries',
     description: 'typein automatically creates a new entry for each day. Use the sidebar to browse your history.',
-    image: '',
+    image: '/OB2.png',
   },
   {
     title: 'Distraction-Free Editor',
     description: 'Enjoy a clean writing experience with auto-save, keyboard shortcuts, and fullscreen mode.',
-    image: '',
+    image: '/OB3.png',
+  },
+  {
+    title: 'Made for Power Users',
+    description: 'command palette, for quick access to features, and powerful search, use Cmd+K or Ctrl+K to open.',
+    image: '/cmdk.png',
   },
   {
     title: 'Customize Your Space',
     description: 'Switch between light/dark themes and choose your favorite font in settings.',
-    image: '',
+    image: '/OB4.png',
   },
   {
     title: 'Your Data, Your Privacy',
     description: 'All your entries are stored locally in your browser. No accounts, no cloud, 100% private.',
-    image: '',
+    image: '/OB5.png',
   },
 ];
 
