@@ -282,11 +282,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                       <div className="hidden md:block">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-6 w-6 transition-all duration-200",
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-6 w-6 transition-all duration-200",
                                 "text-muted-foreground hover:text-foreground hover:bg-primary/10",
                                 "opacity-0 group-hover:opacity-100",
                                 isSelected && "opacity-100"
@@ -347,7 +347,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 handleDeleteClick(entry.id, e);
                               }}
                               className="text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
-                            >
+                      >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -368,7 +368,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               >
                                 <MoreVertical className="h-3.5 w-3.5" />
                                 <span className="sr-only">Entry Options</span>
-                              </Button>
+                      </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent 
                               align="end" 

@@ -658,7 +658,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
           <DialogPrimitive.Content className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-        <div className="flex flex-col max-h-[70vh]">
+        <div className="flex flex-col max-h-[70vh] overflow-x-hidden">
           {/* Search Header */}
           <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]">
             <Search className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
@@ -722,10 +722,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           )}>
                             {command.icon}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
+                                "text-[14px] font-medium truncate transition-colors break-all",
                                 index === selectedIndex ? "text-foreground" : "text-foreground/90"
                               )}>
                                 {command.title}
@@ -737,7 +737,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                             </div>
                             {command.description && (
                               <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
+                                "text-[12px] line-clamp-1 transition-colors break-all overflow-hidden",
                                 index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
                               )}>
                                 {command.description}
@@ -811,10 +811,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           )}>
                             {command.icon}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
+                                "text-[14px] font-medium truncate transition-colors break-all",
                                 index === selectedIndex ? "text-foreground" : "text-foreground/90"
                               )}>
                                 {command.title}
@@ -826,7 +826,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                             </div>
                             {command.description && (
                               <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
+                                "text-[12px] line-clamp-1 transition-colors break-all overflow-hidden",
                                 index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
                               )}>
                                 {command.description}
@@ -885,10 +885,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           )}>
                             {command.icon}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
+                                "text-[14px] font-medium truncate transition-colors break-all",
                                 index === selectedIndex ? "text-foreground" : "text-foreground/90"
                               )}>
                                 {command.title}
@@ -900,7 +900,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                             </div>
                             {command.description && (
                               <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
+                                "text-[12px] line-clamp-1 transition-colors break-all overflow-hidden",
                                 index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
                               )}>
                                 {command.description}
@@ -961,10 +961,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         )}>
                           {command.icon}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={cn(
-                              "text-[14px] font-medium truncate transition-colors",
+                              "text-[14px] font-medium truncate transition-colors break-all",
                               index === selectedIndex ? "text-foreground" : "text-foreground/90"
                             )}>
                               {command.title}
@@ -981,7 +981,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                           {command.description && (
                             <p className={cn(
-                              "text-[12px] line-clamp-1 transition-colors",
+                              "text-[12px] line-clamp-1 transition-colors break-all overflow-hidden",
                               index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
                             )}>
                               {command.description}
