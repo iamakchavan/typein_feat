@@ -48,9 +48,9 @@
       ]
     },
     {
-      "name": "Command Palette",
-      "short_name": "Commands",
-      "description": "Open command palette",
+      "name": "Quick Search",
+      "short_name": "Quick Search",
+      "description": "Open quick search",
       "url": "/?action=commands",
       "icons": [
         {
