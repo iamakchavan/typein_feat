@@ -280,10 +280,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       title,
       description: entry.content.slice(0, 100) + (entry.content.length > 100 ? '...' : ''),
       icon: entry.isBranchedOff ? (
-        <div className="relative">
-          <FileText className="h-4 w-4" />
-          <BranchOffIcon className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-orange-500" />
-        </div>
+        <BranchOffIcon className="h-4 w-4 text-orange-500" />
       ) : entry.pinned ? (
         <div className="relative">
           <FileText className="h-4 w-4" />
