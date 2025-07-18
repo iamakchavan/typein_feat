@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, FileText, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail, MoreVertical, Copy, Download } from 'lucide-react';
+import { Search, FileText, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail, MoreVertical, Copy, Download, Pin } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -38,6 +38,25 @@ const NewEntryIcon = () => (
   </svg>
 );
 
+// Custom Branch Off icon
+const BranchOffIcon = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M6.02,5.78m0,15.31V4.55m0,0v-1.91m0,3.14v-1.23m0,1.23c0,1.61,1.21,3.11,3.2,3.94l4.58,1.92c1.98,.83,3.2,2.32,3.2,3.94v3.84"></path>
+    <path d="M20.53,17.59l-3.41,3.66-3.66-3.41"></path>
+  </svg>
+);
+
 interface Command {
   id: string;
   title: string;
@@ -64,7 +83,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [isScrolling, setIsScrolling] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
-  const { entries, createNewEntry, setCurrentEntry, deleteEntry } = useEntries();
+  const { entries, createNewEntry, setCurrentEntry, deleteEntry, branchOffEntry } = useEntries();
   const { theme, setTheme, selectedFont, setSelectedFont } = useTheme();
   const { isPlaying, currentTrack, togglePlayPause, selectTrack, tracks, play } = useAudioPlayerContext();
   const { toast } = useToast();
@@ -260,7 +279,19 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       id: entry.id,
       title,
       description: entry.content.slice(0, 100) + (entry.content.length > 100 ? '...' : ''),
-      icon: <FileText className="h-4 w-4" />,
+      icon: entry.isBranchedOff ? (
+        <div className="relative">
+          <FileText className="h-4 w-4" />
+          <BranchOffIcon className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-orange-500" />
+        </div>
+      ) : entry.pinned ? (
+        <div className="relative">
+          <FileText className="h-4 w-4" />
+          <Pin className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
+        </div>
+      ) : (
+        <FileText className="h-4 w-4" />
+      ),
       action: () => {
         setCurrentEntry(entry);
         onClose();
@@ -417,6 +448,32 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     }
   };
 
+  const handleBranchOffClick = (entry: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Find the full entry from entries array
+      const fullEntry = entries.find(e => e.id === entry.id);
+      if (fullEntry && fullEntry.content.trim()) {
+        branchOffEntry(fullEntry.id);
+        // Show toast only on desktop (not mobile)
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          const originalDate = new Date(fullEntry.date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          toast({
+            description: `Entry branched off from ${originalDate}`,
+            duration: 2000,
+          });
+        }
+        console.log('Entry branched off');
+      }
+    } catch (err) {
+      console.error('Failed to branch off entry:', err);
+    }
+  };
+
   // Get the title of the entry to delete
   const entryToDeleteTitle = entryToDelete 
     ? entries.find(entry => entry.id === entryToDelete)?.content.split('\n')[0].slice(0, 50) || 'Untitled Entry'
@@ -513,7 +570,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
       // If kebab menu is open, handle kebab navigation
       if (showKebabMenu) {
-        const kebabOptions = ['copy', 'export', 'delete'];
+                          const kebabOptions = ['copy', 'branch-off', 'export', 'delete'];
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
@@ -539,6 +596,24 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 }
               }
             } else if (dropdownSelectedIndex === 1) {
+              // Branch off action
+              const fullEntry = entries.find(e => e.id === showKebabMenu);
+              if (fullEntry && fullEntry.content.trim()) {
+                branchOffEntry(fullEntry.id);
+                // Show toast only on desktop (not mobile)
+                if (window.matchMedia('(min-width: 768px)').matches) {
+                  const originalDate = new Date(fullEntry.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  });
+                  toast({
+                    description: `Entry branched off from ${originalDate}`,
+                    duration: 2000,
+                  });
+                }
+              }
+            } else if (dropdownSelectedIndex === 2) {
               // Export action
               const fullEntry = entries.find(e => e.id === showKebabMenu);
               if (fullEntry && fullEntry.content.trim()) {
@@ -563,7 +638,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   });
                 }
               }
-            } else if (dropdownSelectedIndex === 2) {
+            } else if (dropdownSelectedIndex === 3) {
               // Delete action
               handleDeleteEntry(showKebabMenu);
             }
@@ -1056,7 +1131,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 onClick={() => {
                                   const fullEntry = entries.find(entry => entry.id === command.id);
                                   if (fullEntry && fullEntry.content.trim()) {
-                                    handleExportClick(command, new MouseEvent('click') as any);
+                                    handleBranchOffClick(command, new MouseEvent('click') as any);
                                     setShowKebabMenu(null);
                                     setDropdownSelectedIndex(0);
                                   }
@@ -1065,6 +1140,28 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
                                   dropdownSelectedIndex === 1 && showKebabMenu === command.id
+                                    ? "bg-primary/20 text-primary" 
+                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <BranchOffIcon className="h-4 w-4 text-orange-500" />
+                                Branch Off
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const fullEntry = entries.find(entry => entry.id === command.id);
+                                  if (fullEntry && fullEntry.content.trim()) {
+                                    handleExportClick(command, new MouseEvent('click') as any);
+                                    setShowKebabMenu(null);
+                                    setDropdownSelectedIndex(0);
+                                  }
+                                }}
+                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                className={cn(
+                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
+                                  dropdownSelectedIndex === 2 && showKebabMenu === command.id
                                     ? "bg-primary/20 text-primary" 
                                     : entries.find(e => e.id === command.id)?.content.trim()
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
@@ -1082,7 +1179,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 }}
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
-                                  dropdownSelectedIndex === 2 && showKebabMenu === command.id
+                                  dropdownSelectedIndex === 3 && showKebabMenu === command.id
                                     ? "bg-destructive/20 text-destructive" 
                                     : "text-destructive hover:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
                                 )}

@@ -7,6 +7,8 @@ export interface Entry {
   date: string;
   content: string;
   pinned?: boolean;
+  isBranchedOff?: boolean;
+  originalEntryDate?: string;
 }
 
 interface EntryContextType {
@@ -17,6 +19,7 @@ interface EntryContextType {
   createNewEntry: () => void;
   deleteEntry: (id: string) => void;
   togglePinEntry: (id: string) => void;
+  branchOffEntry: (id: string) => void;
 }
 
 const EntryContext = createContext<EntryContextType | null>(null);
@@ -191,6 +194,44 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const branchOffEntry = async (id: string) => {
+    try {
+      const entryToBranchOff = entries.find(entry => entry.id === id);
+      if (!entryToBranchOff) return;
+
+      const today = new Date().toISOString();
+      const originalDate = new Date(entryToBranchOff.date).toISOString().split('T')[0];
+      
+      const branchedEntry: Entry = {
+        id: uuidv4(),
+        date: today,
+        content: entryToBranchOff.content,
+        isBranchedOff: true,
+        originalEntryDate: originalDate,
+        pinned: false // Don't branch off the pinned status
+      };
+
+      // Save to database
+      await db.saveEntry(branchedEntry);
+      
+      // Update state
+      setEntries(prev => {
+        const updated = [branchedEntry, ...prev];
+        // Sort to maintain order (pinned first, then by date)
+        return updated.sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        });
+      });
+      
+      // Set the branched entry as current
+      setCurrentEntry(branchedEntry);
+    } catch (error) {
+      console.error('Failed to branch off entry:', error);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -204,7 +245,8 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         updateEntryContent,
         createNewEntry,
         deleteEntry,
-        togglePinEntry
+        togglePinEntry,
+        branchOffEntry
       }}
     >
       {children}
