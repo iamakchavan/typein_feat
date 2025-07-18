@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Space+Grotesk:wght@300..700&family=Lora:wght@400..700&family=Instrument+Serif:ital@1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Space+Grotesk:wght@300..700&family=Lora:wght@400..700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -20,19 +20,27 @@
 /* Global font classes for system-wide application */
 .font-geist {
   font-family: 'Geist', sans-serif !important;
+  font-style: normal !important;
 }
 
 .font-space {
   font-family: 'Space Grotesk', sans-serif !important;
+  font-style: normal !important;
 }
 
 .font-lora {
   font-family: 'Lora', serif !important;
+  font-style: normal !important;
 }
 
 .font-instrument-italic {
   font-family: 'Instrument Serif', serif !important;
   font-style: italic !important;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif !important;
+  font-style: normal !important;
 }
 
 @layer base {

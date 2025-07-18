@@ -239,10 +239,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     {
       id: 'contact-support',
       title: 'Contact Support',
-      description: 'For queries and feedback: akc@typein.space',
+      description: 'For queries and feedback: info@typein.space',
       icon: <Mail className="h-4 w-4" />,
       action: () => {
-        window.open('mailto:akc@typein.space', '_blank');
+        window.open('mailto:info@typein.space', '_blank');
         onClose();
       },
       type: 'action'
@@ -851,7 +851,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                    ? "bg-primary/20 text-primary" 
                                    : "hover:bg-muted/50",
                                  selectedFont === font.value && "bg-primary/10 border border-primary/30",
-                                 `font-${font.value}`
+                                 {
+                                   'font-geist': font.value === 'geist',
+                                   'font-space': font.value === 'space',
+                                   'font-lora': font.value === 'lora',
+                                   'font-instrument-italic': font.value === 'instrument-italic',
+                                   'font-playfair': font.value === 'playfair',
+                                 },
+                                 font.value === 'instrument-italic' && 'italic'
                                )}
                              >
                                <Type className="h-3 w-3" />

@@ -15,6 +15,7 @@ export default {
         space: ['Space Grotesk', 'system-ui', 'sans-serif'],
         lora: ['Lora', 'Georgia', 'serif'],
         'instrument-italic': ['Instrument Serif', 'Georgia', 'serif'],
+        'playfair': ['Playfair Display', 'Georgia', 'serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

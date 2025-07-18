@@ -394,8 +394,10 @@ export function Editor({
                       'font-geist': font.value === 'geist',
                       'font-space': font.value === 'space',
                       'font-lora': font.value === 'lora',
-                      'font-instrument-italic italic': font.value === 'instrument-italic',
-                    }
+                      'font-instrument-italic': font.value === 'instrument-italic',
+                      'font-playfair': font.value === 'playfair',
+                    },
+                    font.value === 'instrument-italic' && 'italic'
                   )}
                 >
                   {font.label}
@@ -644,7 +646,7 @@ export function Editor({
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground mb-2">For queries and feedback</p>
                     <a
-                      href="mailto:akc@typein.space"
+                      href="mailto:info@typein.space"
                       className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-primary/10 border border-border/50 hover:border-primary/30"
                     >
                       <svg
@@ -662,7 +664,7 @@ export function Editor({
                         <rect width="20" height="16" x="2" y="4" rx="2"/>
                         <path d="m22 7-10 5L2 7"/>
                       </svg>
-                      akc@typein.space
+                      info@typein.space
                     </a>
                   </div>
                 </div>

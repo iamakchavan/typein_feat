@@ -4,7 +4,7 @@ import { loadFontPreferences, saveFontPreferences } from '@/lib/storage';
 
 type Theme = 'dark' | 'light' | 'amethyst-light' | 'amethyst-dark' | 'cosmic-light' | 'cosmic-dark' | 'perpetuity-light' | 'perpetuity-dark' | 'quantum-rose-light' | 'quantum-rose-dark' | 'clean-slate-light' | 'clean-slate-dark';
 
-type Font = 'geist' | 'space' | 'lora' | 'instrument-italic';
+type Font = 'geist' | 'space' | 'lora' | 'instrument-italic' | 'playfair';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -100,7 +100,7 @@ export function ThemeProvider({
     const root = document.documentElement;
     
     // Remove all font classes
-    root.classList.remove('font-geist', 'font-space', 'font-lora', 'font-instrument-italic');
+    root.classList.remove('font-geist', 'font-space', 'font-lora', 'font-instrument-italic', 'font-playfair');
     
     // Add the current font class
     root.classList.add(`font-${selectedFont}`);
