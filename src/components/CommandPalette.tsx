@@ -1146,7 +1146,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                     : "opacity-50 cursor-not-allowed"
                                 )}
                               >
-                                <BranchOffIcon className="h-4 w-4 text-orange-500" />
+                                <BranchOffIcon className="h-4 w-4" />
                                 Branch Off
                               </button>
                               <button

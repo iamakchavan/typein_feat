@@ -362,7 +362,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                   : "opacity-50 cursor-not-allowed"
                               )}
                             >
-                              <BranchOffIcon className="h-4 w-4 mr-2 text-orange-500" />
+                              <BranchOffIcon className="h-4 w-4 mr-2" />
                               Branch Off
                             </DropdownMenuItem>
                             <DropdownMenuItem 
@@ -448,7 +448,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                     : "opacity-50 cursor-not-allowed"
                                 )}
                               >
-                                <BranchOffIcon className="h-4 w-4 mr-2 text-orange-500" />
+                                <BranchOffIcon className="h-4 w-4 mr-2" />
                                 Branch Off
                               </DropdownMenuItem>
                               <DropdownMenuItem 
