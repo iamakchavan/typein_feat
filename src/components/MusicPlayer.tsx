@@ -135,33 +135,57 @@ export function MusicPlayer() {
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-32 p-3 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+          className="w-40 p-4 border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
           align="center"
-          sideOffset={4}
+          sideOffset={8}
           onMouseLeave={() => setShowVolumeControl(false)}
         >
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* Header with icon and percentage */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Volume</span>
-              <span className="text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Volume2 className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="text-sm font-medium text-foreground">Volume</span>
+              </div>
+              <span className="text-sm font-medium text-primary bg-primary/10 px-2 py-1 rounded-md min-w-[3rem] text-center">
                 {Math.round(volume * 100)}%
               </span>
             </div>
-            <Slider
-              value={[volume]}
-              onValueChange={([value]) => setVolume(value)}
-              max={1}
-              min={0}
-              step={0.1}
-              className="w-full"
-            />
+            
+            {/* Volume Slider */}
+            <div className="px-1">
+              <Slider
+                value={[volume]}
+                onValueChange={([value]) => setVolume(value)}
+                max={1}
+                min={0}
+                step={0.05}
+                className="w-full"
+              />
+            </div>
+            
+            {/* Mute/Unmute Button */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleVolumeToggle}
-              className="w-full h-6 text-xs"
+              className="w-full h-8 text-xs font-medium border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
             >
-              {isMuted ? 'Unmute' : 'Mute'}
+              {isMuted ? (
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-3 w-3" />
+                  Unmute
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <VolumeX className="h-3 w-3" />
+                  Mute
+                </div>
+              )}
             </Button>
           </div>
         </PopoverContent>
