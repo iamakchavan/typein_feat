@@ -7,6 +7,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { cn } from '@/lib/utils';
 import { fonts } from '@/lib/fonts';
+import packageJson from '../../package.json';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -666,6 +667,13 @@ export function Editor({
                       </svg>
                       info@typein.space
                     </a>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2">
+                  <div className="text-center">
+                    <span className="text-[12px] text-muted-foreground/60 font-space tracking-wide">
+                      v{packageJson.version}
+                    </span>
                   </div>
                 </div>
               </div>
