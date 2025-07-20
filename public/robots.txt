@@ -4,14 +4,8 @@ Allow: /
 # Sitemap
 Sitemap: https://typein.space/sitemap.xml
 
-# Block crawling of specific file types that aren't useful for SEO
-Disallow: /*.js$
-Disallow: /*.css$
-Disallow: /*.json$
-Disallow: /src/
-Disallow: /node_modules/
-
-# Allow crawling of main content and assets
+# Allow all important content
+Allow: /
 Allow: /*.png$
 Allow: /*.jpg$
 Allow: /*.jpeg$
@@ -20,33 +14,22 @@ Allow: /*.webp$
 Allow: /*.svg$
 Allow: /*.ico$
 Allow: /*.mp3$
+Allow: /manifest.json
+Allow: /llms.txt
 
-# Crawl delay (optional - helps prevent overwhelming the server)
+# Block non-essential files
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /dist/
+
+# Crawl delay (helps prevent overwhelming the server)
 Crawl-delay: 1
 
-# Specific bot instructions
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-# AI/LLM Crawlers
-User-agent: OpenAI-GPTBot
-Allow: /
-Disallow: /src/
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Anthropic-AI
-Allow: / 
+# Additional meta for search engines
+# Site: https://typein.space
+# Description: Free minimalist writing app for distraction-free writing and journaling
+# Keywords: minimalist writing app, distraction free writing, free writing app, journaling app 
