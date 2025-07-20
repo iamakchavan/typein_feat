@@ -671,7 +671,7 @@ export function Editor({
                 </div>
                 <div className="mt-3 pt-2">
                   <div className="text-center">
-                    <span className="text-[12px] text-muted-foreground/60 font-space tracking-wide">
+                    <span className="text-[12px] text-muted-foreground/60 font-mono tracking-wide">
                       v{packageJson.version}
                     </span>
                   </div>

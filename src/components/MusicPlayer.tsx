@@ -40,8 +40,6 @@ export function MusicPlayer() {
     }
   };
 
-  console.log('MusicPlayer render:', { currentTrack, tracks, isLoading, error });
-  
   if (!currentTrack) {
     return (
       <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-muted/20 border border-border/20">
@@ -135,7 +133,7 @@ export function MusicPlayer() {
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-40 p-4 border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="w-40 p-4 border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out"
           align="center"
           sideOffset={8}
           onMouseLeave={() => setShowVolumeControl(false)}
@@ -158,14 +156,14 @@ export function MusicPlayer() {
             
             {/* Volume Slider */}
             <div className="px-1">
-              <Slider
-                value={[volume]}
-                onValueChange={([value]) => setVolume(value)}
-                max={1}
-                min={0}
+            <Slider
+              value={[volume]}
+              onValueChange={([value]) => setVolume(value)}
+              max={1}
+              min={0}
                 step={0.05}
-                className="w-full"
-              />
+              className="w-full"
+            />
             </div>
             
             {/* Mute/Unmute Button */}

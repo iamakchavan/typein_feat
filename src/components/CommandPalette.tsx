@@ -690,7 +690,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, showKebabMenu, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks, entries, handleDeleteEntry]);
+  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, showKebabMenu, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks, entries, handleDeleteEntry, branchOffEntry, showScrollbarTemporarily, toast]);
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -729,21 +729,22 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
-          <DialogPrimitive.Content className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+          <DialogPrimitive.Content className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
+            <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
         <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
-          <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]">
-            <Search className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
+          <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
+            <Search className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search entries or commands..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
               style={{ animationDelay: '150ms', animationFillMode: 'both' }}
             />
-            <div className="text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+            <div className="text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-out" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
               ⌘K
             </div>
           </div>
@@ -771,7 +772,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     animationDelay: `${Math.min(index * 20, 100)}ms`,
                     animationFillMode: 'both'
                   }}
-                  className="animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  className="animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-out"
                 >
                   {command.isSpecialThemes ? (
                     <Popover 
@@ -818,7 +819,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" align="start">
+                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
                         <div className="space-y-0.5">
                           {themeOptions.map((option, index) => {
                             const getGradient = (themeId: string) => {
@@ -907,7 +908,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" align="start">
+                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
                         <div className="space-y-0.5">
                           {fonts.map((font, fontIndex) => (
                                                          <button
@@ -988,7 +989,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" align="start">
+                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
                         <div className="space-y-0.5">
                           {tracks.map((track, trackIndex) => (
                             <button
@@ -1196,7 +1197,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-3 bg-background/30 border-t border-border/20 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <div className="px-6 py-3 bg-background/30 border-t border-border/20 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">

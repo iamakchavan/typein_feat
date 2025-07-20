@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 
 const steps = [
@@ -36,6 +36,22 @@ const steps = [
 
 export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
+
+  // Preload all images in background
+  useEffect(() => {
+    const preloadImages = () => {
+      steps.forEach(stepData => {
+        if (stepData.image) {
+          const img = new Image();
+          img.src = stepData.image;
+        }
+      });
+    };
+    
+    // Start preloading after a short delay
+    const timer = setTimeout(preloadImages, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
