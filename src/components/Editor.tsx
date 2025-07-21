@@ -706,7 +706,7 @@ export function Editor({
             value={state.content}
             onChange={handleChange}
             onScroll={handleScroll}
-            placeholder="you can just type things..."
+            placeholder="you can just typein..."
             autoFocus={shouldAutoFocus || window.matchMedia('(min-width: 768px)').matches}
             onFocus={() => {
               // Clear the auto-focus flag after it's been used
