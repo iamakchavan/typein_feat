@@ -693,6 +693,8 @@ export function Editor({
       />
 
       <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
+        {/* SEO: Hidden H1 tag for search engines */}
+        <h1 className="sr-only">typein - Free Minimalist Writing App | Distraction-Free Text Editor</h1>
         <div className="relative flex-1 min-h-0">
           <textarea
             key={currentEntry?.id}
