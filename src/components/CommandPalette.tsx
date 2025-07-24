@@ -731,6 +731,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
           <DialogPrimitive.Content className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
             <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
+            <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
         <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
           <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">

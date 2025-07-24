@@ -1,6 +1,9 @@
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { MusicPlayer } from '@/components/MusicPlayer';
+import { MobileMusicPlayer } from '@/components/MobileMusicPlayer';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 interface StatusBarProps {
   wordCount: number;
@@ -11,6 +14,7 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts }: StatusBarProps) {
+  const [showMobileMusic, setShowMobileMusic] = useState(false);
   const getLastSavedText = () => {
     if (!lastSaved) return 'Not saved yet';
     
@@ -46,22 +50,41 @@ export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts 
             <MusicPlayer />
           </div>
           
-          {/* Save Status */}
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "transition-opacity duration-300 flex items-center",
-              isDirty ? "opacity-50" : "opacity-100"
+          {/* Mobile Music Toggle and Save Status */}
+          <div className="flex items-center gap-2">
+            {/* Mobile Music Toggle Chevron */}
+            <button
+              onClick={() => setShowMobileMusic(!showMobileMusic)}
+              className="md:hidden flex items-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showMobileMusic ? (
+                <ChevronRight className="h-3 w-3" />
+              ) : (
+                <ChevronLeft className="h-3 w-3" />
+              )}
+            </button>
+
+            {/* Mobile Music Player or Save Status */}
+            {showMobileMusic ? (
+              <MobileMusicPlayer />
+            ) : (
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "transition-opacity duration-300 flex items-center",
+                    isDirty ? "opacity-50" : "opacity-100"
+                  )}
+                >
+                  {getLastSavedText()}
+                </span>
+                <div 
+                  className={cn(
+                    "h-2 w-2 rounded-full transition-colors duration-300",
+                    isDirty ? "bg-amber-500" : "bg-green-500"
+                  )} 
+                />
+              </div>
             )}
-          >
-            {getLastSavedText()}
-          </span>
-          <div 
-            className={cn(
-              "h-2 w-2 rounded-full transition-colors duration-300",
-              isDirty ? "bg-amber-500" : "bg-green-500"
-            )} 
-          />
           </div>
         </div>
       </div>
