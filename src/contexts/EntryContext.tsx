@@ -103,8 +103,43 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Remove any empty entries except today's entry
+        // Get today's date
         const today = new Date().toISOString().split('T')[0];
+        
+        // Find all entries for today
+        const todayEntries = loadedEntries.filter(entry => {
+          const entryDate = new Date(entry.date).toISOString().split('T')[0];
+          return entryDate === today;
+        });
+
+        // If there are multiple entries for today, keep only one (the first non-empty, or the first one)
+        let todayEntry: Entry | undefined;
+        if (todayEntries.length > 1) {
+          console.warn(`Found ${todayEntries.length} entries for today, cleaning up duplicates`);
+          
+          // Find the first non-empty entry, or just use the first one
+          todayEntry = todayEntries.find(e => !isContentEmpty(e.content)) || todayEntries[0];
+          
+          // Delete the duplicate entries
+          for (const entry of todayEntries) {
+            if (entry.id !== todayEntry.id) {
+              await db.deleteEntry(entry.id);
+            }
+          }
+          
+          // Remove duplicates from loaded entries
+          loadedEntries = loadedEntries.filter(entry => {
+            const entryDate = new Date(entry.date).toISOString().split('T')[0];
+            if (entryDate === today) {
+              return entry.id === todayEntry!.id;
+            }
+            return true;
+          });
+        } else {
+          todayEntry = todayEntries[0];
+        }
+
+        // Remove any empty entries except today's entry
         loadedEntries = loadedEntries.filter(entry => {
           const entryDate = new Date(entry.date).toISOString().split('T')[0];
           return !isContentEmpty(entry.content) || entryDate === today;
@@ -112,12 +147,6 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         
         // Sort entries by date (newest first)
         loadedEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        // Check if we have an entry for today
-        const todayEntry = loadedEntries.find(entry => {
-          const entryDate = new Date(entry.date).toISOString().split('T')[0];
-          return entryDate === today;
-        });
 
         // If no entry for today exists, create one
         if (!todayEntry) {

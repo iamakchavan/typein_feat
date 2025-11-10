@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { getEntryPlainText, getContentPreview as getPreview, isContentEmpty, searchInContent } from '@/lib/entryHelpers';
+import { exportEntryAsMarkdown } from '@/lib/markdown';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -82,13 +83,22 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const handleDeleteClick = (entryId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setDeleteEntryId(entryId);
-    setIsDeleteModalOpen(true);
+    // Delay opening the modal to allow the dropdown to close first
+    // This prevents focus trap issues with Radix UI
+    setTimeout(() => {
+      setIsDeleteModalOpen(true);
+    }, 100);
   };
 
   const handleDeleteConfirm = () => {
     if (deleteEntryId) {
       deleteEntry(deleteEntryId);
     }
+    setIsDeleteModalOpen(false);
+    setDeleteEntryId(null);
+  };
+
+  const handleDeleteCancel = () => {
     setIsDeleteModalOpen(false);
     setDeleteEntryId(null);
   };
@@ -108,6 +118,26 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
       console.log('Entry copied to clipboard');
     } catch (err) {
       console.error('Failed to copy entry:', err);
+    }
+  };
+
+  const handleExportMarkdownClick = (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      exportEntryAsMarkdown(entry);
+      
+      // Show toast
+      toast({
+        title: 'Exported as Markdown',
+        description: 'Note exported successfully',
+      });
+    } catch (error) {
+      console.error('Failed to export as Markdown:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export note as Markdown',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -375,6 +405,19 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               Copy Note
                             </DropdownMenuItem>
                             <DropdownMenuItem 
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleExportMarkdownClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content)}
+                              className={cn(
+                                "cursor-pointer",
+                                !isContentEmpty(entry.content)
+                                  ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                  : "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Export as .md
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
                               disabled={isContentEmpty(entry.content)}
                               className={cn(
@@ -461,6 +504,19 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 Copy Note
                               </DropdownMenuItem>
                               <DropdownMenuItem 
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleExportMarkdownClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content)}
+                                className={cn(
+                                  "cursor-pointer",
+                                  !isContentEmpty(entry.content)
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export as .md
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
                                 onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
                                 disabled={isContentEmpty(entry.content)}
                                 className={cn(
@@ -500,7 +556,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
       {entryToDelete && (
         <DeleteConfirmModal
           isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
           entryTitle={format(new Date(entryToDelete.date), 'MMMM d, yyyy')}
         />

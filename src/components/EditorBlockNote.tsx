@@ -24,8 +24,13 @@ import {
   SunIcon, 
   Type, 
   Undo2,
-  Redo2
+  Redo2,
+  Download,
+  Upload
 } from 'lucide-react';
+import { exportBackup, importBackup } from '@/lib/backup';
+import { useToast } from '@/hooks/use-toast';
+import { BackupStatusDialog } from '@/components/BackupStatusDialog';
 
 // Custom Fullscreen icons
 const FullscreenIcon = () => (
@@ -99,9 +104,111 @@ export function EditorBlockNote({
   // Theme and font handling
   const { theme, setTheme, selectedFont, setSelectedFont, fontSize, setFontSize } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { toast } = useToast();
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Backup status dialog state
+  const [backupDialog, setBackupDialog] = useState<{
+    isOpen: boolean;
+    type: 'export' | 'import';
+    status: 'preparing' | 'processing' | 'complete' | 'error';
+    progress: number;
+    stats?: {
+      entriesProcessed?: number;
+      totalEntries?: number;
+      mediaProcessed?: number;
+      totalMedia?: number;
+    };
+    error?: string;
+  }>({
+    isOpen: false,
+    type: 'export',
+    status: 'preparing',
+    progress: 0,
+  });
+
+  // Backup/Restore handlers
+  const handleExportBackup = async () => {
+    setBackupDialog({
+      isOpen: true,
+      type: 'export',
+      status: 'preparing',
+      progress: 0,
+    });
+
+    try {
+      // Simulate progress for better UX
+      setBackupDialog(prev => ({ ...prev, status: 'processing', progress: 30 }));
+      
+      await exportBackup();
+      
+      setBackupDialog(prev => ({ ...prev, progress: 100, status: 'complete' }));
+      
+      // Auto-close after 2 seconds
+      setTimeout(() => {
+        setBackupDialog(prev => ({ ...prev, isOpen: false }));
+      }, 2000);
+    } catch (error) {
+      setBackupDialog(prev => ({
+        ...prev,
+        status: 'error',
+        error: 'Failed to export backup. Please try again.',
+      }));
+    }
+  };
+
+  const handleImportBackup = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      setBackupDialog({
+        isOpen: true,
+        type: 'import',
+        status: 'preparing',
+        progress: 0,
+      });
+
+      try {
+        setBackupDialog(prev => ({ ...prev, status: 'processing', progress: 20 }));
+        
+        const result = await importBackup(file);
+        
+        if (result.success) {
+          setBackupDialog(prev => ({
+            ...prev,
+            progress: 100,
+            status: 'complete',
+            stats: {
+              totalEntries: result.entriesImported,
+              totalMedia: result.mediaImported,
+            },
+          }));
+          
+          // Reload the page after showing success
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          setBackupDialog(prev => ({
+            ...prev,
+            status: 'error',
+            error: result.errors[0] || 'Failed to import backup',
+          }));
+        }
+      } catch (error) {
+        setBackupDialog(prev => ({
+          ...prev,
+          status: 'error',
+          error: 'Failed to import backup. Please try again.',
+        }));
+      }
+    };
+    input.click();
+  };
 
   // Command palette
   const { isOpen: isCommandPaletteOpen, openPalette, closePalette: closeCommandPalette } = useCommandPalette();
@@ -134,33 +241,50 @@ export function EditorBlockNote({
   // Update editor content when current entry changes
   useEffect(() => {
     if (currentEntry && currentEntry.id !== lastEntryId && editor) {
-      let content: any;
-      
-      if (Array.isArray(currentEntry.content)) {
-        // Already in BlockNote format
-        content = currentEntry.content;
-      } else if (typeof currentEntry.content === 'string') {
-        // Plain text - convert to BlockNote format
-        if (currentEntry.content.trim() === '') {
-          content = [{ type: 'paragraph' as const, content: [] }];
+      try {
+        let content: any;
+        
+        if (Array.isArray(currentEntry.content)) {
+          // Already in BlockNote format - validate it
+          content = currentEntry.content.length > 0 
+            ? currentEntry.content 
+            : [{ type: 'paragraph' as const, content: [] }];
+        } else if (typeof currentEntry.content === 'string') {
+          // Plain text - convert to BlockNote format
+          if (currentEntry.content.trim() === '') {
+            content = [{ type: 'paragraph' as const, content: [] }];
+          } else {
+            // Split by lines and create paragraph blocks
+            const lines = currentEntry.content.split('\n');
+            content = lines.map(line => ({
+              type: 'paragraph' as const,
+              content: line ? [{ type: 'text' as const, text: line, styles: {} }] : [],
+            }));
+          }
         } else {
-          // Split by lines and create paragraph blocks
-          const lines = currentEntry.content.split('\n');
-          content = lines.map(line => ({
-            type: 'paragraph' as const,
-            content: line ? [{ type: 'text' as const, text: line, styles: {} }] : [],
-          }));
+          // Fallback to empty paragraph
+          console.warn('Unknown content format for entry:', currentEntry.id);
+          content = [{ type: 'paragraph' as const, content: [] }];
         }
-      } else {
-        // Fallback to empty paragraph
-        content = [{ type: 'paragraph' as const, content: [] }];
+        
+        editor.replaceBlocks(editor.document, content);
+        setLastEntryId(currentEntry.id);
+        setIsDirty(false);
+      } catch (error) {
+        console.error('Failed to load entry content:', error);
+        // Load empty content on error
+        editor.replaceBlocks(editor.document, [{ type: 'paragraph' as const, content: [] }]);
+        setLastEntryId(currentEntry.id);
+        setIsDirty(false);
+        
+        toast({
+          title: 'Error loading entry',
+          description: 'This entry could not be loaded. It may be corrupted.',
+          variant: 'destructive',
+        });
       }
-      
-      editor.replaceBlocks(editor.document, content);
-      setLastEntryId(currentEntry.id);
-      setIsDirty(false);
     }
-  }, [currentEntry, lastEntryId, editor]);
+  }, [currentEntry, lastEntryId, editor, toast]);
 
   // Handle editor changes
   const handleEditorChange = useCallback(() => {
@@ -318,7 +442,18 @@ export function EditorBlockNote({
   })() : 0;
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <>
+      <BackupStatusDialog
+        isOpen={backupDialog.isOpen}
+        onClose={() => setBackupDialog(prev => ({ ...prev, isOpen: false }))}
+        type={backupDialog.type}
+        status={backupDialog.status}
+        progress={backupDialog.progress}
+        stats={backupDialog.stats}
+        error={backupDialog.error}
+      />
+      
+      <div className="h-screen flex flex-col bg-background overflow-hidden">
       <header className="h-12 px-4 flex justify-between items-center border-b border-border/10 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Button
@@ -606,13 +741,33 @@ export function EditorBlockNote({
                   </Select>
                 </div>
                 <div className="border-t border-border my-4" />
-                <Button
-                  variant="default"
-                  className="w-full text-sm font-medium"
-                  onClick={() => onShowOnboarding && onShowOnboarding()}
-                >
-                  Show Onboarding
-                </Button>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-sm font-medium"
+                      onClick={handleExportBackup}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Backup
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-sm font-medium"
+                      onClick={handleImportBackup}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Backup
+                    </Button>
+                  </div>
+                  <Button
+                    variant="default"
+                    className="w-full text-sm font-medium"
+                    onClick={() => onShowOnboarding && onShowOnboarding()}
+                  >
+                    Show Onboarding
+                  </Button>
+                </div>
                 <div className="mt-3 pt-2">
                   <div className="text-center">
                     <span className="text-[12px] text-muted-foreground/60 font-mono tracking-wide">
@@ -675,6 +830,7 @@ export function EditorBlockNote({
           { icon: <Redo2 className="h-3 w-3" />, combo: '⌘ + Y' },
         ]}
       />
-    </div>
+      </div>
+    </>
   );
 }
