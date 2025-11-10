@@ -1,0 +1,338 @@
+/* Custom BlockNote styling to match typein's minimalist design */
+
+/* Remove default BlockNote padding and borders */
+.bn-container {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.bn-editor {
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  line-height: 1.75 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Hide side menu and drag handle only - keep formatting toolbar */
+.bn-side-menu,
+.bn-drag-handle-menu {
+  display: none !important;
+}
+
+/* Style formatting toolbar to match theme */
+.bn-formatting-toolbar {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+  padding: 0.25rem !important;
+}
+
+.bn-formatting-toolbar button {
+  color: hsl(var(--foreground)) !important;
+  border-radius: 0.375rem !important;
+}
+
+.bn-formatting-toolbar button:hover {
+  background: hsl(var(--accent)) !important;
+}
+
+.bn-formatting-toolbar button[data-active="true"] {
+  background: hsl(var(--accent)) !important;
+}
+
+/* Slash menu - use default BlockNote shadcn styling with fixed font size */
+.bn-suggestion-menu,
+.bn-suggestion-menu *,
+.bn-suggestion-menu-item,
+.bn-suggestion-menu-item *,
+.bn-suggestion-menu-label,
+.bn-suggestion-menu-label * {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Minimal scrollbar for slash menu */
+.bn-suggestion-menu {
+  scrollbar-width: thin !important;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent !important;
+}
+
+.bn-suggestion-menu::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+.bn-suggestion-menu::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.bn-suggestion-menu::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2) !important;
+  border-radius: 2px !important;
+}
+
+.bn-suggestion-menu::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3) !important;
+}
+
+/* Set base font size on editor only */
+.editor-wrapper .bn-editor {
+  font-size: var(--editor-font-size) !important;
+}
+
+/* Inherit font family for all editor content */
+.bn-container,
+.bn-container *,
+.bn-editor,
+.bn-editor *,
+.bn-block-content,
+.bn-block-content *,
+.bn-inline-content,
+.bn-inline-content * {
+  font-family: inherit !important;
+}
+
+/* Heading styles - balanced sizes */
+.bn-block-content h1 {
+  font-size: 1.5em !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.bn-block-content h2 {
+  font-size: 1.25em !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.bn-block-content h3 {
+  font-size: 1.1em !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* List styles */
+[data-content-type="numberedListItem"],
+[data-content-type="bulletListItem"] {
+  display: flex !important;
+  align-items: baseline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.75 !important;
+}
+
+[data-content-type="numberedListItem"] .bn-inline-content,
+[data-content-type="bulletListItem"] .bn-inline-content {
+  display: flex !important;
+  align-items: baseline !important;
+  width: 100% !important;
+}
+
+[data-content-type="numberedListItem"]::before,
+[data-content-type="bulletListItem"]::before {
+  color: hsl(var(--muted-foreground)) !important;
+  margin-right: 0.5em !important;
+  flex-shrink: 0 !important;
+  min-width: 1.5em !important;
+  display: inline-block !important;
+}
+
+[data-content-type="numberedListItem"] {
+  counter-increment: list-item !important;
+}
+
+[data-content-type="numberedListItem"]::before {
+  content: counter(list-item) "." !important;
+}
+
+[data-content-type="bulletListItem"]::before {
+  content: "•" !important;
+}
+
+.bn-editor {
+  counter-reset: list-item !important;
+}
+
+/* Divider styles */
+[data-content-type="divider"] {
+  margin: 0.5em 0 !important;
+  padding: 0 !important;
+}
+
+[data-content-type="divider"] hr {
+  border: none !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+  margin: 0 !important;
+  opacity: 0.5 !important;
+}
+
+/* Paragraph styles */
+.bn-block-content p {
+  margin: 0 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.75 !important;
+}
+
+/* Table styles */
+.bn-block-content table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 0.5em 0 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.bn-block-content table th,
+.bn-block-content table td {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.5em 0.75em !important;
+  text-align: left !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.bn-block-content table th {
+  background: hsl(var(--muted) / 0.5) !important;
+  font-weight: 600 !important;
+}
+
+.bn-block-content table tr:hover {
+  background: hsl(var(--muted) / 0.3) !important;
+}
+
+/* Minimal scrollbars on table containers */
+[data-content-type="table"],
+.bn-block-content [data-content-type="table"],
+.bn-table-wrapper {
+  overflow-x: auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent !important;
+}
+
+[data-content-type="table"]::-webkit-scrollbar,
+.bn-block-content [data-content-type="table"]::-webkit-scrollbar,
+.bn-table-wrapper::-webkit-scrollbar {
+  height: 4px !important;
+  width: 4px !important;
+}
+
+[data-content-type="table"]::-webkit-scrollbar-track,
+.bn-block-content [data-content-type="table"]::-webkit-scrollbar-track,
+.bn-table-wrapper::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+[data-content-type="table"]::-webkit-scrollbar-thumb,
+.bn-block-content [data-content-type="table"]::-webkit-scrollbar-thumb,
+.bn-table-wrapper::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2) !important;
+  border-radius: 2px !important;
+}
+
+[data-content-type="table"]::-webkit-scrollbar-thumb:hover,
+.bn-block-content [data-content-type="table"]::-webkit-scrollbar-thumb:hover,
+.bn-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3) !important;
+}
+
+/* Media styles - Image, Video, Audio, File */
+[data-content-type="image"],
+[data-content-type="video"],
+[data-content-type="audio"],
+[data-content-type="file"] {
+  margin: 0.75em 0 !important;
+}
+
+.bn-block-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Hide broken image icon while loading from IndexedDB */
+.bn-block-content img[src^="indexeddb://"] {
+  opacity: 0.5 !important;
+  background: hsl(var(--muted)) !important;
+  min-height: 200px !important;
+}
+
+.bn-block-content video {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.bn-block-content audio {
+  width: 100% !important;
+  max-width: 500px !important;
+}
+
+/* File block styling */
+[data-content-type="file"] {
+  padding: 0.75em !important;
+  background: hsl(var(--muted) / 0.3) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Block spacing */
+.bn-block-outer {
+  margin: 0 !important;
+  padding: 0.15em 0 !important;
+}
+
+.bn-block-outer[data-content-type="paragraph"] {
+  padding: 0.1em 0 !important;
+}
+
+.bn-block-outer[data-content-type="numberedListItem"],
+.bn-block-outer[data-content-type="bulletListItem"] {
+  padding: 0.05em 0 !important;
+}
+
+.bn-block-outer[data-content-type="heading"] {
+  padding: 0.15em 0 !important;
+}
+
+/* Placeholder styling */
+.bn-editor [data-placeholder]:before {
+  color: hsl(var(--muted-foreground) / 0.5) !important;
+  content: attr(data-placeholder) !important;
+  font-style: normal !important;
+}
+
+/* Focus styles */
+.bn-editor:focus-within {
+  outline: none !important;
+}
+
+/* Make editor fill container and allow scrolling WITHOUT scrollbar */
+.bn-container {
+  height: 100% !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  /* Hide scrollbar completely */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.bn-container::-webkit-scrollbar {
+  display: none !important;
+}
+
+.bn-editor {
+  min-height: 100% !important;
+  width: 100% !important;
+  overflow-y: visible !important;
+}

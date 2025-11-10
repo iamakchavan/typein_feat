@@ -8,6 +8,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
 import { fonts } from '@/lib/fonts';
+import { getEntryPlainText, getEntryTitle, isContentEmpty } from '@/lib/entryHelpers';
 import { Track } from '@/lib/musicLibrary';
 import { useAudioPlayerContext } from '@/contexts/AudioPlayerContext';
 import { useToast } from '@/hooks/use-toast';
@@ -271,14 +272,17 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   // Create entry commands from ALL entries (for searching)
   const allEntryCommands: Command[] = entries.map(entry => {
     // Generate title from content or use date
-    const title = entry.content.trim() 
-      ? entry.content.split('\n')[0].slice(0, 50) + (entry.content.split('\n')[0].length > 50 ? '...' : '')
+    const plainText = getEntryPlainText(entry.content);
+    const title = !isContentEmpty(entry.content)
+      ? getEntryTitle(entry.content, `Entry from ${new Date(entry.date).toLocaleDateString()}`)
       : `Entry from ${new Date(entry.date).toLocaleDateString()}`;
+    
+    const description = plainText.slice(0, 100) + (plainText.length > 100 ? '...' : '');
     
     return {
       id: entry.id,
       title,
-      description: entry.content.slice(0, 100) + (entry.content.length > 100 ? '...' : ''),
+      description,
       icon: entry.isBranchedOff ? (
         <BranchOffIcon className="h-4 w-4 text-orange-500" />
       ) : entry.pinned ? (
@@ -296,7 +300,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       type: 'entry' as const,
       lastModified: new Date(entry.date),
       // Add full entry data for enhanced searching
-      fullContent: entry.content,
+      fullContent: plainText,
       dateString: new Date(entry.date).toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'short', 
@@ -388,7 +392,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       // Find the full entry from entries array
       const fullEntry = entries.find(e => e.id === entry.id);
       if (fullEntry) {
-        await navigator.clipboard.writeText(fullEntry.content);
+        const plainText = getEntryPlainText(fullEntry.content);
+        await navigator.clipboard.writeText(plainText);
         // Show toast only on desktop (not mobile)
         if (window.matchMedia('(min-width: 768px)').matches) {
           toast({
@@ -410,7 +415,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       const fullEntry = entries.find(e => e.id === entry.id);
       if (fullEntry) {
         // Create a blob with the entry content
-        const blob = new Blob([fullEntry.content], { type: 'text/plain' });
+        const plainText = getEntryPlainText(fullEntry.content);
+        const blob = new Blob([plainText], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         
         // Create a temporary download link
@@ -418,7 +424,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         link.href = url;
         
         // Generate filename from first line or use date
-        const firstLine = fullEntry.content.split('\n')[0].trim();
+        const firstLine = plainText.split('\n')[0].trim();
         const filename = firstLine 
           ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
           : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
@@ -450,7 +456,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     try {
       // Find the full entry from entries array
       const fullEntry = entries.find(e => e.id === entry.id);
-      if (fullEntry && fullEntry.content.trim()) {
+      if (fullEntry && !isContentEmpty(fullEntry.content)) {
         branchOffEntry(fullEntry.id);
         // Show toast only on desktop (not mobile)
         if (window.matchMedia('(min-width: 768px)').matches) {
@@ -473,7 +479,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   // Get the title of the entry to delete
   const entryToDeleteTitle = entryToDelete 
-    ? entries.find(entry => entry.id === entryToDelete)?.content.split('\n')[0].slice(0, 50) || 'Untitled Entry'
+    ? getEntryTitle(entries.find(entry => entry.id === entryToDelete)?.content || '', 'Untitled Entry')
     : '';
 
   // Handle keyboard navigation
@@ -582,8 +588,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             if (dropdownSelectedIndex === 0) {
               // Copy action
               const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && fullEntry.content.trim()) {
-                navigator.clipboard.writeText(fullEntry.content);
+              if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                const plainText = getEntryPlainText(fullEntry.content);
+                navigator.clipboard.writeText(plainText);
                 // Show toast only on desktop (not mobile)
                 if (window.matchMedia('(min-width: 768px)').matches) {
                   toast({
@@ -595,7 +602,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             } else if (dropdownSelectedIndex === 1) {
               // Branch off action
               const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && fullEntry.content.trim()) {
+              if (fullEntry && !isContentEmpty(fullEntry.content)) {
                 branchOffEntry(fullEntry.id);
                 // Show toast only on desktop (not mobile)
                 if (window.matchMedia('(min-width: 768px)').matches) {
@@ -613,12 +620,13 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             } else if (dropdownSelectedIndex === 2) {
               // Export action
               const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && fullEntry.content.trim()) {
-                const blob = new Blob([fullEntry.content], { type: 'text/plain' });
+              if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                const plainText = getEntryPlainText(fullEntry.content);
+                const blob = new Blob([plainText], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                const firstLine = fullEntry.content.split('\n')[0].trim();
+                const firstLine = plainText.split('\n')[0].trim();
                 const filename = firstLine 
                   ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
                   : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
@@ -1107,18 +1115,24 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                               <button
                                 onClick={() => {
                                   const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && fullEntry.content.trim()) {
+                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
                                     handleCopyClick(command, new MouseEvent('click') as any);
                                     setShowKebabMenu(null);
                                     setDropdownSelectedIndex(0);
                                   }
                                 }}
-                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                disabled={(() => {
+                                  const entry = entries.find(e => e.id === command.id);
+                                  return !entry || isContentEmpty(entry.content);
+                                })()}
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
                                   dropdownSelectedIndex === 0 && showKebabMenu === command.id
                                     ? "bg-primary/20 text-primary" 
-                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    : (() => {
+                                        const entry = entries.find(e => e.id === command.id);
+                                        return entry && !isContentEmpty(entry.content);
+                                      })()
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
@@ -1129,18 +1143,24 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                               <button
                                 onClick={() => {
                                   const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && fullEntry.content.trim()) {
+                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
                                     handleBranchOffClick(command, new MouseEvent('click') as any);
                                     setShowKebabMenu(null);
                                     setDropdownSelectedIndex(0);
                                   }
                                 }}
-                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                disabled={(() => {
+                                  const entry = entries.find(e => e.id === command.id);
+                                  return !entry || isContentEmpty(entry.content);
+                                })()}
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
                                   dropdownSelectedIndex === 1 && showKebabMenu === command.id
                                     ? "bg-primary/20 text-primary" 
-                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    : (() => {
+                                        const entry = entries.find(e => e.id === command.id);
+                                        return entry && !isContentEmpty(entry.content);
+                                      })()
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
@@ -1151,18 +1171,24 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                               <button
                                 onClick={() => {
                                   const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && fullEntry.content.trim()) {
+                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
                                     handleExportClick(command, new MouseEvent('click') as any);
                                     setShowKebabMenu(null);
                                     setDropdownSelectedIndex(0);
                                   }
                                 }}
-                                disabled={!entries.find(e => e.id === command.id)?.content.trim()}
+                                disabled={(() => {
+                                  const entry = entries.find(e => e.id === command.id);
+                                  return !entry || isContentEmpty(entry.content);
+                                })()}
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
                                   dropdownSelectedIndex === 2 && showKebabMenu === command.id
                                     ? "bg-primary/20 text-primary" 
-                                    : entries.find(e => e.id === command.id)?.content.trim()
+                                    : (() => {
+                                        const entry = entries.find(e => e.id === command.id);
+                                        return entry && !isContentEmpty(entry.content);
+                                      })()
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                           )}

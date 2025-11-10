@@ -1,8 +1,6 @@
-import React, { useCallback, useEffect, useReducer, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useEntries } from '@/contexts/EntryContext';
-import { editorReducer } from '@/lib/editorReducer';
-import { loadEditorState, saveEditorState, initStorage } from '@/lib/storage';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { cn } from '@/lib/utils';
@@ -15,9 +13,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Sidebar } from '@/components/Sidebar';
 import { StatusBar } from '@/components/StatusBar';
 import { CommandPalette } from '@/components/CommandPalette';
-import { getEntryPlainText, isContentEmpty } from '@/lib/entryHelpers';
+import { useBlockNoteEditor } from '@/hooks/useBlockNoteEditor';
+import { BlockNoteView } from '@blocknote/shadcn';
+import '@blocknote/shadcn/style.css';
+import '@/styles/blocknote-custom.css';
+import type { PartialBlock } from '@blocknote/core';
+import { mediaStorage } from '@/lib/mediaStorage';
 import { 
-  ArrowDownToLine, 
   MoonIcon, 
   SunIcon, 
   Type, 
@@ -85,7 +87,7 @@ const SettingsIcon = () => (
   </svg>
 );
 
-export function Editor({ 
+export function EditorBlockNote({ 
   onShowOnboarding, 
   openCommandPalette: externalOpenCommandPalette, 
   setOpenCommandPalette: setExternalOpenCommandPalette 
@@ -98,9 +100,6 @@ export function Editor({
   const { theme, setTheme, selectedFont, setSelectedFont, fontSize, setFontSize } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Scroll state
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -110,8 +109,7 @@ export function Editor({
   // Get entries context
   const { currentEntry, updateEntryContent } = useEntries();
 
-  // Track if we should auto-focus (for new entries on mobile)
-  const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
+  // Track last entry ID for detecting changes
   const [lastEntryId, setLastEntryId] = useState<string | null>(null);
 
   // Handle external command palette trigger
@@ -122,122 +120,64 @@ export function Editor({
     }
   }, [externalOpenCommandPalette, setExternalOpenCommandPalette, openPalette]);
 
-  // Initialize editor state
-  const [state, dispatch] = useReducer(editorReducer, {
-    content: '',
-    baseContent: '',
-    lastSaved: null,
-    isDirty: false,
-    history: [],
-    historyIndex: 0,
-  });
+  // Initialize BlockNote editor with current entry content
+  const initialContent = currentEntry && Array.isArray(currentEntry.content) 
+    ? currentEntry.content as PartialBlock[]
+    : undefined;
+  
+  const editor = useBlockNoteEditor(initialContent);
 
-  // Keyboard shortcuts
-  useKeyboardShortcut({ key: 's', metaKey: true }, (e) => {
-    e.preventDefault();
-    dispatch({ type: 'SAVE' });
-  });
-
-  useKeyboardShortcut({ key: 'z', metaKey: true }, (e) => {
-    e.preventDefault();
-    dispatch({ type: 'UNDO' });
-  });
-
-  useKeyboardShortcut({ key: 'y', metaKey: true }, (e) => {
-    e.preventDefault();
-    dispatch({ type: 'REDO' });
-  });
-
-  // Load content from storage when component mounts
-  useEffect(() => {
-    const loadContent = async () => {
-      try {
-        if (currentEntry) {
-          // If we have a current entry, use its content
-          // Convert to plain text if it's in BlockNote format
-          const plainText = getEntryPlainText(currentEntry.content);
-          dispatch({
-            type: 'INIT',
-            payload: { content: plainText }
-          });
-        } else {
-          // Otherwise try to load from editor state
-          const savedContent = await loadEditorState();
-          if (savedContent) {
-            dispatch({
-              type: 'INIT',
-              payload: { content: savedContent.content }
-            });
-          } else {
-            dispatch({
-              type: 'INIT',
-              payload: { content: '' }
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load content:', error);
-        dispatch({
-          type: 'INIT',
-          payload: { content: '' }
-        });
-      }
-    };
-
-    loadContent();
-  }, [currentEntry]);
+  // Track save state
+  const [lastSaved, setLastSaved] = useState<number | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Update editor content when current entry changes
   useEffect(() => {
-    if (currentEntry) {
-      // Convert to plain text if it's in BlockNote format
-      const plainText = getEntryPlainText(currentEntry.content);
-      dispatch({ 
-        type: 'INIT', 
-        payload: { content: plainText }
-      });
-
-      // Determine if we should auto-focus
-      // Auto-focus if:
-      // 1. It's a new entry (different ID from last one)
-      // 2. The entry is empty (indicating it was just created)
-      // 3. We're on mobile
-      const isNewEntry = currentEntry.id !== lastEntryId;
-      const isEmptyEntry = isContentEmpty(currentEntry.content);
-      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    if (currentEntry && currentEntry.id !== lastEntryId && editor) {
+      let content: any;
       
-      // Only auto-focus on mobile for truly new empty entries
-      setShouldAutoFocus(isNewEntry && isEmptyEntry && isMobile);
-
+      if (Array.isArray(currentEntry.content)) {
+        // Already in BlockNote format
+        content = currentEntry.content;
+      } else if (typeof currentEntry.content === 'string') {
+        // Plain text - convert to BlockNote format
+        if (currentEntry.content.trim() === '') {
+          content = [{ type: 'paragraph' as const, content: [] }];
+        } else {
+          // Split by lines and create paragraph blocks
+          const lines = currentEntry.content.split('\n');
+          content = lines.map(line => ({
+            type: 'paragraph' as const,
+            content: line ? [{ type: 'text' as const, text: line, styles: {} }] : [],
+          }));
+        }
+      } else {
+        // Fallback to empty paragraph
+        content = [{ type: 'paragraph' as const, content: [] }];
+      }
+      
+      editor.replaceBlocks(editor.document, content);
       setLastEntryId(currentEntry.id);
-    } else {
-      // Clear content if there's no current entry
-      dispatch({
-        type: 'INIT',
-        payload: { content: '' }
-      });
-      setShouldAutoFocus(false);
-      setLastEntryId(null);
+      setIsDirty(false);
     }
-  }, [currentEntry, lastEntryId]);
+  }, [currentEntry, lastEntryId, editor]);
 
-  // Save content changes to current entry
+  // Handle editor changes
+  const handleEditorChange = useCallback(() => {
+    setIsDirty(true);
+  }, []);
+
+  // Auto-save content changes
   useEffect(() => {
-    if (currentEntry && state.isDirty) {
+    if (currentEntry && isDirty && editor) {
       const saveContent = async () => {
         try {
-          // Don't save empty entries
-          if (state.content.trim() === '') {
-            return;
-          }
-
-          await updateEntryContent(currentEntry.id, state.content);
-          await saveEditorState({
-            content: state.content,
-            history: state.history,
-            historyIndex: state.historyIndex
-          });
-          dispatch({ type: 'SAVE' });
+          const blocks = editor.document;
+          
+          // Always save, even if empty (let EntryContext handle deletion logic)
+          await updateEntryContent(currentEntry.id, blocks);
+          setLastSaved(Date.now());
+          setIsDirty(false);
         } catch (error) {
           console.error('Failed to save content:', error);
         }
@@ -247,32 +187,18 @@ export function Editor({
       const timeoutId = setTimeout(saveContent, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [state.content, state.isDirty, currentEntry, updateEntryContent, state.history, state.historyIndex]);
+  }, [isDirty, currentEntry, editor, updateEntryContent]);
 
-  // Handle content changes
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    dispatch({ type: 'SET_CONTENT', payload: newContent });
-  }, []);
-
-  // Handle textarea scroll
-  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
-    const textarea = e.currentTarget;
-    const isNearBottom = textarea.scrollHeight - textarea.scrollTop - textarea.clientHeight < 100;
-    setShowScrollButton(!isNearBottom);
-  };
-
-  // Scroll to bottom
-  const scrollToBottom = () => {
-    const textarea = document.querySelector('textarea');
-    if (textarea) {
-      textarea.scrollTo({
-        top: textarea.scrollHeight,
-        behavior: 'smooth'
-      });
-      setShowScrollButton(false);
+  // Keyboard shortcut for manual save
+  useKeyboardShortcut({ key: 's', metaKey: true }, (e) => {
+    e.preventDefault();
+    if (currentEntry && editor) {
+      const blocks = editor.document;
+      updateEntryContent(currentEntry.id, blocks);
+      setLastSaved(Date.now());
+      setIsDirty(false);
     }
-  };
+  });
 
   // Handle fullscreen toggle
   const toggleFullscreen = () => {
@@ -295,51 +221,101 @@ export function Editor({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Handle window unload to clean up empty entries
+  // Resolve IndexedDB media URLs to blob URLs - aggressive approach
   useEffect(() => {
-    const handleUnload = () => {
-      if (currentEntry && state.content.trim() === '') {
-        updateEntryContent(currentEntry.id, '');
+    if (!editor) return;
+
+    const resolveMediaUrl = async (element: HTMLImageElement | HTMLVideoElement | HTMLAudioElement) => {
+      const src = element.getAttribute('src');
+      if (!src || !src.startsWith('indexeddb://')) return;
+      
+      const mediaId = src.replace('indexeddb://', '');
+      
+      try {
+        const blobUrl = await mediaStorage.getMediaUrl(mediaId);
+        if (blobUrl) {
+          element.src = blobUrl;
+          // Also update srcset if present
+          if (element.hasAttribute('srcset')) {
+            element.setAttribute('srcset', blobUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to resolve media URL:', error);
       }
     };
 
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
-  }, [currentEntry, state.content, updateEntryContent]);
+    const resolveAllMediaUrls = () => {
+      const mediaElements = document.querySelectorAll<HTMLImageElement | HTMLVideoElement | HTMLAudioElement>(
+        'img, video, audio'
+      );
 
-  // Calculate stats
-  const wordCount = (state.content || '').trim() ? (state.content || '').trim().split(/\s+/).length : 0;
-  const charCount = (state.content || '').length;
-
-  useEffect(() => {
-    const handleDbError = (event: CustomEvent<{ message: string }>) => {
-      // You can replace this with your preferred notification system
-      console.error('Database Error:', event.detail.message);
-      // Set dirty state to indicate save failed
-      dispatch({ type: 'SET_DIRTY', payload: true });
+      mediaElements.forEach((element) => {
+        const src = element.getAttribute('src');
+        if (src && src.startsWith('indexeddb://')) {
+          resolveMediaUrl(element);
+        }
+      });
     };
 
-    window.addEventListener('db-error', handleDbError as EventListener);
+    // Run resolver frequently to catch new elements
+    const intervalId = setInterval(resolveAllMediaUrls, 100);
+
+    // Also watch for DOM changes
+    const observer = new MutationObserver(() => {
+      resolveAllMediaUrls();
+    });
+
+    // Observe the editor container
+    const editorContainer = document.querySelector('.bn-editor');
+    if (editorContainer) {
+      observer.observe(editorContainer, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['src'],
+      });
+    }
+
+    // Initial resolve
+    resolveAllMediaUrls();
+
     return () => {
-      window.removeEventListener('db-error', handleDbError as EventListener);
+      clearInterval(intervalId);
+      observer.disconnect();
     };
-  }, []);
+  }, [editor, currentEntry]);
 
-  // Initialize storage
-  useEffect(() => {
-    const init = async () => {
-      const isStorageWorking = await initStorage();
-      if (!isStorageWorking) {
-        console.warn('Storage initialization failed, falling back to localStorage');
-        window.dispatchEvent(new CustomEvent('db-error', { 
-          detail: { message: 'Storage initialization failed, some features may not work properly' } 
-        }));
+  // Calculate stats from BlockNote content
+  const wordCount = editor ? (() => {
+    const blocks = editor.document;
+    let text = '';
+    blocks.forEach((block: any) => {
+      if (block.content && Array.isArray(block.content)) {
+        block.content.forEach((item: any) => {
+          if (item.type === 'text' && item.text) {
+            text += item.text + ' ';
+          }
+        });
       }
-    };
-    init();
-  }, []);
+    });
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  })() : 0;
 
-
+  const charCount = editor ? (() => {
+    const blocks = editor.document;
+    let text = '';
+    blocks.forEach((block: any) => {
+      if (block.content && Array.isArray(block.content)) {
+        block.content.forEach((item: any) => {
+          if (item.type === 'text' && item.text) {
+            text += item.text;
+          }
+        });
+      }
+    });
+    return text.length;
+  })() : 0;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -415,7 +391,6 @@ export function Editor({
         
         {/* Centered ⌘K hint */}
         <div className="hidden md:flex items-center text-xs text-muted-foreground/60 bg-muted/20 px-2 py-1 rounded-md relative overflow-hidden border border-primary/20 shadow-sm">
-          {/* Aurora glow effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
           <div className="relative z-10 flex items-center">
@@ -469,16 +444,13 @@ export function Editor({
                       variant={theme === 'light' || theme.endsWith('-light') ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => {
-                        // If currently on a special theme, switch to its light variant, otherwise use light
                         if (theme.includes('-')) {
-                          // Handle multi-word theme names (e.g., quantum-rose-dark -> quantum-rose)
                           const baseTheme = theme.endsWith('-dark') 
-                            ? theme.slice(0, -5) // Remove '-dark'
+                            ? theme.slice(0, -5)
                             : theme.endsWith('-light') 
-                              ? theme.slice(0, -6) // Remove '-light'
+                              ? theme.slice(0, -6)
                               : theme;
                           const lightVariant = `${baseTheme}-light` as const;
-                          // Type-safe mapping of valid light themes
                           const validLightThemes = {
                             'amethyst-light': 'amethyst-light',
                             'cosmic-light': 'cosmic-light', 
@@ -507,16 +479,13 @@ export function Editor({
                       variant={theme === 'dark' || theme.endsWith('-dark') ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => {
-                        // If currently on a special theme, switch to its dark variant, otherwise use dark
                         if (theme.includes('-')) {
-                          // Handle multi-word theme names (e.g., quantum-rose-light -> quantum-rose)
                           const baseTheme = theme.endsWith('-dark') 
-                            ? theme.slice(0, -5) // Remove '-dark'
+                            ? theme.slice(0, -5)
                             : theme.endsWith('-light') 
-                              ? theme.slice(0, -6) // Remove '-light'
+                              ? theme.slice(0, -6)
                               : theme;
                           const darkVariant = `${baseTheme}-dark` as const;
-                          // Type-safe mapping of valid dark themes
                           const validDarkThemes = {
                             'amethyst-dark': 'amethyst-dark',
                             'cosmic-dark': 'cosmic-dark',
@@ -553,7 +522,6 @@ export function Editor({
                       <SelectValue placeholder="Select a special theme" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Show light variants when light theme is selected */}
                       {(theme === 'light' || theme.endsWith('-light')) && (
                         <>
                           <SelectItem value="light">
@@ -594,7 +562,6 @@ export function Editor({
                           </SelectItem>
                         </>
                       )}
-                      {/* Show dark variants when dark theme is selected */}
                       {(theme === 'dark' || theme.endsWith('-dark')) && (
                         <>
                           <SelectItem value="dark">
@@ -646,34 +613,6 @@ export function Editor({
                 >
                   Show Onboarding
                 </Button>
-                <div className="border-t border-border my-4" />
-                <div className="space-y-2">
-                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase text-center">Support</span>
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-2">For queries and feedback</p>
-                    <a
-                      href="mailto:info@typein.space"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-primary/10 border border-border/50 hover:border-primary/30"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                      >
-                        <rect width="20" height="16" x="2" y="4" rx="2"/>
-                        <path d="m22 7-10 5L2 7"/>
-                      </svg>
-                      info@typein.space
-                    </a>
-                  </div>
-                </div>
                 <div className="mt-3 pt-2">
                   <div className="text-center">
                     <span className="text-[12px] text-muted-foreground/60 font-mono tracking-wide">
@@ -698,41 +637,30 @@ export function Editor({
       />
 
       <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
-        {/* SEO: Hidden H1 tag for search engines */}
         <h1 className="sr-only">typein - Free Minimalist Writing App | Distraction-Free Text Editor</h1>
-        <div className="relative flex-1 min-h-0">
-          <textarea
-            key={currentEntry?.id}
-            className={cn(
-              "w-full h-full resize-none bg-transparent",
-              "text-lg leading-relaxed outline-none whitespace-pre-wrap",
-              "transition-all duration-200",
-              "placeholder:text-muted-foreground/50 md:text-[20px] text-[18px]"
-            )}
-            style={{ fontSize: `var(--editor-font-size)` }}
-            value={state.content}
-            onChange={handleChange}
-            onScroll={handleScroll}
-            placeholder="you can just typein..."
-            autoFocus={shouldAutoFocus || window.matchMedia('(min-width: 768px)').matches}
-            onFocus={() => {
-              // Clear the auto-focus flag after it's been used
-              if (shouldAutoFocus) {
-                setShouldAutoFocus(false);
-              }
-            }}
-            spellCheck="true"
-          />
-          {showScrollButton && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="fixed bottom-20 right-4 md:right-8 lg:right-16 h-8 w-8 rounded-full shadow-lg opacity-80 hover:opacity-100 transition-opacity"
-              onClick={scrollToBottom}
-            >
-              <ArrowDownToLine className="h-4 w-4" />
-              <span className="sr-only">Scroll to bottom</span>
-            </Button>
+        <div 
+          className={cn(
+            "relative flex-1 min-h-0 editor-wrapper",
+            {
+              'font-geist': selectedFont === 'geist',
+              'font-space': selectedFont === 'space',
+              'font-lora': selectedFont === 'lora',
+              'font-instrument-italic italic': selectedFont === 'instrument-italic',
+              'font-playfair': selectedFont === 'playfair',
+            }
+          )}
+          style={{ 
+            '--editor-font-size': `${fontSize}px`
+          } as React.CSSProperties}
+        >
+          {editor && (
+            <BlockNoteView
+              editor={editor}
+              theme={theme === 'dark' || theme.endsWith('-dark') ? 'dark' : 'light'}
+              onChange={handleEditorChange}
+              className="w-full h-full"
+              data-theming-css-variables-demo
+            />
           )}
         </div>
       </main>
@@ -740,8 +668,8 @@ export function Editor({
       <StatusBar 
         wordCount={wordCount}
         charCount={charCount}
-        lastSaved={state.lastSaved}
-        isDirty={state.isDirty}
+        lastSaved={lastSaved}
+        isDirty={isDirty}
         shortcuts={[
           { icon: <Undo2 className="h-3 w-3" />, combo: '⌘ + Z' },
           { icon: <Redo2 className="h-3 w-3" />, combo: '⌘ + Y' },

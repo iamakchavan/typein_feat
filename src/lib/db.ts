@@ -12,17 +12,26 @@ interface FontPreferences {
   fontSize: number;
 }
 
+interface MigrationStatus {
+  version: number;
+  completedAt?: string;
+  totalEntries: number;
+  migratedEntries: number;
+  failedEntries: string[]; // Entry IDs that failed migration
+}
+
 interface DBSchema {
   entries: Entry;
   editor: StorageData;
   theme: string;
   fontPreferences: FontPreferences;
+  migrationStatus: MigrationStatus;
 }
 
 class typeinDB {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'typein-db';
-  private readonly DB_VERSION = 4;
+  private readonly DB_VERSION = 6; // Increment version for media store
   private initPromise: Promise<void> | null = null;
 
   async init() {
@@ -93,6 +102,16 @@ class typeinDB {
             if (!db.objectStoreNames.contains('fontPreferences')) {
               console.log('Creating fontPreferences store...');
               db.createObjectStore('fontPreferences');
+            }
+
+            if (!db.objectStoreNames.contains('migrationStatus')) {
+              console.log('Creating migrationStatus store...');
+              db.createObjectStore('migrationStatus');
+            }
+
+            if (!db.objectStoreNames.contains('media')) {
+              console.log('Creating media store...');
+              db.createObjectStore('media', { keyPath: 'id' });
             }
           } catch (error) {
             console.error('Error during database upgrade:', error);
@@ -439,6 +458,21 @@ class typeinDB {
       console.error('Database verification failed:', error);
       return false;
     }
+  }
+
+  // Migration status operations
+  async getMigrationStatus(): Promise<MigrationStatus | null> {
+    console.log('Fetching migration status from IndexedDB...');
+    return this.performTransaction('migrationStatus', 'readonly', (store) => {
+      return store.get('current') as unknown as Promise<MigrationStatus | null>;
+    });
+  }
+
+  async saveMigrationStatus(status: MigrationStatus): Promise<void> {
+    console.log('Saving migration status to IndexedDB:', status);
+    return this.performTransaction('migrationStatus', 'readwrite', (store) => {
+      store.put(status, 'current');
+    });
   }
 }
 

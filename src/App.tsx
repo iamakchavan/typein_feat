@@ -6,10 +6,11 @@ import { EntryProvider, useEntries } from '@/contexts/EntryContext';
 import { AudioPlayerProvider } from '@/contexts/AudioPlayerContext';
 import { Analytics } from '@vercel/analytics/react';
 import OnboardingModal from './components/OnboardingModal';
+import { MigrationStatusDialog } from './components/MigrationStatusDialog';
 import React from 'react';
 
-// Lazy load the Editor component
-const Editor = lazy(() => import('@/components/Editor').then(module => ({ default: module.Editor })));
+// Lazy load the BlockNote Editor component
+const Editor = lazy(() => import('@/components/EditorBlockNote').then(module => ({ default: module.EditorBlockNote })));
 
 // Loading component
 const Loading = () => (
@@ -54,6 +55,7 @@ function AppContent() {
 
   return (
     <>
+      <MigrationStatusDialog />
       {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
       <Suspense fallback={<Loading />}>
         <Editor 

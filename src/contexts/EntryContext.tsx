@@ -1,21 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
+import type { PartialBlock } from '@blocknote/core';
+import { migrateEntryContent } from '@/lib/migration';
+import { isContentEmpty } from '@/lib/entryHelpers';
 
 export interface Entry {
   id: string;
   date: string;
-  content: string;
+  content: string | PartialBlock[]; // Support both plain text and BlockNote format
+  contentFormat?: 'plaintext' | 'blocknote'; // Track which format is being used
   pinned?: boolean;
   isBranchedOff?: boolean;
   originalEntryDate?: string;
+  migratedAt?: string; // Timestamp when migration occurred
+  migrationError?: string; // Error message if migration failed
 }
 
 interface EntryContextType {
   entries: Entry[];
   currentEntry: Entry | null;
   setCurrentEntry: (entry: Entry | null) => void;
-  updateEntryContent: (id: string, content: string) => void;
+  updateEntryContent: (id: string, content: string | PartialBlock[]) => void;
   createNewEntry: () => void;
   deleteEntry: (id: string) => void;
   togglePinEntry: (id: string) => void;
@@ -42,11 +48,66 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           loadedEntries = await db.getEntries();
         }
 
+        // MIGRATION: Check if entries need to be migrated from plain text to BlockNote format
+        const migrationStatus = await db.getMigrationStatus();
+        const needsMigration = !migrationStatus || migrationStatus.version < 1;
+
+        if (needsMigration) {
+          console.log('Starting entry migration to BlockNote format...');
+          const totalEntries = loadedEntries.length;
+          let migratedCount = 0;
+          const failedEntries: string[] = [];
+
+          // Migrate each entry
+          for (const entry of loadedEntries) {
+            // Only migrate if content is plain text
+            if (typeof entry.content === 'string' && !entry.contentFormat) {
+              try {
+                const { success, migratedContent, error } = migrateEntryContent(entry.content);
+                
+                if (success) {
+                  // Update entry with migrated content
+                  entry.content = migratedContent;
+                  entry.contentFormat = 'blocknote';
+                  entry.migratedAt = new Date().toISOString();
+                  
+                  // Save migrated entry
+                  await db.saveEntry(entry);
+                  migratedCount++;
+                  console.log(`Migrated entry ${entry.id}`);
+                } else {
+                  // Migration failed, keep original content
+                  entry.migrationError = error;
+                  failedEntries.push(entry.id);
+                  console.error(`Failed to migrate entry ${entry.id}:`, error);
+                }
+              } catch (error) {
+                failedEntries.push(entry.id);
+                console.error(`Error migrating entry ${entry.id}:`, error);
+              }
+            }
+          }
+
+          // Save migration status
+          await db.saveMigrationStatus({
+            version: 1,
+            completedAt: new Date().toISOString(),
+            totalEntries,
+            migratedEntries: migratedCount,
+            failedEntries,
+          });
+
+          console.log(`Migration complete: ${migratedCount}/${totalEntries} entries migrated`);
+          if (failedEntries.length > 0) {
+            console.warn(`${failedEntries.length} entries failed to migrate:`, failedEntries);
+          }
+        }
+
         // Remove any empty entries except today's entry
         const today = new Date().toISOString().split('T')[0];
         loadedEntries = loadedEntries.filter(entry => {
           const entryDate = new Date(entry.date).toISOString().split('T')[0];
-          return entry.content.trim() !== '' || entryDate === today;
+          return !isContentEmpty(entry.content) || entryDate === today;
         });
         
         // Sort entries by date (newest first)
@@ -106,16 +167,23 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentEntry?.id]);
 
-  const updateEntryContent = async (id: string, content: string) => {
+  const updateEntryContent = async (id: string, content: string | PartialBlock[]) => {
     try {
-      // If content is empty, delete the entry
-      if (content.trim() === '') {
+      // If content is empty, delete the entry (unless it's today's entry)
+      const today = new Date().toISOString().split('T')[0];
+      const entry = entries.find(e => e.id === id);
+      const entryDate = entry ? new Date(entry.date).toISOString().split('T')[0] : '';
+      
+      if (isContentEmpty(content) && entryDate !== today) {
         await deleteEntry(id);
         return;
       }
 
+      // Determine content format
+      const contentFormat: 'blocknote' | 'plaintext' = Array.isArray(content) ? 'blocknote' : 'plaintext';
+
       const updatedEntries = entries.map(entry =>
-        entry.id === id ? { ...entry, content } : entry
+        entry.id === id ? { ...entry, content, contentFormat } : entry
       );
       setEntries(updatedEntries);
       const updatedEntry = updatedEntries.find(entry => entry.id === id);
@@ -130,7 +198,8 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
   const createNewEntry = async () => {
     try {
       // If current entry exists and is empty, just keep using it
-      if (currentEntry && entries.find(e => e.id === currentEntry.id)?.content.trim() === '') {
+      const currentEntryData = entries.find(e => e.id === currentEntry?.id);
+      if (currentEntry && currentEntryData && isContentEmpty(currentEntryData.content)) {
         return;
       }
 

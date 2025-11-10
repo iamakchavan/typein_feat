@@ -8,17 +8,12 @@ import { useEntries, Entry } from '@/contexts/EntryContext';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { getEntryPlainText, getContentPreview as getPreview, isContentEmpty, searchInContent } from '@/lib/entryHelpers';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
-}
-
-function getContentPreview(content: string): string {
-  if (!content) return 'Empty entry...';
-  const firstLine = content.split('\n').find(line => line.trim()) || '';
-  return firstLine.trim().slice(0, 50) + (firstLine.length > 50 ? '...' : '');
 }
 
 // Custom New Entry icon
@@ -101,7 +96,8 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const handleCopyClick = async (entry: Entry, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(entry.content);
+      const plainText = getEntryPlainText(entry.content);
+      await navigator.clipboard.writeText(plainText);
       // Show toast only on desktop (not mobile)
       if (window.matchMedia('(min-width: 768px)').matches) {
         toast({
@@ -119,7 +115,8 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
     e.stopPropagation();
     try {
       // Create a blob with the entry content
-      const blob = new Blob([entry.content], { type: 'text/plain' });
+      const plainText = getEntryPlainText(entry.content);
+      const blob = new Blob([plainText], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       
       // Create a temporary download link
@@ -127,7 +124,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
       link.href = url;
       
       // Generate filename from first line or use date
-      const firstLine = entry.content.split('\n')[0].trim();
+      const firstLine = plainText.split('\n')[0].trim();
       const filename = firstLine 
         ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
         : `note-${format(new Date(entry.date), 'yyyy-MM-dd')}.txt`;
@@ -184,9 +181,8 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const filteredEntries = entries
     .filter(entry => {
     const searchLower = searchQuery.toLowerCase();
-    const contentLower = entry.content.toLowerCase();
     const dateLower = format(new Date(entry.date), 'MMMM dd, yyyy').toLowerCase();
-    return contentLower.includes(searchLower) || dateLower.includes(searchLower);
+    return searchInContent(entry.content, searchLower) || dateLower.includes(searchLower);
     })
     .sort((a, b) => {
       // Sort pinned entries first, then by date
@@ -311,7 +307,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground line-clamp-2 group-hover:text-primary/80">
-                          {getContentPreview(entry.content)}
+                          {getPreview(entry.content)}
                         </div>
                       </div>
                       
@@ -340,11 +336,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                             sideOffset={4}
                           >
                             <DropdownMenuItem 
-                              onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
-                              disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
+                              onClick={(e) => (!isContentEmpty(entry.content) && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content) || (!entry.pinned && pinnedCount >= 5)}
                               className={cn(
                                 "cursor-pointer",
-                                entry.content.trim() && (entry.pinned || pinnedCount < 5)
+                                !isContentEmpty(entry.content) && (entry.pinned || pinnedCount < 5)
                                   ? "hover:bg-primary/10 focus:bg-primary/10" 
                                   : "opacity-50 cursor-not-allowed"
                               )}
@@ -353,11 +349,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               {entry.pinned ? 'Unpin note' : 'Pin note'}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={(e) => entry.content.trim() ? handleBranchOffClick(entry, e) : e.stopPropagation()}
-                              disabled={!entry.content.trim()}
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleBranchOffClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content)}
                               className={cn(
                                 "cursor-pointer",
-                                entry.content.trim() 
+                                !isContentEmpty(entry.content)
                                   ? "hover:bg-primary/10 focus:bg-primary/10" 
                                   : "opacity-50 cursor-not-allowed"
                               )}
@@ -366,11 +362,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               Branch Off
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
-                              disabled={!entry.content.trim()}
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleCopyClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content)}
                               className={cn(
                                 "cursor-pointer",
-                                entry.content.trim() 
+                                !isContentEmpty(entry.content)
                                   ? "hover:bg-primary/10 focus:bg-primary/10" 
                                   : "opacity-50 cursor-not-allowed"
                               )}
@@ -379,11 +375,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               Copy Note
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
-                              disabled={!entry.content.trim()}
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content)}
                               className={cn(
                                 "cursor-pointer",
-                                entry.content.trim() 
+                                !isContentEmpty(entry.content)
                                   ? "hover:bg-primary/10 focus:bg-primary/10" 
                                   : "opacity-50 cursor-not-allowed"
                               )}
@@ -426,11 +422,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               sideOffset={4}
                             >
                               <DropdownMenuItem 
-                                onClick={(e) => (entry.content.trim() && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
-                                disabled={!entry.content.trim() || (!entry.pinned && pinnedCount >= 5)}
+                                onClick={(e) => (!isContentEmpty(entry.content) && (entry.pinned || pinnedCount < 5)) ? handlePinClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content) || (!entry.pinned && pinnedCount >= 5)}
                                 className={cn(
                                   "cursor-pointer",
-                                  entry.content.trim() && (entry.pinned || pinnedCount < 5)
+                                  !isContentEmpty(entry.content) && (entry.pinned || pinnedCount < 5)
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
@@ -439,11 +435,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 {entry.pinned ? 'Unpin note' : 'Pin note'}
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={(e) => entry.content.trim() ? handleBranchOffClick(entry, e) : e.stopPropagation()}
-                                disabled={!entry.content.trim()}
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleBranchOffClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content)}
                                 className={cn(
                                   "cursor-pointer",
-                                  entry.content.trim() 
+                                  !isContentEmpty(entry.content)
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
@@ -452,11 +448,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 Branch Off
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={(e) => entry.content.trim() ? handleCopyClick(entry, e) : e.stopPropagation()}
-                                disabled={!entry.content.trim()}
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleCopyClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content)}
                                 className={cn(
                                   "cursor-pointer",
-                                  entry.content.trim() 
+                                  !isContentEmpty(entry.content)
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
@@ -465,11 +461,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 Copy Note
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={(e) => entry.content.trim() ? handleExportClick(entry, e) : e.stopPropagation()}
-                                disabled={!entry.content.trim()}
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content)}
                                 className={cn(
                                   "cursor-pointer",
-                                  entry.content.trim() 
+                                  !isContentEmpty(entry.content)
                                     ? "hover:bg-primary/10 focus:bg-primary/10" 
                                     : "opacity-50 cursor-not-allowed"
                                 )}
