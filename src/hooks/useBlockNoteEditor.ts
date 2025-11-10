@@ -5,7 +5,7 @@ import { mediaStorage } from '@/lib/mediaStorage';
 
 /**
  * Custom hook to create a BlockNote editor with only the block types we need
- * Configured for: Heading 1-3, Numbered List, Bullet List, Paragraph, Divider
+ * Configured for: Heading 1-3, Numbered List, Bullet List, Checklist, Paragraph, Divider, Code Block, Quote, Table, Media (Image, Video, Audio, File)
  */
 export function useBlockNoteEditor(initialContent?: PartialBlock[]) {
   // Create a custom schema with block types including table and media
@@ -16,7 +16,12 @@ export function useBlockNoteEditor(initialContent?: PartialBlock[]) {
       heading: defaultBlockSpecs.heading,
       bulletListItem: defaultBlockSpecs.bulletListItem,
       numberedListItem: defaultBlockSpecs.numberedListItem,
+      checkListItem: defaultBlockSpecs.checkListItem,
       divider: defaultBlockSpecs.divider,
+      // Add code block support
+      codeBlock: defaultBlockSpecs.codeBlock,
+      // Add quote support
+      quote: defaultBlockSpecs.quote,
       // Add table support
       table: defaultBlockSpecs.table,
       // Add media support
@@ -57,7 +62,7 @@ export function useBlockNoteEditor(initialContent?: PartialBlock[]) {
       const defaultItems = getDefaultSlashMenuItems(editor);
       
       // Filter to only include our desired commands
-      // We want: Heading 1-3, Lists, Paragraph, Divider, Table, Image, Video, Audio, File
+      // We want: Heading 1-3, Lists, Checklist, Paragraph, Divider, Code Block, Quote, Table, Image, Video, Audio, File
       return defaultItems.filter((item: any) => {
         const name = item.name?.toLowerCase() || '';
         
@@ -68,8 +73,11 @@ export function useBlockNoteEditor(initialContent?: PartialBlock[]) {
           name === 'heading 3' ||
           name === 'numbered list' ||
           name === 'bullet list' ||
+          name === 'check list' ||
           name === 'paragraph' ||
           name === 'divider' ||
+          name === 'code block' ||
+          name === 'quote' ||
           name === 'table' ||
           name === 'image' ||
           name === 'video' ||
