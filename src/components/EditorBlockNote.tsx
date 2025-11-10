@@ -817,6 +817,7 @@ export function EditorBlockNote({
               onChange={handleEditorChange}
               className="w-full h-full"
               data-theming-css-variables-demo
+              sideMenu={true}
             />
           )}
         </div>

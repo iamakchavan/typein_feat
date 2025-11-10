@@ -16,11 +16,7 @@
   color: hsl(var(--foreground)) !important;
 }
 
-/* Hide side menu and drag handle only - keep formatting toolbar */
-.bn-side-menu,
-.bn-drag-handle-menu {
-  display: none !important;
-}
+/* Keep formatting toolbar and side menu visible */
 
 /* Style formatting toolbar to match theme */
 .bn-formatting-toolbar {
@@ -120,48 +116,7 @@
   color: hsl(var(--foreground)) !important;
 }
 
-/* List styles */
-[data-content-type="numberedListItem"],
-[data-content-type="bulletListItem"] {
-  display: flex !important;
-  align-items: baseline !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  color: hsl(var(--foreground)) !important;
-  line-height: 1.75 !important;
-}
-
-[data-content-type="numberedListItem"] .bn-inline-content,
-[data-content-type="bulletListItem"] .bn-inline-content {
-  display: flex !important;
-  align-items: baseline !important;
-  width: 100% !important;
-}
-
-[data-content-type="numberedListItem"]::before,
-[data-content-type="bulletListItem"]::before {
-  color: hsl(var(--muted-foreground)) !important;
-  margin-right: 0.5em !important;
-  flex-shrink: 0 !important;
-  min-width: 1.5em !important;
-  display: inline-block !important;
-}
-
-[data-content-type="numberedListItem"] {
-  counter-increment: list-item !important;
-}
-
-[data-content-type="numberedListItem"]::before {
-  content: counter(list-item) "." !important;
-}
-
-[data-content-type="bulletListItem"]::before {
-  content: "•" !important;
-}
-
-.bn-editor {
-  counter-reset: list-item !important;
-}
+/* Let BlockNote handle list styling natively */
 
 /* Divider styles */
 [data-content-type="divider"] {
@@ -284,6 +239,39 @@
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 0.5rem !important;
   color: hsl(var(--foreground)) !important;
+}
+
+/* Fix media upload UI visibility in dark mode */
+.bn-file-panel,
+.bn-file-panel-button,
+.bn-file-panel-caption-input,
+[data-content-type="image"] .bn-visual-media-wrapper,
+[data-content-type="video"] .bn-visual-media-wrapper,
+[data-content-type="audio"] .bn-visual-media-wrapper,
+[data-content-type="file"] .bn-file-block-content-wrapper {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.bn-file-panel-button {
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.bn-file-panel-button:hover {
+  background: hsl(var(--muted) / 0.8) !important;
+}
+
+.bn-file-panel-caption-input {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.bn-file-panel-caption-input::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
 }
 
 /* Block spacing */
