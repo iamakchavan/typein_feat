@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { X, Trash2, Search, MoreVertical, Copy, Download, Pin } from 'lucide-react';
+import { X, Trash2, Search, MoreVertical, Copy, Download, Pin, Upload } from 'lucide-react';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { ImportModal } from './ImportModal';
 import { useEntries, Entry } from '@/contexts/EntryContext';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { getEntryPlainText, getContentPreview as getPreview, isContentEmpty, searchInContent } from '@/lib/entryHelpers';
 import { exportEntryAsMarkdown } from '@/lib/markdown';
+import { importMarkdownFile, importTextFile } from '@/lib/importers';
+import { importBackup } from '@/lib/backup';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -61,6 +64,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const { entries, currentEntry, setCurrentEntry, createNewEntry, deleteEntry, togglePinEntry, branchOffEntry } = useEntries();
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
@@ -101,6 +105,51 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const handleDeleteCancel = () => {
     setIsDeleteModalOpen(false);
     setDeleteEntryId(null);
+  };
+
+  const handleImport = async (format: 'txt' | 'md' | 'zip', retainDate: boolean, file: File) => {
+    try {
+      if (format === 'zip') {
+        const result = await importBackup(file);
+        if (result.success) {
+          toast({
+            title: 'Import successful',
+            description: `Imported ${result.entriesImported} entries and ${result.mediaImported} media files`,
+          });
+          // Reload to show imported entries
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          toast({
+            title: 'Import failed',
+            description: result.errors[0] || 'Failed to import backup',
+            variant: 'destructive',
+          });
+        }
+      } else if (format === 'md') {
+        await importMarkdownFile(file, retainDate);
+        toast({
+          title: 'Import successful',
+          description: 'Markdown file imported successfully',
+        });
+        // Reload to show imported entry
+        setTimeout(() => window.location.reload(), 1000);
+      } else if (format === 'txt') {
+        await importTextFile(file);
+        toast({
+          title: 'Import successful',
+          description: 'Text file imported successfully',
+        });
+        // Reload to show imported entry
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch (error) {
+      console.error('Import failed:', error);
+      toast({
+        title: 'Import failed',
+        description: 'Failed to import file. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCopyClick = async (entry: Entry, e: React.MouseEvent) => {
@@ -287,6 +336,19 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
             <kbd className="text-[10px] font-medium bg-muted/30 px-1.5 py-0.5 rounded">⌘K</kbd>
             <span className="ml-1">for advanced search</span>
           </div>
+        </div>
+
+        {/* Import Button */}
+        <div className="px-4 py-3 border-b border-border/10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setIsImportModalOpen(true)}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Import Notes
+          </Button>
         </div>
 
         {/* Entries List */}
@@ -561,6 +623,13 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
           entryTitle={format(new Date(entryToDelete.date), 'MMMM d, yyyy')}
         />
       )}
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImport}
+      />
     </>
   );
 } 

@@ -745,19 +745,21 @@ export function EditorBlockNote({
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      className="flex-1 text-sm font-medium"
+                      size="sm"
+                      className="flex-1"
                       onClick={handleExportBackup}
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Backup
+                      <Download className="h-3.5 w-3.5 mr-1.5" />
+                      Export
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1 text-sm font-medium"
+                      size="sm"
+                      className="flex-1"
                       onClick={handleImportBackup}
                     >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import Backup
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      Import
                     </Button>
                   </div>
                   <Button
