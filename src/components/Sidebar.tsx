@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { X, Trash2, Search, MoreVertical, Copy, Download, Pin, Upload } from 'lucide-react';
+import { X, Trash2, Search, MoreVertical, Copy, Pin, Upload, FileJson, FileCode, FileText } from 'lucide-react';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
+import { ExportWarningDialog } from './ExportWarningDialog';
 import { useEntries, Entry } from '@/contexts/EntryContext';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { getEntryPlainText, getContentPreview as getPreview, isContentEmpty, searchInContent } from '@/lib/entryHelpers';
-import { exportEntryAsMarkdown } from '@/lib/markdown';
+import { exportEntryAsMarkdown, exportEntryAsJson } from '@/lib/markdown';
 import { importMarkdownFile, importTextFile } from '@/lib/importers';
 import { importBackup } from '@/lib/backup';
 
@@ -65,8 +66,13 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [exportWarning, setExportWarning] = useState<{ isOpen: boolean; entry: Entry | null; format: 'md' | 'txt' }>({
+    isOpen: false,
+    entry: null,
+    format: 'md',
+  });
   const [searchQuery, setSearchQuery] = useState('');
-  const { toast } = useToast();
+  const { toast} = useToast();
 
   const handleEntryClick = (entry: Entry) => {
     if (currentEntry?.id === entry.id) return;
@@ -172,22 +178,85 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
 
   const handleExportMarkdownClick = (entry: Entry, e: React.MouseEvent) => {
     e.stopPropagation();
+    // Delay opening the modal to allow the dropdown to close first
+    // This prevents focus trap issues with Radix UI
+    setTimeout(() => {
+      setExportWarning({ isOpen: true, entry, format: 'md' });
+    }, 100);
+  };
+
+  const handleExportJsonClick = (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
-      exportEntryAsMarkdown(entry);
+      exportEntryAsJson(entry);
       
-      // Show toast
       toast({
-        title: 'Exported as Markdown',
+        title: 'Exported as JSON',
         description: 'Note exported successfully',
       });
     } catch (error) {
-      console.error('Failed to export as Markdown:', error);
+      console.error('Failed to export as JSON:', error);
       toast({
         title: 'Export failed',
-        description: 'Failed to export note as Markdown',
+        description: 'Failed to export note as JSON',
         variant: 'destructive',
       });
     }
+  };
+
+  const handleExportWarningContinue = () => {
+    if (!exportWarning.entry) return;
+    
+    try {
+      if (exportWarning.format === 'md') {
+        exportEntryAsMarkdown(exportWarning.entry);
+        toast({
+          title: 'Exported as Markdown',
+          description: 'Note exported successfully',
+        });
+      } else {
+        handleExportClick(exportWarning.entry, {} as React.MouseEvent);
+      }
+    } catch (error) {
+      console.error('Failed to export:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export note',
+        variant: 'destructive',
+      });
+    }
+    
+    setExportWarning({ isOpen: false, entry: null, format: 'md' });
+  };
+
+  const handleExportWarningUseJson = () => {
+    if (!exportWarning.entry) return;
+    
+    try {
+      exportEntryAsJson(exportWarning.entry);
+      toast({
+        title: 'Exported as JSON',
+        description: 'Note exported successfully with all features preserved',
+      });
+    } catch (error) {
+      console.error('Failed to export as JSON:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export note as JSON',
+        variant: 'destructive',
+      });
+    }
+    
+    setExportWarning({ isOpen: false, entry: null, format: 'md' });
+  };
+
+  const handleExportTxtClick = (entry: Entry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Delay opening the modal to allow the dropdown to close first
+    // This prevents focus trap issues with Radix UI
+    setTimeout(() => {
+      setExportWarning({ isOpen: true, entry, format: 'txt' });
+    }, 100);
   };
 
   const handleExportClick = (entry: Entry, e: React.MouseEvent) => {
@@ -467,6 +536,19 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                               Copy Note
                             </DropdownMenuItem>
                             <DropdownMenuItem 
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleExportJsonClick(entry, e) : e.stopPropagation()}
+                              disabled={isContentEmpty(entry.content)}
+                              className={cn(
+                                "cursor-pointer",
+                                !isContentEmpty(entry.content)
+                                  ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                  : "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <FileJson className="h-4 w-4 mr-2" />
+                              Export as .json
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={(e) => !isContentEmpty(entry.content) ? handleExportMarkdownClick(entry, e) : e.stopPropagation()}
                               disabled={isContentEmpty(entry.content)}
                               className={cn(
@@ -476,11 +558,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                   : "opacity-50 cursor-not-allowed"
                               )}
                             >
-                              <Download className="h-4 w-4 mr-2" />
+                              <FileCode className="h-4 w-4 mr-2" />
                               Export as .md
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
+                              onClick={(e) => !isContentEmpty(entry.content) ? handleExportTxtClick(entry, e) : e.stopPropagation()}
                               disabled={isContentEmpty(entry.content)}
                               className={cn(
                                 "cursor-pointer",
@@ -489,7 +571,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                   : "opacity-50 cursor-not-allowed"
                               )}
                             >
-                              <Download className="h-4 w-4 mr-2" />
+                              <FileText className="h-4 w-4 mr-2" />
                               Export as .txt
                             </DropdownMenuItem>
                             <DropdownMenuItem 
@@ -566,6 +648,19 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                 Copy Note
                               </DropdownMenuItem>
                               <DropdownMenuItem 
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleExportJsonClick(entry, e) : e.stopPropagation()}
+                                disabled={isContentEmpty(entry.content)}
+                                className={cn(
+                                  "cursor-pointer",
+                                  !isContentEmpty(entry.content)
+                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
+                                    : "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <FileJson className="h-4 w-4 mr-2" />
+                                Export as .json
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
                                 onClick={(e) => !isContentEmpty(entry.content) ? handleExportMarkdownClick(entry, e) : e.stopPropagation()}
                                 disabled={isContentEmpty(entry.content)}
                                 className={cn(
@@ -575,11 +670,11 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                     : "opacity-50 cursor-not-allowed"
                                 )}
                               >
-                                <Download className="h-4 w-4 mr-2" />
+                                <FileCode className="h-4 w-4 mr-2" />
                                 Export as .md
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={(e) => !isContentEmpty(entry.content) ? handleExportClick(entry, e) : e.stopPropagation()}
+                                onClick={(e) => !isContentEmpty(entry.content) ? handleExportTxtClick(entry, e) : e.stopPropagation()}
                                 disabled={isContentEmpty(entry.content)}
                                 className={cn(
                                   "cursor-pointer",
@@ -588,7 +683,7 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
                                     : "opacity-50 cursor-not-allowed"
                                 )}
                               >
-                                <Download className="h-4 w-4 mr-2" />
+                                <FileText className="h-4 w-4 mr-2" />
                                 Export as .txt
                               </DropdownMenuItem>
                               <DropdownMenuItem 
@@ -629,6 +724,15 @@ export function Sidebar({ isOpen, onClose, className }: SidebarProps) {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImport}
+      />
+
+      {/* Export Warning Dialog */}
+      <ExportWarningDialog
+        isOpen={exportWarning.isOpen}
+        onClose={() => setExportWarning({ isOpen: false, entry: null, format: 'md' })}
+        onContinue={handleExportWarningContinue}
+        onUseJson={handleExportWarningUseJson}
+        format={exportWarning.format}
       />
     </>
   );

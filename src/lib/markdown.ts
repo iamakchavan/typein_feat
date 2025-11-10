@@ -170,3 +170,26 @@ export async function exportAllEntriesAsMarkdown(entries: Entry[]): Promise<void
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 }
+
+/**
+ * Export a single entry as JSON file
+ */
+export function exportEntryAsJson(entry: Entry): void {
+  // Create JSON with proper formatting
+  const jsonContent = JSON.stringify(entry, null, 2);
+
+  // Create and download the file
+  const blob = new Blob([jsonContent], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  
+  // Use date as filename
+  const filename = `${new Date(entry.date).toISOString().split('T')[0]}.json`;
+  a.download = filename;
+  
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
