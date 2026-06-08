@@ -1,40 +1,53 @@
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { FileText, FileCode, FileArchive, Upload, Calendar, CalendarPlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { AlignLeft, Type, Upload, CalendarPlus, Braces, HardDriveDownload, ChevronRight } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (format: 'txt' | 'md' | 'zip', retainDate: boolean, file: File) => void;
+  onImport: (format: 'txt' | 'md' | 'json', retainDate: boolean, file: File) => void;
+  onImportBackup: () => void;
 }
 
-export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
-  const [selectedFormat, setSelectedFormat] = useState<'txt' | 'md' | 'zip'>('md');
+const CustomCalendarIcon = ({ size = 16 }: { size?: number }) => (
+  <svg 
+    className="bg-current flex-shrink-0" 
+    aria-hidden="true" 
+    focusable="false" 
+    style={{
+      width: size,
+      height: size,
+      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
+      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
+      maskRepeat: 'no-repeat',
+      WebkitMaskRepeat: 'no-repeat',
+      maskPosition: 'center center',
+      WebkitMaskPosition: 'center center',
+    }}
+  />
+);
+
+const FORMATS = [
+  { value: 'md'   as const, label: 'Markdown',  sub: '.md',   Icon: AlignLeft },
+  { value: 'txt'  as const, label: 'Plain Text', sub: '.txt',  Icon: Type      },
+  { value: 'json' as const, label: 'JSON',       sub: '.json', Icon: Braces    },
+];
+
+const spring = { type: 'spring', stiffness: 500, damping: 40, mass: 0.8 };
+const springMed = { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
+
+export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: ImportModalProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme.endsWith('-dark');
+  const [selectedFormat, setSelectedFormat] = useState<'txt' | 'md' | 'json'>('md');
   const [retainDate, setRetainDate] = useState(true);
 
   const handleFileSelect = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    
-    // Set accept based on selected format
-    const acceptMap = {
-      txt: '.txt',
-      md: '.md,.markdown',
-      zip: '.zip',
-    };
-    input.accept = acceptMap[selectedFormat];
-
+    input.accept = { txt: '.txt', md: '.md,.markdown', json: '.json' }[selectedFormat];
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -42,151 +55,466 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
         onClose();
       }
     };
-
     input.click();
   };
 
-  const formats = [
-    {
-      value: 'md' as const,
-      label: 'Markdown (.md)',
-      description: 'Import from Markdown files with formatting',
-      icon: FileCode,
-      supportsDate: true,
-    },
-    {
-      value: 'txt' as const,
-      label: 'Plain Text (.txt)',
-      description: 'Import from plain text files',
-      icon: FileText,
-      supportsDate: false,
-    },
-    {
-      value: 'zip' as const,
-      label: 'Backup Archive (.zip)',
-      description: 'Restore from typein backup',
-      icon: FileArchive,
-      supportsDate: true,
-    },
-  ];
-
-  const selectedFormatData = formats.find(f => f.value === selectedFormat);
+  const supportsDate = selectedFormat !== 'txt';
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Import Notes
-          </DialogTitle>
-          <DialogDescription>
-            Choose a format to import your notes
-          </DialogDescription>
-        </DialogHeader>
+    <AnimatePresence>
+      {isOpen && (
+        <DialogPrimitive.Root open={isOpen} onOpenChange={onClose}>
+          <DialogPrimitive.Portal forceMount>
 
-        <div className="space-y-4 pt-2">
-          {/* Format Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Import Format</Label>
-            <RadioGroup value={selectedFormat} onValueChange={(value) => setSelectedFormat(value as any)}>
-              {formats.map((format) => (
-                <div
-                  key={format.value}
-                  className={cn(
-                    'flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
-                    selectedFormat === format.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  )}
-                  onClick={() => setSelectedFormat(format.value)}
-                >
-                  <RadioGroupItem value={format.value} id={format.value} className="mt-1" />
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <format.icon className="h-4 w-4 text-muted-foreground" />
-                      <Label htmlFor={format.value} className="font-medium cursor-pointer">
-                        {format.label}
-                      </Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+            {/* Backdrop */}
+            <DialogPrimitive.Overlay asChild>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 50,
+                  background: 'rgba(0,0,0,0.45)',
+                  backdropFilter: 'blur(18px)',
+                  WebkitBackdropFilter: 'blur(18px)',
+                }}
+              />
+            </DialogPrimitive.Overlay>
 
-          {/* Date Retention Option */}
-          {selectedFormatData?.supportsDate && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Date Handling</Label>
-                <RadioGroup value={retainDate ? 'retain' : 'new'} onValueChange={(value) => setRetainDate(value === 'retain')}>
-                  <div
-                    className={cn(
-                      'flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
-                      retainDate
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    )}
-                    onClick={() => setRetainDate(true)}
-                  >
-                    <RadioGroupItem value="retain" id="retain" className="mt-1" />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor="retain" className="font-medium cursor-pointer">
-                          Retain Original Date
-                        </Label>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Keep the original date from the file metadata
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      'flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
-                      !retainDate
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    )}
-                    onClick={() => setRetainDate(false)}
-                  >
-                    <RadioGroupItem value="new" id="new" className="mt-1" />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <CalendarPlus className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor="new" className="font-medium cursor-pointer">
-                          Import as New Entry
-                        </Label>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Use today's date for the imported note
-                      </p>
-                    </div>
-                  </div>
-                </RadioGroup>
+            {/* Duplicate floating pill for visual continuity on desktop */}
+            <motion.div
+              className="md:block hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                bottom: 20,
+                left: 18,
+                width: 200,
+                height: 42,
+                zIndex: 55, // above backdrop (50) and content sheet (51)
+                pointerEvents: 'none',
+              }}
+            >
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 99,
+                  border: 'none',
+                }}
+                className="liquid-glass-dock shadow-lg text-foreground/90"
+              >
+                <Upload className="h-3.5 w-3.5 mr-2 opacity-85" />
+                Import Notes
               </div>
-            </>
-          )}
+            </motion.div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={handleFileSelect} className="flex-1">
-              <Upload className="h-4 w-4 mr-2" />
-              Select File
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+            {/* Content Sheet */}
+            <DialogPrimitive.Content asChild>
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.85 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 300) {
+                    onClose();
+                  }
+                }}
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={springMed}
+                style={{
+                  position: 'fixed',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 51,
+                  background: 'hsl(var(--background))',
+                  borderRadius: '32px 32px 0 0',
+                  boxShadow: '0 -12px 60px rgba(0,0,0,0.15)',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  maxWidth: 520,
+                  margin: '0 auto',
+                  paddingBottom: 'env(safe-area-inset-bottom, 24px)',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                }}
+              >
+                {/* Drag handle */}
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 14, paddingBottom: 2 }}>
+                  <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
+                </div>
+
+                <div style={{ padding: '10px 24px 24px' }}>
+
+                  {/* Hero Header */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...spring, delay: 0.04 }}
+                    style={{ marginBottom: 28 }}
+                  >
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 99,
+                      background: 'hsl(var(--primary)/0.1)',
+                      color: 'hsl(var(--primary))',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 16,
+                    }}>
+                      <Upload size={24} />
+                    </div>
+                    <div style={{
+                      fontSize: 26,
+                      fontWeight: 600,
+                      color: 'hsl(var(--foreground))',
+                      letterSpacing: '-0.6px',
+                      lineHeight: 1.25,
+                      marginBottom: 6,
+                    }}>
+                      Import Notes
+                    </div>
+                    <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                      Choose a format and select a file to import your work.
+                    </div>
+                  </motion.div>
+
+                  {/* Format Picker */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...spring, delay: 0.07 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'hsl(var(--muted-foreground))' }}>
+                      Format
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      background: 'hsl(var(--muted))',
+                      borderRadius: 99,
+                      padding: 4,
+                      gap: 4,
+                      position: 'relative'
+                    }}>
+                      {FORMATS.map((f) => {
+                        const active = selectedFormat === f.value;
+                        return (
+                          <button
+                            key={f.value}
+                            onClick={() => setSelectedFormat(f.value)}
+                            style={{
+                              flex: 1,
+                              height: 64,
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                              position: 'relative',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 2,
+                              zIndex: 1,
+                            }}
+                          >
+                            {active && (
+                              <motion.div
+                                layoutId="active-format-pill"
+                                transition={spring}
+                                style={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  background: isDarkMode ? 'hsl(var(--accent))' : 'hsl(var(--background))',
+                                  borderRadius: 99,
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.04)',
+                                  zIndex: -1,
+                                }}
+                              />
+                            )}
+                            <f.Icon
+                              size={16}
+                              style={{
+                                color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                                transition: 'color 0.2s',
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: active ? 600 : 500,
+                                color: active ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                                transition: 'color 0.2s',
+                              }}
+                            >
+                              {f.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+
+                  {/* Date Handling */}
+                  <AnimatePresence>
+                    {supportsDate && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4, paddingBottom: 20 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'hsl(var(--muted-foreground))' }}>
+                            Date Setting
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {[
+                              { val: true,  label: 'Retain Original Date', sub: "Use the file's original date", Icon: CustomCalendarIcon },
+                              { val: false, label: 'Import as New Entry',   sub: "Use today's date",            Icon: CalendarPlus },
+                            ].map((opt) => {
+                              const selected = retainDate === opt.val;
+                              return (
+                                <motion.button
+                                  key={String(opt.val)}
+                                  onClick={() => setRetainDate(opt.val)}
+                                  whileTap={{ scale: 0.985 }}
+                                  transition={spring}
+                                  style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 14,
+                                    padding: '12px 24px 12px 16px',
+                                    borderRadius: 99,
+                                    background: selected ? 'hsl(var(--primary)/0.04)' : 'hsl(var(--muted)/0.2)',
+                                    border: selected ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit',
+                                    position: 'relative',
+                                    transition: 'background 0.2s, border-color 0.2s',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: 38,
+                                      height: 38,
+                                      borderRadius: 99,
+                                      flexShrink: 0,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: selected ? 'hsl(var(--primary)/0.12)' : 'hsl(var(--muted))',
+                                      color: selected ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                                      transition: 'background 0.2s, color 0.2s',
+                                    }}
+                                  >
+                                    <opt.Icon size={16} />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div
+                                      style={{
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: 'hsl(var(--foreground))',
+                                        marginBottom: 2,
+                                      }}
+                                    >
+                                      {opt.label}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                                      {opt.sub}
+                                    </div>
+                                  </div>
+                                  <motion.div
+                                    animate={{
+                                      background: selected ? 'hsl(var(--primary))' : 'transparent',
+                                      borderColor: selected ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                      scale: selected ? 1.05 : 1,
+                                    }}
+                                    transition={spring}
+                                    style={{
+                                      width: 22,
+                                      height: 22,
+                                      borderRadius: '50%',
+                                      flexShrink: 0,
+                                      border: '1.5px solid',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                  >
+                                    <AnimatePresence>
+                                      {selected && (
+                                        <motion.svg
+                                          initial={{ opacity: 0, scale: 0.4 }}
+                                          animate={{ opacity: 1, scale: 1 }}
+                                          exit={{ opacity: 0, scale: 0.4 }}
+                                          transition={spring}
+                                          width="10"
+                                          height="8"
+                                          viewBox="0 0 10 8"
+                                          fill="none"
+                                        >
+                                          <path
+                                            d="M1 4l3 3 5-6"
+                                            stroke="hsl(var(--primary-foreground))"
+                                            strokeWidth="1.6"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </motion.svg>
+                                      )}
+                                    </AnimatePresence>
+                                  </motion.div>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Backup Section */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'hsl(var(--muted-foreground))' }}>
+                      Backup & Restore
+                    </div>
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...spring, delay: 0.1 }}
+                      whileTap={{ scale: 0.985 }}
+                      onClick={() => {
+                        onImportBackup();
+                        onClose();
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                        padding: '12px 24px 12px 16px',
+                        borderRadius: 99,
+                        background: 'hsl(var(--muted)/0.2)',
+                        border: '1px solid hsl(var(--border))',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        textAlign: 'left',
+                        transition: 'background 0.2s, border-color 0.2s',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'hsl(var(--muted)/0.3)';
+                        e.currentTarget.style.borderColor = 'hsl(var(--primary)/0.25)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'hsl(var(--muted)/0.2)';
+                        e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                      }}
+                    >
+                      <div style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 99,
+                        flexShrink: 0,
+                        background: 'hsl(var(--primary)/0.08)',
+                        color: 'hsl(var(--primary))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <HardDriveDownload size={16} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
+                          Restore from backup
+                        </div>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                          Import a full .zip backup archive
+                        </div>
+                      </div>
+                      <ChevronRight size={18} style={{ color: 'hsl(var(--muted-foreground)/0.4)', flexShrink: 0 }} />
+                    </motion.button>
+                  </div>
+
+                  {/* Actions CTA buttons */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...spring, delay: 0.12 }}
+                    style={{ display: 'flex', gap: 12 }}
+                  >
+                    <motion.button
+                      onClick={onClose}
+                      whileTap={{ scale: 0.97 }}
+                      transition={spring}
+                      style={{
+                        flex: 1,
+                        height: 52,
+                        borderRadius: 99,
+                        background: 'hsl(var(--muted))',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: 'hsl(var(--foreground))',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      onClick={handleFileSelect}
+                      whileTap={{ scale: 0.97 }}
+                      transition={spring}
+                      style={{
+                        flex: 2,
+                        height: 52,
+                        borderRadius: 99,
+                        background: 'hsl(var(--primary))',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: 'hsl(var(--primary-foreground))',
+                        fontFamily: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <Upload size={16} />
+                      Select File
+                    </motion.button>
+                  </motion.div>
+
+                </div>
+              </motion.div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
+      )}
+    </AnimatePresence>
   );
 }

@@ -15,51 +15,132 @@ interface BackupData {
 }
 
 /**
+ * Helper to get all media IDs referenced in a set of entries
+ */
+export function getReferencedMediaIds(entries: Entry[]): Set<string> {
+  const referencedIds = new Set<string>();
+  for (const entry of entries) {
+    if (!entry.content) continue;
+    const contentString = typeof entry.content === 'string'
+      ? entry.content
+      : JSON.stringify(entry.content);
+    
+    const regex = /media_[a-zA-Z0-9_]+/g;
+    let match;
+    while ((match = regex.exec(contentString)) !== null) {
+      referencedIds.add(match[0]);
+    }
+  }
+  return referencedIds;
+}
+
+/**
+ * Helper to count all instances/references of valid media files across entries
+ */
+export function getReferencedMediaCount(entries: Entry[], validMediaIds: Set<string>): number {
+  let count = 0;
+  for (const entry of entries) {
+    if (!entry.content) continue;
+    const contentString = typeof entry.content === 'string'
+      ? entry.content
+      : JSON.stringify(entry.content);
+    
+    const matches = contentString.match(/media_[a-zA-Z0-9_]+/g);
+    if (matches) {
+      for (const id of matches) {
+        if (validMediaIds.has(id)) {
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+/**
  * Export all notes and media to a zip file
  */
-export async function exportBackup(): Promise<void> {
+export async function exportBackup(): Promise<{ entriesCount: number; mediaCount: number }> {
   try {
     const zip = new JSZip();
 
-    // Get all entries
-    const allEntries = await db.getEntries();
+    // Step 1: Get all entries
+    let allEntries: any[] = [];
+    try {
+      allEntries = await db.getEntries();
+    } catch (entriesError) {
+      console.error('Failed to fetch entries:', entriesError);
+      throw new Error('Could not read entries from database');
+    }
     
-    // Filter out empty entries
-    const entries = allEntries.filter(entry => !isEmptyContent(entry.content));
+    // Filter out invalid entries (safely — don't let a single bad entry crash the whole export)
+    const entries = allEntries.filter(entry => {
+      try {
+        return entry && typeof entry === 'object' && entry.id;
+      } catch {
+        return false;
+      }
+    });
 
-    // Get all media files
-    const allMedia = await mediaStorage.getAllMedia();
+    if (entries.length === 0) {
+      throw new Error('No entries to export');
+    }
 
-    // Create backup metadata
+    // Step 2: Get all media files — gracefully skip if media store doesn't exist
+    let allMedia: any[] = [];
+    try {
+      allMedia = await mediaStorage.getAllMedia();
+    } catch (mediaError) {
+      console.warn('Could not load media files for backup (store may not exist):', mediaError);
+    }
+
+    // Step 3: Validate and add media files to the ZIP (only those referenced in the entries)
+    const validMedia: any[] = [];
+    const validMediaIds = new Set<string>();
+    if (allMedia.length > 0) {
+      const referencedMediaIds = getReferencedMediaIds(entries);
+      const mediaFolder = zip.folder('media');
+      if (mediaFolder) {
+        for (const media of allMedia) {
+          // Only include if referenced in the exported entries
+          if (!referencedMediaIds.has(media.id)) {
+            continue;
+          }
+          try {
+            if (media.blob) {
+              // Verify if the blob's underlying file is still accessible.
+              await media.blob.slice(0, 1).arrayBuffer();
+              
+              mediaFolder.file(`${media.id}.${getExtensionFromMimeType(media.mimeType)}`, media.blob);
+              validMedia.push(media);
+              validMediaIds.add(media.id);
+            }
+          } catch (mediaFileError) {
+            console.warn(`Skipping unreadable or missing media file ${media.id} (${media.filename}):`, mediaFileError);
+          }
+        }
+      }
+    }
+
+    // Step 4: Build backup data (using only successfully verified media files)
     const backupData: BackupData = {
       version: '1.0',
       exportDate: new Date().toISOString(),
       entries: entries,
-      mediaFiles: allMedia.map((media) => ({
+      mediaFiles: validMedia.map((media) => ({
         id: media.id,
         filename: media.filename,
         mimeType: media.mimeType,
       })),
     };
 
-    // Add entries JSON
+    // Step 5: Add entries JSON to zip
     zip.file('backup.json', JSON.stringify(backupData, null, 2));
 
-    // Add media files to a media folder
-    if (allMedia.length > 0) {
-      const mediaFolder = zip.folder('media');
-      if (mediaFolder) {
-        for (const media of allMedia) {
-          // Add each media file with its ID as filename
-          mediaFolder.file(`${media.id}.${getExtensionFromMimeType(media.mimeType)}`, media.blob);
-        }
-      }
-    }
-
-    // Generate zip file
+    // Step 6: Generate zip file
     const blob = await zip.generateAsync({ type: 'blob' });
 
-    // Download the zip file
+    // Step 7: Trigger download
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -70,9 +151,17 @@ export async function exportBackup(): Promise<void> {
     URL.revokeObjectURL(url);
 
     console.log('Backup exported successfully');
+    
+    // Count total media references/instances exported
+    const mediaCount = getReferencedMediaCount(entries, validMediaIds);
+
+    return {
+      entriesCount: entries.length,
+      mediaCount: mediaCount,
+    };
   } catch (error) {
     console.error('Failed to export backup:', error);
-    throw new Error('Failed to export backup');
+    throw error instanceof Error ? error : new Error('Failed to export backup. Please try again.');
   }
 }
 
@@ -82,7 +171,7 @@ export async function exportBackup(): Promise<void> {
 export async function importBackup(file: File): Promise<{ success: boolean; entriesImported: number; mediaImported: number; errors: string[] }> {
   const errors: string[] = [];
   let entriesImported = 0;
-  let mediaImported = 0;
+  const importedMediaIds = new Set<string>();
 
   try {
     const zip = await JSZip.loadAsync(file);
@@ -130,7 +219,7 @@ export async function importBackup(file: File): Promise<{ success: boolean; entr
                 mimeType: mediaMetadata.mimeType,
                 uploadedAt: new Date().toISOString(),
               });
-              mediaImported++;
+              importedMediaIds.add(mediaId);
             }
           }
         } catch (error) {
@@ -155,12 +244,6 @@ export async function importBackup(file: File): Promise<{ success: boolean; entr
 
         // Normalize entry content to ensure it's in the correct format
         const normalizedContent = normalizeEntryContent(entry.content);
-        
-        // Skip empty entries (no content)
-        if (isEmptyContent(normalizedContent)) {
-          console.log(`Skipping empty entry: ${entry.id}`);
-          continue;
-        }
 
         const normalizedEntry = {
           ...entry,
@@ -175,14 +258,17 @@ export async function importBackup(file: File): Promise<{ success: boolean; entr
       }
     }
 
+    // Count total media references/instances imported
+    const mediaImportedCount = getReferencedMediaCount(backupData.entries, importedMediaIds);
+
     console.log(
-      `Backup imported: ${entriesImported} entries, ${mediaImported} media files`
+      `Backup imported: ${entriesImported} entries, ${mediaImportedCount} media instances`
     );
 
     return {
       success: true,
       entriesImported,
-      mediaImported,
+      mediaImported: mediaImportedCount,
       errors,
     };
   } catch (error) {
@@ -190,32 +276,10 @@ export async function importBackup(file: File): Promise<{ success: boolean; entr
     return {
       success: false,
       entriesImported,
-      mediaImported,
+      mediaImported: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error'],
     };
   }
-}
-
-/**
- * Check if content is empty (no actual text)
- */
-function isEmptyContent(content: any): boolean {
-  if (!Array.isArray(content)) return true;
-  if (content.length === 0) return true;
-
-  // Check if all blocks are empty
-  return content.every((block: any) => {
-    if (!block.content || !Array.isArray(block.content)) return true;
-    if (block.content.length === 0) return true;
-    
-    // Check if all content items are empty text
-    return block.content.every((item: any) => {
-      if (item.type === 'text') {
-        return !item.text || item.text.trim() === '';
-      }
-      return false;
-    });
-  });
 }
 
 /**

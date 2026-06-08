@@ -19,10 +19,7 @@ import { getEntryPlainText, isContentEmpty } from '@/lib/entryHelpers';
 import { 
   ArrowDownToLine, 
   MoonIcon, 
-  SunIcon, 
-  Type, 
-  Undo2,
-  Redo2
+  SunIcon
 } from 'lucide-react';
 
 // Custom Fullscreen icons
@@ -68,21 +65,18 @@ const ExitFullscreenIcon = () => (
 
 const SettingsIcon = () => (
   <svg 
-    width="14" 
-    height="14" 
-    viewBox="0 0 14 14" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-4 w-4"
-  >
-    <path 
-      fillRule="evenodd" 
-      clipRule="evenodd" 
-      d="M5.45494 0.450248C5.4805 0.194648 5.69558 0 5.95246 0H8.04747C8.30435 0 8.51943 0.194647 8.54499 0.450248L8.73073 2.30766C9.26926 2.50637 9.76418 2.79513 10.1972 3.15568L11.9 2.38721C12.1342 2.28155 12.4103 2.37049 12.5387 2.59295L13.5862 4.40728C13.7147 4.62975 13.6536 4.91334 13.4451 5.06327L11.9286 6.15339C11.9755 6.42858 12 6.71143 12 7C12 7.28864 11.9755 7.57157 11.9286 7.84682L13.4451 8.93696C13.6536 9.0869 13.7147 9.37049 13.5862 9.59295L12.5387 11.4073C12.4103 11.6297 12.1342 11.7187 11.9 11.613L10.197 10.8445C9.76404 11.205 9.26918 11.4937 8.73073 11.6923L8.54499 13.5498C8.51943 13.8054 8.30435 14 8.04747 14H5.95246C5.69558 14 5.4805 13.8054 5.45494 13.5498L5.2692 11.6923C4.73067 11.4936 4.23575 11.2049 3.80271 10.8443L2.0999 11.6128C1.86577 11.7185 1.58966 11.6295 1.46122 11.4071L0.413712 9.59272C0.285275 9.37026 0.346303 9.08667 0.554879 8.93673L2.07134 7.84661C2.02441 7.57142 1.99996 7.28857 1.99996 7C1.99996 6.71136 2.02442 6.42843 2.07138 6.15318L0.554879 5.06304C0.346302 4.9131 0.285274 4.62951 0.413712 4.40705L1.46122 2.59272C1.58966 2.37025 1.86577 2.28131 2.0999 2.38698L3.80289 3.15552C4.23589 2.79505 4.73075 2.50634 5.2692 2.30766L5.45494 0.450248ZM5.27747 8.01699L5.25611 7.98C5.09301 7.69039 4.99996 7.35606 4.99996 7C4.99996 5.89543 5.8954 5 6.99996 5C7.73323 5 8.37433 5.39461 8.72249 5.98306L8.74379 6.01995C8.90691 6.30957 8.99996 6.64392 8.99996 7C8.99996 8.10457 8.10453 9 6.99996 9C6.26672 9 5.62563 8.60541 5.27747 8.01699Z" 
-      fill="currentColor" 
-      fillOpacity="0.5"
-    />
-  </svg>
+    className="h-4 w-4 bg-current flex-shrink-0" 
+    aria-hidden="true" 
+    focusable="false" 
+    style={{
+      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
+      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
+      maskRepeat: 'no-repeat',
+      WebkitMaskRepeat: 'no-repeat',
+      maskPosition: 'center center',
+      WebkitMaskPosition: 'center center',
+    }}
+  />
 );
 
 export function Editor({ 
@@ -113,6 +107,15 @@ export function Editor({
   // Track if we should auto-focus (for new entries on mobile)
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const [lastEntryId, setLastEntryId] = useState<string | null>(null);
+
+  // Track window width for responsive font picker labels
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle external command palette trigger
   useEffect(() => {
@@ -339,16 +342,26 @@ export function Editor({
     init();
   }, []);
 
+  // Toggle body class so CSS can hide/blur elements when sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+    return () => document.body.classList.remove('sidebar-open');
+  }, [isSidebarOpen]);
+
 
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      <header className="h-12 px-4 flex justify-between items-center border-b border-border/10 flex-shrink-0">
-        <div className="flex items-center gap-2">
+      <header className="fixed top-4 left-0 right-0 z-40 pointer-events-none flex justify-between items-center h-12 px-4 md:px-8 lg:px-12 bg-transparent border-b-0">
+        <div className="pointer-events-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-dock static shadow-lg">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+            className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
             onClick={() => setIsSidebarOpen(true)}
           >
             <svg
@@ -369,34 +382,74 @@ export function Editor({
             </svg>
             <span className="sr-only">Open Sidebar</span>
           </Button>
+          
+          <div className="border-l border-border/30 h-4 mx-0.5" />
+          
           <Select value={selectedFont} onValueChange={setSelectedFont}>
             <SelectTrigger 
               className={cn(
-                "h-8 w-[200px] hover:bg-primary/10 transition-colors border-border",
+                "h-8 w-[140px] md:w-[155px] border-none bg-transparent hover:bg-primary/5 transition-all shadow-none font-medium rounded-full py-0 px-2",
                 {
+                'font-general-sans': selectedFont === 'general-sans',
                 'font-geist': selectedFont === 'geist',
                 'font-space': selectedFont === 'space',
                 'font-lora': selectedFont === 'lora',
                 'font-instrument-italic italic': selectedFont === 'instrument-italic',
+                'font-playfair': selectedFont === 'playfair',
                 }
               )}
             >
-              <Type className="h-4 w-4 text-muted-foreground mr-2" />
-              <SelectValue />
+              <svg 
+                className="h-4 w-4 bg-muted-foreground/60 dark:bg-muted-foreground/60 flex-shrink-0 mr-1.5" 
+                aria-hidden="true" 
+                focusable="false" 
+                style={{
+                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center center',
+                  WebkitMaskPosition: 'center center',
+                }}
+              />
+              <span className="truncate">
+                {(() => {
+                  const isMobile = windowWidth < 768;
+                  if (isMobile) {
+                    return {
+                      'geist': 'Geist Sans',
+                      'lora': 'Lora',
+                      'general-sans': 'General',
+                      'space': 'Space',
+                      'instrument-italic': 'Instrument',
+                      'playfair': 'Playfair'
+                    }[selectedFont] || selectedFont;
+                  } else {
+                    return {
+                      'geist': 'Geist Sans',
+                      'general-sans': 'General Sans',
+                      'space': 'Space',
+                      'lora': 'Lora',
+                      'instrument-italic': 'Instrument',
+                      'playfair': 'Playfair'
+                    }[selectedFont] || selectedFont;
+                  }
+                })()}
+              </span>
             </SelectTrigger>
             <SelectContent 
-              className="min-w-[200px] border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+              className="min-w-[170px]"
               position="popper"
-              sideOffset={4}
+              sideOffset={6}
             >
               {fonts.map(font => (
                 <SelectItem 
                   key={font.value} 
                   value={font.value}
                   className={cn(
-                    "text-base cursor-pointer transition-colors",
-                    "data-[highlighted]:bg-primary/10 data-[highlighted]:text-primary",
+                    "text-[13px] cursor-pointer transition-colors",
                     {
+                      'font-general-sans': font.value === 'general-sans',
                       'font-geist': font.value === 'geist',
                       'font-space': font.value === 'space',
                       'font-lora': font.value === 'lora',
@@ -414,22 +467,23 @@ export function Editor({
         </div>
         
         {/* Centered ⌘K hint */}
-        <div className="hidden md:flex items-center text-xs text-muted-foreground/60 bg-muted/20 px-2 py-1 rounded-md relative overflow-hidden border border-primary/20 shadow-sm">
-          {/* Aurora glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
-          <div className="relative z-10 flex items-center">
-            <kbd className="text-[14px] font-medium">⌘K</kbd>
-            <span className="ml-1">for quick search</span>
+        <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none z-50">
+          <div className="pointer-events-auto flex items-center text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1.5 rounded-full shadow-md overflow-hidden h-9">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/0 to-primary/5 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
+            <div className="relative z-10 flex items-center gap-1">
+              <kbd className="text-[13px] font-medium font-sans">⌘K</kbd>
+              <span className="opacity-80">for quick search</span>
+            </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="pointer-events-auto flex items-center justify-center h-11 w-11 p-0 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleFullscreen}
-            className="hidden md:flex h-8 w-8 hover:bg-primary/10 hover:text-primary"
+            className="hidden md:flex h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
           >
             {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
             <span className="sr-only">Toggle fullscreen</span>
@@ -439,7 +493,7 @@ export function Editor({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 <SettingsIcon />
                 <span className="sr-only">Settings</span>
@@ -690,6 +744,7 @@ export function Editor({
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        isCommandPaletteOpen={isCommandPaletteOpen}
       />
 
       <CommandPalette
@@ -697,17 +752,17 @@ export function Editor({
         onClose={closeCommandPalette}
       />
 
-      <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
+      <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 pt-0 pb-0 max-w-4xl mx-auto w-full overflow-hidden">
         {/* SEO: Hidden H1 tag for search engines */}
         <h1 className="sr-only">typein - Free Minimalist Writing App | Distraction-Free Text Editor</h1>
         <div className="relative flex-1 min-h-0">
           <textarea
             key={currentEntry?.id}
             className={cn(
-              "w-full h-full resize-none bg-transparent",
+              "w-full h-full resize-none bg-transparent pt-20 pb-32",
               "text-lg leading-relaxed outline-none whitespace-pre-wrap",
               "transition-all duration-200",
-              "placeholder:text-muted-foreground/50 md:text-[20px] text-[18px]"
+              "placeholder:text-muted-foreground/75 md:text-[20px] text-[18px]"
             )}
             style={{ fontSize: `var(--editor-font-size)` }}
             value={state.content}
@@ -742,10 +797,6 @@ export function Editor({
         charCount={charCount}
         lastSaved={state.lastSaved}
         isDirty={state.isDirty}
-        shortcuts={[
-          { icon: <Undo2 className="h-3 w-3" />, combo: '⌘ + Z' },
-          { icon: <Redo2 className="h-3 w-3" />, combo: '⌘ + Y' },
-        ]}
       />
     </div>
   );

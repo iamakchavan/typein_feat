@@ -1,20 +1,15 @@
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { MusicPlayer } from '@/components/MusicPlayer';
-import { MobileMusicPlayer } from '@/components/MobileMusicPlayer';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+
 
 interface StatusBarProps {
   wordCount: number;
   charCount: number;
   lastSaved: number | null;
   isDirty: boolean;
-  shortcuts: Array<{ icon: React.ReactNode; combo: string; }>;
 }
 
-export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts }: StatusBarProps) {
-  const [showMobileMusic, setShowMobileMusic] = useState(false);
+export function StatusBar({ wordCount, charCount, lastSaved, isDirty }: StatusBarProps) {
+
   const getLastSavedText = () => {
     if (!lastSaved) return 'Not saved yet';
     
@@ -22,69 +17,66 @@ export function StatusBar({ wordCount, charCount, lastSaved, isDirty, shortcuts 
       return 'Saving...';
     }
     
-    return `Saved ${formatDistanceToNow(lastSaved, { addSuffix: true })}`;
+    const diffMs = Date.now() - lastSaved;
+    const diffSecs = Math.floor(diffMs / 1000);
+    if (diffSecs < 10) return 'Saved just now';
+    if (diffSecs < 60) return `Saved ${diffSecs}s ago`;
+    
+    const diffMins = Math.floor(diffSecs / 60);
+    if (diffMins < 60) return `Saved ${diffMins} min ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Saved ${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `Saved ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
   return (
-    <footer className="border-t border-border py-2 px-4 text-xs text-muted-foreground bg-muted/10 flex-shrink-0">
-      <div className="flex justify-between items-center min-h-[2rem]">
+    <footer className="fixed bottom-0 left-0 right-0 mx-auto w-full z-30 pointer-events-none flex justify-center pb-6 px-4">
+      <div 
+        className={cn(
+          "pointer-events-auto flex items-center justify-between gap-3 md:gap-6 px-4 py-2 md:px-6 md:py-2.5 rounded-full w-full max-w-2xl md:max-w-3xl min-h-[2.25rem] md:min-h-[2.5rem] liquid-glass-dock static text-[11px] md:text-xs",
+          isDirty && "is-saving"
+        )}
+      >
         <div className="flex items-center gap-4">
-          <div className="flex gap-4">
-            <span className="flex items-center">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
-            <span className="flex items-center">{charCount} {charCount === 1 ? 'character' : 'characters'}</span>
-          </div>
-          <div className="hidden md:flex gap-3 border-l border-border ml-4 pl-4">
-            {shortcuts.map(({ icon, combo }) => (
-              <span key={combo} className="flex items-center">
-                <span className="opacity-70 flex items-center">{icon}</span>
-                <kbd className="mx-1.5 px-1.5 py-0.5 text-[10px] font-mono font-medium bg-muted/30 rounded border border-border">
-                  {combo}
-                </kbd>
-              </span>
-            ))}
+          <div className="flex gap-3 md:gap-4 text-muted-foreground/80 font-medium">
+            <span className="tabular-nums flex items-center gap-0.5 md:gap-1">
+              <span>{wordCount}</span>
+              <span className="md:inline hidden">{wordCount === 1 ? 'word' : 'words'}</span>
+              <span className="md:hidden inline">w</span>
+            </span>
+            <span className="tabular-nums flex items-center gap-0.5 md:gap-1">
+              <span>{charCount}</span>
+              <span className="md:inline hidden">{charCount === 1 ? 'character' : 'characters'}</span>
+              <span className="md:hidden inline">c</span>
+            </span>
           </div>
         </div>
+        
         <div className="flex items-center gap-4">
-          {/* Music Player - Hidden on mobile */}
-          <div className="hidden md:block">
-            <MusicPlayer />
-          </div>
-          
-          {/* Mobile Music Toggle and Save Status */}
-          <div className="flex items-center gap-2">
-            {/* Mobile Music Toggle Chevron */}
-            <button
-              onClick={() => setShowMobileMusic(!showMobileMusic)}
-              className="md:hidden flex items-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showMobileMusic ? (
-                <ChevronRight className="h-3 w-3" />
-              ) : (
-                <ChevronLeft className="h-3 w-3" />
+          <div className="flex items-center gap-2 md:gap-2.5">
+            <span
+              className={cn(
+                "transition-all duration-300 font-medium",
+                isDirty ? "text-amber-500/90 font-semibold" : "text-muted-foreground/85"
               )}
-            </button>
-
-            {/* Mobile Music Player or Save Status */}
-            {showMobileMusic ? (
-              <MobileMusicPlayer />
-            ) : (
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "transition-opacity duration-300 flex items-center",
-                    isDirty ? "opacity-50" : "opacity-100"
-                  )}
-                >
-                  {getLastSavedText()}
-                </span>
-                <div 
-                  className={cn(
-                    "h-2 w-2 rounded-full transition-colors duration-300",
-                    isDirty ? "bg-amber-500" : "bg-green-500"
-                  )} 
-                />
-              </div>
-            )}
+            >
+              {getLastSavedText()}
+            </span>
+            <div 
+              className={cn(
+                "h-1.5 w-1.5 md:h-2 md:w-2 rounded-full transition-all duration-500 relative flex-shrink-0",
+                isDirty 
+                  ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" 
+                  : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+              )} 
+            >
+              {isDirty && (
+                <span className="absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-75" />
+              )}
+            </div>
           </div>
         </div>
       </div>

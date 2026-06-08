@@ -206,8 +206,67 @@ export async function importMarkdownFile(file: File, retainDate: boolean): Promi
 }
 
 /**
- * Import a plain text file
+ * Import a JSON file (exported entry)
  */
+export async function importJsonFile(file: File, retainDate: boolean): Promise<Entry> {
+  const rawText = await file.text();
+  let parsed: any;
+
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    // If JSON parsing fails, treat the raw text as plain content
+    return importAsPlainText(rawText);
+  }
+
+  // Check if this looks like a typein-exported entry (has a content field that's a string or array)
+  const isTypeinEntry =
+    parsed &&
+    typeof parsed === 'object' &&
+    !Array.isArray(parsed) &&
+    ('content' in parsed) &&
+    (typeof parsed.content === 'string' || Array.isArray(parsed.content));
+
+  if (isTypeinEntry) {
+    // It's a typein-exported entry — import it properly
+    const entry: Entry = {
+      id: retainDate && parsed.id ? parsed.id : uuidv4(),
+      date: retainDate && parsed.date ? parsed.date : new Date().toISOString(),
+      content: parsed.content,
+      contentFormat: parsed.contentFormat ?? (Array.isArray(parsed.content) ? 'blocknote' : 'plaintext'),
+      pinned: parsed.pinned ?? false,
+      isBranchedOff: parsed.isBranchedOff ?? false,
+      originalEntryDate: parsed.originalEntryDate,
+    };
+
+    await db.saveEntry(entry);
+    return entry;
+  }
+
+  // It's an arbitrary JSON file — import the pretty-printed JSON as text content
+  const prettyJson = JSON.stringify(parsed, null, 2);
+  return importAsPlainText(prettyJson);
+}
+
+/**
+ * Helper: import raw text as a new entry with BlockNote paragraph blocks
+ */
+function importAsPlainText(text: string): Promise<Entry> {
+  const lines = text.split('\n');
+  const blockNoteContent = lines.map((line) => ({
+    type: 'paragraph' as const,
+    content: line ? [{ type: 'text' as const, text: line, styles: {} }] : [],
+  }));
+
+  const entry: Entry = {
+    id: uuidv4(),
+    date: new Date().toISOString(),
+    content: blockNoteContent.length > 0 ? blockNoteContent : [{ type: 'paragraph', content: [] }],
+    contentFormat: 'blocknote',
+  };
+
+  return db.saveEntry(entry).then(() => entry);
+}
 export async function importTextFile(file: File): Promise<Entry> {
   const content = await file.text();
 

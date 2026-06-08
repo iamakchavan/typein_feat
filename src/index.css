@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Space+Grotesk:wght@300..700&family=Lora:wght@400..700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Lora:wght@400..700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,6 +19,11 @@
 }
 
 /* Global font classes for system-wide application */
+.font-general-sans {
+  font-family: 'General Sans', sans-serif !important;
+  font-style: normal !important;
+}
+
 .font-geist {
   font-family: 'Geist', sans-serif !important;
   font-style: normal !important;
@@ -66,26 +72,27 @@
     --ring: 0 0% 3.9%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 222 33% 11%;
-    --foreground: 0 0% 98%;
+    --foreground: 222 15% 98%;
     --card: 222 33% 11%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 222 15% 98%;
     --popover: 222 33% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --popover-foreground: 222 15% 98%;
+    --primary: 222 15% 98%;
+    --primary-foreground: 222 33% 11%;
+    --secondary: 222 20% 18%;
+    --secondary-foreground: 222 15% 98%;
+    --muted: 222 20% 18%;
+    --muted-foreground: 222 12% 70%;
+    --accent: 222 20% 28%;
+    --accent-foreground: 222 15% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 33% 15%;
-    --input: 222 33% 15%;
-    --ring: 0 0% 83.1%;
+    --border: 222 25% 20%;
+    --input: 222 25% 20%;
+    --ring: 222 15% 83.1%;
   }
 
   .amethyst-light {
@@ -313,6 +320,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     margin: 0;
@@ -320,71 +328,80 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-  
+
   html {
     overflow-x: hidden;
   }
-  
+
   textarea::placeholder {
     @apply text-muted-foreground/40;
   }
-  
+
   /* Custom Scrollbar Styling */
   textarea {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  
+
   textarea::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* Custom Modal Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .scrollbar-track-transparent::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thumb-border::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border));
     border-radius: 3px;
   }
-  
+
   .scrollbar-thumb-border::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground) / 0.2);
   }
 
   /* Command Palette Custom Scrollbar - Visible State */
+  /* Custom Scrollbar - Visible only on hover of the scrollable container */
   .custom-scrollbar-visible {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+    scrollbar-width: none;
   }
-  
+
+  .custom-scrollbar-visible:hover {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
+  }
+
   .custom-scrollbar-visible::-webkit-scrollbar {
     width: 4px;
   }
-  
+
   .custom-scrollbar-visible::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .custom-scrollbar-visible::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.15);
+    background-color: transparent;
     border-radius: 2px;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.3s ease;
   }
-  
+
+  .custom-scrollbar-visible:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.15);
+  }
+
   .custom-scrollbar-visible::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground) / 0.3);
   }
-  
+
   .custom-scrollbar-visible::-webkit-scrollbar-corner {
     background: transparent;
   }
@@ -394,16 +411,16 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  
+
   .custom-scrollbar-hidden::-webkit-scrollbar {
     width: 0px;
     background: transparent;
   }
-  
+
   .custom-scrollbar-hidden::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .custom-scrollbar-hidden::-webkit-scrollbar-thumb {
     background: transparent;
   }
@@ -414,13 +431,16 @@
   0% {
     transform: translateX(-100%);
   }
+
   50% {
     transform: translateX(100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
+
 /* Co
 nfetti animation for migration success */
 @keyframes confetti {
@@ -428,6 +448,7 @@ nfetti animation for migration success */
     transform: translateY(0) rotate(0deg);
     opacity: 1;
   }
+
   100% {
     transform: translateY(100vh) rotate(720deg);
     opacity: 0;
@@ -436,4 +457,295 @@ nfetti animation for migration success */
 
 .animate-confetti {
   animation: confetti linear forwards;
+}
+
+/* Apple Liquid Glass Dock style and dynamic theme adaptation */
+.liquid-glass-dock {
+  background: linear-gradient(
+    135deg,
+    hsla(var(--background) / 0.85) 0%,
+    hsla(var(--background) / 0.65) 100%
+  ) !important;
+  backdrop-filter: blur(32px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+  border: 1px solid hsla(var(--border) / 0.35) !important;
+  
+  /* Specular reflections and realistic glass shadows */
+  box-shadow: 
+    0 12px 40px -10px rgba(0, 0, 0, 0.12),
+    0 4px 12px -5px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
+    inset 0 12px 24px -10px rgba(255, 255, 255, 0.25) !important;
+  
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.5s, border-color 0.5s, box-shadow 0.5s, color 0.5s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* For dark modes, adjust opacity for low-contrast compatibility */
+:is(.dark, [class*="-dark"]) .liquid-glass-dock {
+  background: linear-gradient(
+    135deg,
+    hsla(var(--background) / 0.8) 0%,
+    hsla(var(--background) / 0.6) 100%
+  ) !important;
+  border: 1px solid hsla(var(--border) / 0.45) !important;
+  box-shadow: 
+    0 16px 48px -12px rgba(0, 0, 0, 0.4),
+    0 6px 16px -6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
+    inset 0 12px 24px -10px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Liquid fluid hover sheen overlay */
+.liquid-glass-dock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.12) 70%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: none;
+  pointer-events: none;
+  z-index: 1;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-dock::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.08) 70%,
+    transparent 100%
+  );
+}
+
+.liquid-glass-dock:not(.static):hover::before {
+  left: 150%;
+  transition: left 1.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* When hover, slightly inflate and lift the dock for physical feedback */
+.liquid-glass-dock:not(.static):hover {
+  transform: scale(1.015) translateY(-2px) !important;
+  border-color: hsla(var(--border) / 0.55) !important;
+  box-shadow: 
+    0 20px 48px -12px rgba(0, 0, 0, 0.18),
+    0 8px 20px -8px rgba(0, 0, 0, 0.1),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.12),
+    inset 0 12px 24px -10px rgba(255, 255, 255, 0.35) !important;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-dock:not(.static):hover {
+  border-color: hsla(var(--border) / 0.6) !important;
+  box-shadow: 
+    0 24px 56px -12px rgba(0, 0, 0, 0.5),
+    0 10px 24px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.5),
+    inset 0 12px 24px -10px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Amber saving state modifiers */
+.liquid-glass-dock.is-saving {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 
+    0 12px 40px -10px rgba(245, 158, 11, 0.15),
+    0 4px 12px -5px rgba(245, 158, 11, 0.08),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),
+    inset 0 12px 24px -10px rgba(245, 158, 11, 0.1) !important;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-dock.is-saving {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 
+    0 16px 48px -12px rgba(0, 0, 0, 0.45),
+    0 6px 16px -6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(245, 158, 11, 0.25),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
+    inset 0 12px 24px -10px rgba(245, 158, 11, 0.05) !important;
+}
+
+/* Active primary highlighted state modifiers */
+.liquid-glass-dock.is-active {
+  background: linear-gradient(
+    135deg,
+    hsla(var(--primary) / 0.15) 0%,
+    hsla(var(--primary) / 0.06) 100%
+  ) !important;
+  border-color: hsla(var(--primary) / 0.45) !important;
+  color: hsl(var(--primary)) !important;
+  box-shadow: none !important;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-dock.is-active {
+  background: linear-gradient(
+    135deg,
+    hsla(var(--primary) / 0.22) 0%,
+    hsla(var(--primary) / 0.12) 100%
+  ) !important;
+  border-color: hsla(var(--primary) / 0.55) !important;
+  color: hsl(var(--primary)) !important;
+  box-shadow: none !important;
+}
+
+/* Liquid glass sidebar drawer panel style */
+.liquid-glass-sidebar {
+  background: linear-gradient(
+    180deg,
+    hsla(var(--background) / 0.72) 0%,
+    hsla(var(--background) / 0.58) 100%
+  ) !important;
+  backdrop-filter: blur(32px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+  border-right: 1px solid hsla(var(--border) / 0.3) !important;
+  
+  /* macOS-like drop shadow on the right side + subtle inner shine */
+  box-shadow: 
+    8px 0 40px -10px rgba(0, 0, 0, 0.08),
+    0 4px 12px -5px rgba(0, 0, 0, 0.03),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.45),
+    inset -1px 0 0 0 hsla(var(--border) / 0.15) !important;
+  
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.4s, border-color 0.4s, box-shadow 0.4s !important;
+}
+
+/* Adjustments for dark modes */
+:is(.dark, [class*="-dark"]) .liquid-glass-sidebar {
+  background: linear-gradient(
+    180deg,
+    hsla(var(--background) / 0.62) 0%,
+    hsla(var(--background) / 0.48) 100%
+  ) !important;
+  border-right: 1px solid hsla(var(--border) / 0.4) !important;
+  box-shadow: 
+    12px 0 48px -12px rgba(0, 0, 0, 0.38),
+    0 6px 16px -6px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset -1px 0 0 0 hsla(var(--border) / 0.25) !important;
+}
+
+/* Hide/fade out status bar footer on mobile when sidebar is open to prevent overlapping backdrop-filter bugs */
+@media (max-w: 767px) {
+  footer {
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  
+  body.sidebar-open footer {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(20px) !important;
+  }
+}
+
+/* Clean modern liquid glass search input style */
+.liquid-glass-search {
+  height: 38px !important;
+  border-radius: 99px !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  padding-left: 34px !important;
+  
+  /* Sleek modern glassmorphism */
+  background: hsla(var(--background) / 0.4) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border: 1px solid hsla(var(--border) / 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+  
+  transition: all 0.2s ease-in-out !important;
+}
+
+.liquid-glass-search:hover {
+  background: hsla(var(--background) / 0.5) !important;
+  border-color: hsla(var(--border) / 0.3) !important;
+}
+
+.liquid-glass-search:focus {
+  background: hsla(var(--background) / 0.7) !important;
+  border-color: hsla(var(--primary) / 0.45) !important;
+  box-shadow: 
+    0 0 0 3px hsla(var(--primary) / 0.12),
+    0 6px 16px rgba(0, 0, 0, 0.04) !important;
+  outline: none !important;
+}
+
+/* Adjustments for dark modes */
+:is(.dark, [class*="-dark"]) .liquid-glass-search {
+  background: hsla(var(--background) / 0.25) !important;
+  border: 1px solid hsla(var(--border) / 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-search:hover {
+  background: hsla(var(--background) / 0.35) !important;
+  border-color: hsla(var(--border) / 0.35) !important;
+}
+
+:is(.dark, [class*="-dark"]) .liquid-glass-search:focus {
+  background: hsla(var(--background) / 0.45) !important;
+  border-color: hsla(var(--primary) / 0.6) !important;
+  box-shadow: 
+    0 0 0 3px hsla(var(--primary) / 0.2),
+    0 6px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Search input container/icons styling */
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: hsl(var(--muted-foreground) / 0.65);
+  pointer-events: none;
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-wrapper:focus-within .search-icon {
+  color: hsl(var(--primary)) !important;
+}
+
+.search-wrapper .clear-button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground) / 0.6);
+  padding: 3px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.search-wrapper .clear-button:hover {
+  background: hsla(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
 }

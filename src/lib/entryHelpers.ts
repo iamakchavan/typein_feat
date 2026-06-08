@@ -10,10 +10,19 @@ import { extractPlainTextFromBlocks } from './migration';
  * Get plain text from entry content (works with both formats)
  */
 export function getEntryPlainText(content: string | PartialBlock[]): string {
+  if (!content) return '';
   if (typeof content === 'string') {
     return content;
   }
-  return extractPlainTextFromBlocks(content);
+  if (typeof content === 'number') {
+    return String(content);
+  }
+  try {
+    return extractPlainTextFromBlocks(content);
+  } catch {
+    // Last resort: if extraction still fails, try to stringify
+    return typeof content === 'object' ? JSON.stringify(content) : String(content);
+  }
 }
 
 /**
@@ -21,7 +30,8 @@ export function getEntryPlainText(content: string | PartialBlock[]): string {
  */
 export function getContentPreview(content: string | PartialBlock[], maxLength: number = 100): string {
   const plainText = getEntryPlainText(content);
-  const firstLine = plainText.split('\n')[0];
+  const lines = plainText.split('\n');
+  const firstLine = lines.find(line => line.trim() !== '') || '';
   
   if (firstLine.length > maxLength) {
     return firstLine.slice(0, maxLength) + '...';
@@ -43,7 +53,8 @@ export function isContentEmpty(content: string | PartialBlock[]): boolean {
  */
 export function getEntryTitle(content: string | PartialBlock[], defaultTitle: string = 'Untitled Entry'): string {
   const plainText = getEntryPlainText(content);
-  const firstLine = plainText.split('\n')[0].trim();
+  const lines = plainText.split('\n');
+  const firstLine = (lines.find(line => line.trim() !== '') || '').trim();
   
   if (!firstLine) {
     return defaultTitle;

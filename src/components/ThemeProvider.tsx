@@ -4,7 +4,7 @@ import { loadFontPreferences, saveFontPreferences } from '@/lib/storage';
 
 type Theme = 'dark' | 'light' | 'amethyst-light' | 'amethyst-dark' | 'cosmic-light' | 'cosmic-dark' | 'perpetuity-light' | 'perpetuity-dark' | 'quantum-rose-light' | 'quantum-rose-dark' | 'clean-slate-light' | 'clean-slate-dark';
 
-type Font = 'geist' | 'space' | 'lora' | 'instrument-italic' | 'playfair';
+type Font = 'general-sans' | 'geist' | 'space' | 'lora' | 'instrument-italic' | 'playfair';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -46,6 +46,7 @@ export function ThemeProvider({
   // Font state
   const [selectedFont, setSelectedFont] = useState<Font>('geist');
   const [fontSize, setFontSize] = useState<number>(20);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load font preferences on mount
   useEffect(() => {
@@ -58,6 +59,8 @@ export function ThemeProvider({
         }
       } catch (error) {
         console.error('Failed to load font preferences:', error);
+      } finally {
+        setIsLoaded(true);
       }
     };
     loadFontSettings();
@@ -65,6 +68,8 @@ export function ThemeProvider({
 
   // Save font preferences when they change
   useEffect(() => {
+    if (!isLoaded) return;
+
     const saveFontSettings = async () => {
       try {
         await saveFontPreferences({
@@ -76,11 +81,8 @@ export function ThemeProvider({
       }
     };
     
-    // Only save if we have non-default values (to avoid saving on initial load)
-    if (selectedFont !== 'geist' || fontSize !== 20) {
-      saveFontSettings();
-    }
-  }, [selectedFont, fontSize]);
+    saveFontSettings();
+  }, [selectedFont, fontSize, isLoaded]);
 
   // Update theme class and storage when theme changes
   useEffect(() => {
@@ -100,7 +102,7 @@ export function ThemeProvider({
     const root = document.documentElement;
     
     // Remove all font classes
-    root.classList.remove('font-geist', 'font-space', 'font-lora', 'font-instrument-italic', 'font-playfair');
+    root.classList.remove('font-general-sans', 'font-geist', 'font-space', 'font-lora', 'font-instrument-italic', 'font-playfair');
     
     // Add the current font class
     root.classList.add(`font-${selectedFont}`);

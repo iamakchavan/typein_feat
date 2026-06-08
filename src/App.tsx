@@ -3,7 +3,6 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { EntryProvider, useEntries } from '@/contexts/EntryContext';
-import { AudioPlayerProvider } from '@/contexts/AudioPlayerContext';
 import { Analytics } from '@vercel/analytics/react';
 import OnboardingModal from './components/OnboardingModal';
 import { MigrationStatusDialog } from './components/MigrationStatusDialog';
@@ -73,11 +72,9 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider storageKey="editor-theme">
-        <AudioPlayerProvider>
-          <EntryProvider>
-            <AppContent />
-          </EntryProvider>
-        </AudioPlayerProvider>
+        <EntryProvider>
+          <AppContent />
+        </EntryProvider>
       </ThemeProvider>
       <Analytics />
     </ErrorBoundary>

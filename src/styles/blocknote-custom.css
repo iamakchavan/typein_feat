@@ -1,43 +1,251 @@
 /* Custom BlockNote styling to match typein's minimalist design */
 
-/* Remove default BlockNote padding and borders */
+/* Force Radix portals, BlockNote container, and floating toolbar elements
+   to inherit active theme variables (--background, --foreground, --popover, --border, --accent, etc.)
+   from the root document (html containing .perpetuity-dark, .amethyst-dark, etc.)
+   rather than allowing them to be overridden by BlockNote's local .dark / .light classes. */
+.bn-container,
+.bn-editor,
+[data-theme],
+.bn-formatting-toolbar,
+.bn-suggestion-menu,
+.bn-side-menu,
+.bn-file-panel,
+.bn-drag-handle-menu,
+[data-role="popover"],
+[data-role="dialog"],
+.bn-menu-content,
+.bn-dropdown-content,
+.bn-select-content,
+.bn-select-item,
+.bn-dropdown-item,
+.bn-suggestion-menu-item,
+.bn-menu-item,
+[data-role="menuitem"],
+[data-slot="select-trigger"],
+[data-slot="dropdown-menu-trigger"] {
+  --background: inherit !important;
+  --foreground: inherit !important;
+  --card: inherit !important;
+  --card-foreground: inherit !important;
+  --popover: inherit !important;
+  --popover-foreground: inherit !important;
+  --primary: inherit !important;
+  --primary-foreground: inherit !important;
+  --secondary: inherit !important;
+  --secondary-foreground: inherit !important;
+  --muted: inherit !important;
+  --muted-foreground: inherit !important;
+  --accent: inherit !important;
+  --accent-foreground: inherit !important;
+  --border: inherit !important;
+  --input: inherit !important;
+  --ring: inherit !important;
+}
+
+/* Custom BlockNote CSS Variables mapping to Typein's active themes.
+   We apply them to the root/body and specific blocknote components (portaled and local)
+   to ensure the correct colors propagate across all popovers, suggestion menus, and toolbars
+   regardless of whether they are rendered inside the editor container or appended directly to the body. */
+:root,
+body,
+.bn-container,
+[data-theme],
+.bn-formatting-toolbar,
+.bn-suggestion-menu,
+.bn-side-menu,
+.bn-file-panel,
+.bn-drag-handle-menu,
+[data-role="popover"],
+[data-role="dialog"],
+.bn-menu-content,
+.bn-dropdown-content,
+.bn-select-content {
+  --bn-colors-editor-text: hsl(var(--foreground)) !important;
+  --bn-colors-editor-background: transparent !important;
+  --bn-colors-menu-text: hsl(var(--foreground)) !important;
+  --bn-colors-menu-background: hsl(var(--popover)) !important;
+  --bn-colors-tooltip-text: hsl(var(--popover-foreground)) !important;
+  --bn-colors-tooltip-background: hsl(var(--popover)) !important;
+  --bn-colors-hover-background: hsl(var(--accent)) !important;
+  --bn-colors-border: hsla(var(--border) / 0.4) !important;
+  --bn-colors-side-menu: hsl(var(--muted)) !important;
+}
+
+/* Style all BlockNote suggestion menus, dropdown menus, and popovers with premium Apple glassmorphism */
+.bn-suggestion-menu,
+[data-role="popover"],
+[data-role="dialog"],
+.bn-menu-content,
+.bn-dropdown-content,
+.bn-select-content {
+  background: hsla(var(--popover) / 0.85) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid hsla(var(--border) / 0.45) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.08), 0 2px 10px rgb(0 0 0 / 0.04) !important;
+  padding: 6px !important;
+}
+
+/* Custom styling for all item types in menus and dropdowns */
+.bn-suggestion-menu-item,
+.bn-menu-item,
+.bn-dropdown-item,
+[data-role="menuitem"],
+.bn-select-item {
+  border-radius: 10px !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+  color: hsl(var(--foreground) / 0.8) !important;
+}
+
+.bn-suggestion-menu-item[data-selected="true"],
+.bn-suggestion-menu-item:hover,
+.bn-menu-item[data-selected="true"],
+.bn-menu-item:hover,
+.bn-dropdown-item[data-selected="true"],
+.bn-dropdown-item:hover,
+[data-role="menuitem"][data-selected="true"],
+[data-role="menuitem"]:hover,
+.bn-select-item[data-selected="true"],
+.bn-select-item:hover {
+  background: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Ensure the side menu wrapper (which has inline z-index: 1000 from floating-ui)
+   has a z-index lower than the sidebar (which is 50) so that it is covered by 
+   the sidebar when overlapping. */
+div:has(> .bn-side-menu) {
+  z-index: 40 !important;
+}
+
+/* Hide the side menu on mobile — drag-to-reorder doesn't work on touch
+   and it bleeds into the content area at narrow widths. */
+@media (max-width: 768px) {
+  .bn-side-menu {
+    display: none !important;
+  }
+
+  /* Formatting toolbar: constrain to viewport with side margins on mobile */
+  .bn-formatting-toolbar {
+    max-width: calc(100vw - 24px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .bn-formatting-toolbar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Slash menu: cap size so it doesn't fill the screen */
+  .bn-suggestion-menu {
+    max-width: calc(100vw - 32px) !important;
+    max-height: 45vh !important;
+    overflow-y: auto !important;
+    font-size: 13px !important;
+  }
+
+  /* Smaller item padding inside slash menu on mobile */
+  .bn-suggestion-menu-item {
+    padding: 6px 10px !important;
+  }
+
+  /* Shrink the keyboard shortcut badges */
+  .bn-suggestion-menu-item kbd,
+  .bn-suggestion-menu-item [class*="shortcut"] {
+    display: none !important;
+  }
+}
+
+/* Remove default BlockNote padding and borders, and set scroll heights */
 .bn-container {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  /* Hide scrollbar completely */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.bn-container::-webkit-scrollbar {
+  display: none !important;
 }
 
 .bn-editor {
   background: transparent !important;
-  padding: 0 !important;
+  padding: 72px 0 120px 0 !important;
   font-size: inherit !important;
   font-family: inherit !important;
   line-height: 1.75 !important;
   color: hsl(var(--foreground)) !important;
+  min-height: 100% !important;
+  width: 100% !important;
+  overflow-y: visible !important;
 }
 
-/* Keep formatting toolbar and side menu visible */
-
-/* Style formatting toolbar to match theme */
+/* Style formatting toolbar to match Apple's modern glassmorphic look */
 .bn-formatting-toolbar {
-  background: hsl(var(--popover)) !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 0.5rem !important;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
-  padding: 0.25rem !important;
+  background: hsla(var(--popover) / 0.8) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid hsla(var(--border) / 0.4) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.06), 0 2px 8px rgb(0 0 0 / 0.04) !important;
+  padding: 5px !important;
+  gap: 4px !important;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+/* Make toolbar buttons smooth and rounded */
 .bn-formatting-toolbar button {
   color: hsl(var(--foreground)) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 8px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  background: transparent !important;
+  border: none !important;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease !important;
 }
 
+.bn-formatting-toolbar [data-slot="select-trigger"] {
+  color: hsl(var(--foreground)) !important;
+  border-radius: 8px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  background: hsla(var(--muted) / 0.4) !important;
+  border: 1px solid hsla(var(--border) / 0.3) !important;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease !important;
+}
+
+/* Subtle hovers */
 .bn-formatting-toolbar button:hover {
+  background: hsla(var(--accent) / 0.8) !important;
+}
+
+.bn-formatting-toolbar [data-slot="select-trigger"]:hover {
   background: hsl(var(--accent)) !important;
 }
 
+.bn-formatting-toolbar button:active,
+.bn-formatting-toolbar [data-slot="select-trigger"]:active {
+  transform: scale(0.96) !important;
+}
+
+/* Active buttons highlight */
 .bn-formatting-toolbar button[data-active="true"] {
-  background: hsl(var(--accent)) !important;
+  background: hsla(var(--primary) / 0.08) !important;
+  color: hsl(var(--primary)) !important;
+  font-weight: 600 !important;
 }
 
 /* Slash menu - use default BlockNote shadcn styling with fixed font size */
@@ -115,8 +323,6 @@
   line-height: 1.5 !important;
   color: hsl(var(--foreground)) !important;
 }
-
-/* Let BlockNote handle list styling natively */
 
 /* Divider styles */
 [data-content-type="divider"] {
@@ -281,7 +487,7 @@
 }
 
 .bn-block-outer[data-content-type="paragraph"] {
-  padding: 0.1em 0 !important;
+  padding: 0.15em 0 !important;
 }
 
 .bn-block-outer[data-content-type="numberedListItem"],
@@ -294,8 +500,9 @@
 }
 
 /* Placeholder styling */
+.bn-editor [data-placeholder]::before,
 .bn-editor [data-placeholder]:before {
-  color: hsl(var(--muted-foreground) / 0.5) !important;
+  color: hsla(var(--foreground) / 0.5) !important;
   content: attr(data-placeholder) !important;
   font-style: normal !important;
 }
@@ -305,22 +512,154 @@
   outline: none !important;
 }
 
-/* Make editor fill container and allow scrolling WITHOUT scrollbar */
-.bn-container {
-  height: 100% !important;
-  width: 100% !important;
-  overflow-y: auto !important;
-  /* Hide scrollbar completely */
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* Code Block styles */
+[data-content-type="codeBlock"] {
+  margin: 0.75em 0 !important;
 }
 
-.bn-container::-webkit-scrollbar {
-  display: none !important;
+.bn-block-content code {
+  font-family: 'Space Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace !important;
+  font-size: 0.9em !important;
 }
 
-.bn-editor {
-  min-height: 100% !important;
-  width: 100% !important;
-  overflow-y: visible !important;
+/* Code block container styling */
+.bn-block-content [data-content-type="codeBlock"] {
+  background: hsl(var(--muted) / 0.3) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  overflow-x: auto !important;
+}
+
+/* Ensure syntax highlighting colors are visible */
+.bn-block-content .bn-code-block-content {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Syntax Highlighting Colors (Light Mode) */
+.bn-block-content .hljs-comment,
+.bn-block-content .hljs-quote {
+  color: #a0a1a7 !important;
+  font-style: italic !important;
+}
+
+.bn-block-content .hljs-doctag,
+.bn-block-content .hljs-keyword,
+.bn-block-content .hljs-formula {
+  color: #a626a4 !important;
+}
+
+.bn-block-content .hljs-section,
+.bn-block-content .hljs-name,
+.bn-block-content .hljs-selector-tag,
+.bn-block-content .hljs-deletion,
+.bn-block-content .hljs-subst {
+  color: #e45649 !important;
+}
+
+.bn-block-content .hljs-literal {
+  color: #0184bc !important;
+}
+
+.bn-block-content .hljs-string,
+.bn-block-content .hljs-regexp,
+.bn-block-content .hljs-addition,
+.bn-block-content .hljs-attribute,
+.bn-block-content .hljs-meta-string {
+  color: #50a14f !important;
+}
+
+.bn-block-content .hljs-built_in,
+.bn-block-content .hljs-class .hljs-title {
+  color: #c18401 !important;
+}
+
+.bn-block-content .hljs-attr,
+.bn-block-content .hljs-variable,
+.bn-block-content .hljs-template-variable,
+.bn-block-content .hljs-type,
+.bn-block-content .hljs-selector-class,
+.bn-block-content .hljs-selector-attr,
+.bn-block-content .hljs-selector-pseudo,
+.bn-block-content .hljs-number {
+  color: #986801 !important;
+}
+
+.bn-block-content .hljs-symbol,
+.bn-block-content .hljs-bullet,
+.bn-block-content .hljs-link,
+.bn-block-content .hljs-meta,
+.bn-block-content .hljs-selector-id,
+.bn-block-content .hljs-title {
+  color: #4078f2 !important;
+}
+
+.bn-block-content .hljs-emphasis {
+  font-style: italic !important;
+}
+
+.bn-block-content .hljs-strong {
+  font-weight: bold !important;
+}
+
+.bn-block-content .hljs-link {
+  text-decoration: underline !important;
+}
+
+/* Syntax Highlighting Colors (Dark Mode - support default .dark and any custom themes ending with -dark) */
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-comment,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-quote {
+  color: #7f848e !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-doctag,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-keyword,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-formula {
+  color: #c678dd !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-section,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-name,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-selector-tag,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-deletion,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-subst {
+  color: #e06c75 !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-literal {
+  color: #56b6c2 !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-string,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-regexp,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-addition,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-attribute,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-meta-string {
+  color: #98c379 !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-built_in,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-class .hljs-title {
+  color: #e5c07b !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-attr,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-variable,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-template-variable,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-type,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-selector-class,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-selector-attr,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-selector-pseudo,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-number {
+  color: #d19a66 !important;
+}
+
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-symbol,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-bullet,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-link,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-meta,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-selector-id,
+:is(.dark, [class*="-dark"]) .bn-block-content .hljs-title {
+  color: #61afef !important;
 }

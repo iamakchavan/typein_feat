@@ -29,9 +29,20 @@ class MediaStorage {
 
     const id = `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    // Convert File to a clean Blob. Storing raw File objects from inputs can retain
+    // disk references. If the file is moved/deleted by the user, reading it throws NotFoundError.
+    let cleanBlob: Blob;
+    try {
+      const buffer = await file.arrayBuffer();
+      cleanBlob = new Blob([buffer], { type: file.type });
+    } catch (e) {
+      console.warn('Failed to convert File to ArrayBuffer, falling back to raw File', e);
+      cleanBlob = file;
+    }
+    
     const mediaFile: MediaFile = {
       id,
-      blob: file,
+      blob: cleanBlob,
       filename: file.name,
       mimeType: file.type,
       uploadedAt: new Date().toISOString(),

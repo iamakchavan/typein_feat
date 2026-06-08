@@ -141,6 +141,18 @@ export function validateBlockNoteContent(blocks: any): blocks is PartialBlock[] 
  * @returns Plain text representation
  */
 export function extractPlainTextFromBlocks(blocks: Block[] | PartialBlock[]): string {
+  // Guard against non-iterable input (e.g. plain strings, objects, null/undefined)
+  if (!blocks) return '';
+  if (typeof blocks === 'string') return blocks;
+  if (!Array.isArray(blocks)) {
+    // If it's a single block object, wrap it in an array
+    if (typeof blocks === 'object' && (blocks as any).type) {
+      blocks = [blocks as PartialBlock];
+    } else {
+      return '';
+    }
+  }
+
   const lines: string[] = [];
 
   for (const block of blocks) {

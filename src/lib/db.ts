@@ -26,6 +26,7 @@ interface DBSchema {
   theme: string;
   fontPreferences: FontPreferences;
   migrationStatus: MigrationStatus;
+  media: any;
 }
 
 class typeinDB {
@@ -391,8 +392,15 @@ class typeinDB {
         }
       }
 
-      // Clear localStorage after successful migration
+      // Clear localStorage after successful migration, preserving keys we still need
+      const preserve: Record<string, string | null> = {
+        'last-edited-entry': localStorage.getItem('last-edited-entry'),
+        'editor-theme': localStorage.getItem('editor-theme'),
+        'typein_onboarding_complete': localStorage.getItem('typein_onboarding_complete'),
+        'migration-status-shown-v6': localStorage.getItem('migration-status-shown-v6'),
+      };
       localStorage.clear();
+      Object.entries(preserve).forEach(([k, v]) => { if (v !== null) localStorage.setItem(k, v); });
       console.log('Migration completed successfully, localStorage cleared');
     } catch (error) {
       console.error('Error during migration:', error);

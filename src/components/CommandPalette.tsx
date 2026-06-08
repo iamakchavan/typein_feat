@@ -2,16 +2,19 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, FileText, Clock, Sun, Moon, Palette, ChevronDown, Trash2, Type, Play, Pause, Music, Mail, MoreVertical, Copy, Download, Pin } from 'lucide-react';
+import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Copy, Pin, Filter, ChevronRight, FileText, FileCode, FileJson, X as ClearIcon } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
 import { fonts } from '@/lib/fonts';
 import { getEntryPlainText, getEntryTitle, isContentEmpty } from '@/lib/entryHelpers';
-import { Track } from '@/lib/musicLibrary';
-import { useAudioPlayerContext } from '@/contexts/AudioPlayerContext';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { exportEntryAsMarkdown, exportEntryAsJson } from '@/lib/markdown';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -64,13 +67,216 @@ interface Command {
   description?: string;
   icon: React.ReactNode;
   action?: () => void;
-  type: 'entry' | 'action' | 'theme' | 'special-themes' | 'fonts' | 'music' | 'music-selector';
+  type: 'entry' | 'action' | 'theme' | 'special-themes' | 'fonts';
   lastModified?: Date;
   isSpecialThemes?: boolean;
   isFonts?: boolean;
-  isMusic?: boolean;
   fullContent?: string;
   dateString?: string;
+}
+
+function parseDateQuery(query: string): { start?: Date; end?: Date; isParsed: boolean; cleanedQuery: string } {
+  const q = query.toLowerCase().trim();
+  if (!q) return { isParsed: false, cleanedQuery: query };
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // 1. Relative terms
+  if (q === 'today') {
+    const start = new Date(today);
+    const end = new Date(today);
+    end.setHours(23, 59, 59, 999);
+    return { start, end, isParsed: true, cleanedQuery: '' };
+  }
+  if (q.includes('today')) {
+    const cleaned = q.replace(/\btoday\b/g, '').replace(/\s+/g, ' ').trim();
+    const start = new Date(today);
+    const end = new Date(today);
+    end.setHours(23, 59, 59, 999);
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  if (q === 'yesterday') {
+    const start = new Date(today);
+    start.setDate(start.getDate() - 1);
+    const end = new Date(start);
+    end.setHours(23, 59, 59, 999);
+    return { start, end, isParsed: true, cleanedQuery: '' };
+  }
+  if (q.includes('yesterday')) {
+    const cleaned = q.replace(/\byesterday\b/g, '').replace(/\s+/g, ' ').trim();
+    const start = new Date(today);
+    start.setDate(start.getDate() - 1);
+    const end = new Date(start);
+    end.setHours(23, 59, 59, 999);
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  if (q.includes('this month')) {
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+    const cleaned = q.replace(/\bthis month\b/g, '').replace(/\s+/g, ' ').trim();
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  if (q.includes('last month')) {
+    const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const end = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+    const cleaned = q.replace(/\blast month\b/g, '').replace(/\s+/g, ' ').trim();
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  if (q.includes('this year')) {
+    const start = new Date(today.getFullYear(), 0, 1);
+    const end = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const cleaned = q.replace(/\bthis year\b/g, '').replace(/\s+/g, ' ').trim();
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  if (q.includes('last year')) {
+    const start = new Date(today.getFullYear() - 1, 0, 1);
+    const end = new Date(today.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+    const cleaned = q.replace(/\blast year\b/g, '').replace(/\s+/g, ' ').trim();
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  // 2. Parse formatted dates like DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, D/M/YY
+  const dateRegex = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
+  const match = q.match(dateRegex);
+  if (match) {
+    let day = parseInt(match[1]);
+    let month = parseInt(match[2]) - 1; // 0-indexed
+    let year = parseInt(match[3]);
+    if (year < 100) {
+      year += 2000;
+    }
+    
+    // Swap day/month if month > 11 and day <= 12
+    if (month > 11 && day <= 12) {
+      const temp = month + 1;
+      month = day - 1;
+      day = temp;
+    }
+    
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const start = new Date(year, month, day);
+      const end = new Date(year, month, day);
+      end.setHours(23, 59, 59, 999);
+      const cleaned = q.replace(match[0], '').replace(/\s+/g, ' ').trim();
+      return { start, end, isParsed: true, cleanedQuery: cleaned };
+    }
+  }
+
+  // 3. Month Name patterns like "04 jan 2025", "4 January", "january 2025"
+  const monthNames = [
+    ['january', 'jan'],
+    ['february', 'feb'],
+    ['march', 'mar'],
+    ['april', 'apr'],
+    ['may', 'may'],
+    ['june', 'jun'],
+    ['july', 'jul'],
+    ['august', 'aug'],
+    ['september', 'sep', 'sept'],
+    ['october', 'oct'],
+    ['november', 'nov'],
+    ['december', 'dec']
+  ];
+
+  let foundMonthIdx = -1;
+  let matchedMonthStr = '';
+  for (let i = 0; i < monthNames.length; i++) {
+    for (const name of monthNames[i]) {
+      const regex = new RegExp(`\\b${name}\\b`, 'i');
+      if (regex.test(q)) {
+        foundMonthIdx = i;
+        matchedMonthStr = name;
+        break;
+      }
+    }
+    if (foundMonthIdx !== -1) break;
+  }
+
+  if (foundMonthIdx !== -1) {
+    let year = now.getFullYear();
+    let day: number | null = null;
+
+    const numberMatches = q.match(/\b\d+\b/g);
+    if (numberMatches) {
+      if (numberMatches.length === 1) {
+        const num = parseInt(numberMatches[0]);
+        if (num > 31) {
+          year = num;
+          if (year < 100) year += 2000;
+        } else {
+          day = num;
+        }
+      } else if (numberMatches.length >= 2) {
+        const num1 = parseInt(numberMatches[0]);
+        const num2 = parseInt(numberMatches[1]);
+        
+        if (numberMatches[0].length === 4) {
+          year = num1;
+          day = num2;
+        } else if (numberMatches[1].length === 4) {
+          year = num2;
+          day = num1;
+        } else {
+          if (num1 > 31) {
+            year = num1 + 2000;
+            day = num2;
+          } else if (num2 > 31) {
+            year = num2 + 2000;
+            day = num1;
+          } else {
+            const monthPos = q.indexOf(matchedMonthStr);
+            const num1Pos = q.indexOf(numberMatches[0]);
+            if (num1Pos < monthPos) {
+              day = num1;
+              year = num2 + 2000;
+            } else {
+              day = num1;
+              year = num2 + 2000;
+            }
+          }
+        }
+      }
+    }
+
+    // Clean query of the parsed date parts
+    let cleaned = q.replace(new RegExp(`\\b${matchedMonthStr}\\b`, 'i'), '');
+    if (numberMatches) {
+      for (const numStr of numberMatches) {
+        cleaned = cleaned.replace(new RegExp(`\\b${numStr}\\b`), '');
+      }
+    }
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+    if (day !== null) {
+      const start = new Date(year, foundMonthIdx, day);
+      const end = new Date(year, foundMonthIdx, day);
+      end.setHours(23, 59, 59, 999);
+      return { start, end, isParsed: true, cleanedQuery: cleaned };
+    } else {
+      const start = new Date(year, foundMonthIdx, 1);
+      const end = new Date(year, foundMonthIdx + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end, isParsed: true, cleanedQuery: cleaned };
+    }
+  }
+
+  // 4. Standalone Year (4 digits, e.g. "2025")
+  const standaloneYearMatch = q.match(/\b(20\d{2}|19\d{2})\b/);
+  if (standaloneYearMatch) {
+    const year = parseInt(standaloneYearMatch[1]);
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31, 23, 59, 59, 999);
+    const cleaned = q.replace(standaloneYearMatch[0], '').replace(/\s+/g, ' ').trim();
+    return { start, end, isParsed: true, cleanedQuery: cleaned };
+  }
+
+  return { isParsed: false, cleanedQuery: query };
 }
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
@@ -78,24 +284,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);
   const [showFonts, setShowFonts] = useState<string | null>(null);
-  const [showMusic, setShowMusic] = useState<string | null>(null);
   const [showKebabMenu, setShowKebabMenu] = useState<string | null>(null);
+  const [timelineFilter, setTimelineFilter] = useState<'all' | 'today' | 'yesterday' | '7days' | '30days' | 'month' | 'custom'>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [showTimelineFilter, setShowTimelineFilter] = useState(false);
+  const [showDateRangeFilter, setShowDateRangeFilter] = useState(false);
   const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [hoveredEntryId, setHoveredEntryId] = useState<string | null>(null);
+  const [isExportExpanded, setIsExportExpanded] = useState(false);
   const { entries, createNewEntry, setCurrentEntry, deleteEntry, branchOffEntry } = useEntries();
   const { theme, setTheme, selectedFont, setSelectedFont } = useTheme();
-  const { isPlaying, currentTrack, togglePlayPause, selectTrack, tracks, play } = useAudioPlayerContext();
   const { toast } = useToast();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Function to select track and always start playing
-  const selectAndPlayTrack = useCallback((track: Track) => {
-    selectTrack(track);
-    // Small delay to ensure track is loaded before playing
-    setTimeout(() => play(), 150);
-  }, [selectTrack, play]);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -106,9 +309,13 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       setSelectedIndex(0);
       setShowSpecialThemes(null);
       setShowFonts(null);
-      setShowMusic(null);
       setShowKebabMenu(null);
-      setDropdownSelectedIndex(0);
+      setIsExportExpanded(false);
+      setTimelineFilter('all');
+      setDateRange(undefined);
+      setShowTimelineFilter(false);
+      setShowDateRangeFilter(false);
+      setDropdownSelectedIndex(-1);
       setIsScrolling(false);
       // Focus search input when opened
       setTimeout(() => {
@@ -220,7 +427,6 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           // If we're on basic theme, just toggle
           setTheme(isCurrentlyLight ? 'dark' : 'light');
         }
-        onClose();
       },
       type: 'theme'
     },
@@ -236,31 +442,43 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       id: 'fonts',
       title: 'Change Font',
       description: `Browse available fonts (currently: ${fonts.find(f => f.value === selectedFont)?.label || 'Geist'})`,
-      icon: <Type className="h-4 w-4" />,
+      icon: (
+        <svg 
+          className="h-4 w-4 bg-current flex-shrink-0" 
+          aria-hidden="true" 
+          focusable="false" 
+          style={{
+            maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+            WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskPosition: 'center center',
+            WebkitMaskPosition: 'center center',
+          }}
+        />
+      ),
       type: 'fonts',
       isFonts: true
-    },
-    {
-      id: 'music-toggle',
-      title: 'Play/Pause',
-      description: currentTrack ? `${isPlaying ? 'Currently playing' : 'Currently paused'}: "${currentTrack.title}"` : 'No track selected',
-      icon: isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />,
-      type: 'music',
-      action: togglePlayPause
-    },
-    {
-      id: 'music-selector',
-      title: 'Select Music',
-      description: currentTrack ? `Currently: ${currentTrack.title}` : 'Choose a track to play',
-      icon: <Music className="h-4 w-4" />,
-      type: 'music-selector',
-      isMusic: true
     },
     {
       id: 'contact-support',
       title: 'Contact Support',
       description: 'For queries and feedback: info@typein.space',
-      icon: <Mail className="h-4 w-4" />,
+      icon: (
+        <svg 
+          className="h-4 w-4 bg-current flex-shrink-0" 
+          aria-hidden="true" 
+          focusable="false" 
+          style={{
+            maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/envelope.svg")',
+            WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/envelope.svg")',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskPosition: 'center center',
+            WebkitMaskPosition: 'center center',
+          }}
+        />
+      ),
       action: () => {
         window.open('mailto:info@typein.space', '_blank');
         onClose();
@@ -287,11 +505,35 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         <BranchOffIcon className="h-4 w-4 text-orange-500" />
       ) : entry.pinned ? (
         <div className="relative">
-          <FileText className="h-4 w-4" />
+          <svg 
+            className="h-4 w-4 bg-current flex-shrink-0" 
+            aria-hidden="true" 
+            focusable="false" 
+            style={{
+              maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+              WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+              maskRepeat: 'no-repeat',
+              WebkitMaskRepeat: 'no-repeat',
+              maskPosition: 'center center',
+              WebkitMaskPosition: 'center center',
+            }}
+          />
           <Pin className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
         </div>
       ) : (
-        <FileText className="h-4 w-4" />
+        <svg 
+          className="h-4 w-4 bg-current flex-shrink-0" 
+          aria-hidden="true" 
+          focusable="false" 
+          style={{
+            maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+            WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskPosition: 'center center',
+            WebkitMaskPosition: 'center center',
+          }}
+        />
       ),
       action: () => {
         setCurrentEntry(entry);
@@ -309,39 +551,125 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     };
   });
 
-  // Filter entries based on search (search through ALL entries)
-  const filteredEntryCommands = search.trim() 
-    ? allEntryCommands.filter(command => {
-        const searchLower = search.toLowerCase();
-        const entryDate = command.lastModified;
-        
-        // Create multiple date format strings for better matching
-        const dateFormats = entryDate ? [
-          entryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }), // "Apr 02, 2025"
-          entryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' }), // "April 02, 2025"
-          entryDate.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }), // "04/02/2025"
-          entryDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }), // "Apr 02"
-          entryDate.toLocaleDateString('en-US', { month: 'long', day: '2-digit' }), // "April 02"
-          entryDate.getFullYear().toString(), // "2025"
-        ] : [];
-        
-        return command.title.toLowerCase().includes(searchLower) ||
-               (command.description && command.description.toLowerCase().includes(searchLower)) ||
-               (command.fullContent && command.fullContent.toLowerCase().includes(searchLower)) ||
-               dateFormats.some(dateFormat => dateFormat.toLowerCase().includes(searchLower));
-      }).sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0)) // Sort search results by date
-    : allEntryCommands
-        .sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0))
-        .slice(0, 4); // Show 4 most recent when not searching
+  // Helper to determine if an entry falls within the active date filter
+  const isDateInFilter = (date: Date) => {
+    if (timelineFilter === 'all') return true;
+    
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0); // Normalize to start of day for simple comparisons
 
-  // Filter static commands based on search
-  const filteredStaticCommands = staticCommands.filter(command => 
-    command.title.toLowerCase().includes(search.toLowerCase()) ||
-    (command.description && command.description.toLowerCase().includes(search.toLowerCase()))
-  );
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    if (timelineFilter === 'today') {
+      return d.getTime() === today.getTime();
+    }
+    if (timelineFilter === 'yesterday') {
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return d.getTime() === yesterday.getTime();
+    }
+    if (timelineFilter === '7days') {
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return d.getTime() >= sevenDaysAgo.getTime() && d.getTime() <= today.getTime();
+    }
+    if (timelineFilter === '30days') {
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return d.getTime() >= thirtyDaysAgo.getTime() && d.getTime() <= today.getTime();
+    }
+    if (timelineFilter === 'month') {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      return d.getTime() >= startOfMonth.getTime() && d.getTime() <= today.getTime();
+    }
+    if (timelineFilter === 'custom' && dateRange) {
+      const from = dateRange.from ? new Date(dateRange.from) : null;
+      if (from) from.setHours(0, 0, 0, 0);
+      const to = dateRange.to ? new Date(dateRange.to) : null;
+      if (to) to.setHours(23, 59, 59, 999);
+
+      if (from && to) {
+        return d.getTime() >= from.getTime() && d.getTime() <= to.getTime();
+      } else if (from) {
+        // Only one date selected: applies to that day
+        const fromEnd = new Date(from);
+        fromEnd.setHours(23, 59, 59, 999);
+        return d.getTime() >= from.getTime() && d.getTime() <= fromEnd.getTime();
+      }
+    }
+    return true;
+  };
+
+  // Parse search input for natural language dates
+  const parsedSearchDate = parseDateQuery(search);
+
+  // Filter entries based on search and date filters
+  const filteredEntryCommands = allEntryCommands.filter(command => {
+    // 1. First apply timeline/calendar date filter
+    if (command.lastModified && !isDateInFilter(command.lastModified)) {
+      return false;
+    }
+
+    // 2. Next apply parsed search date filter if active
+    if (parsedSearchDate.isParsed && command.lastModified) {
+      const entryTime = command.lastModified.getTime();
+      const startLimit = parsedSearchDate.start?.getTime();
+      const endLimit = parsedSearchDate.end?.getTime();
+      if (startLimit && entryTime < startLimit) return false;
+      if (endLimit && entryTime > endLimit) return false;
+    }
+
+    // 3. Finally apply search text if search query is active
+    if (search.trim()) {
+      if (parsedSearchDate.isParsed) {
+        if (!parsedSearchDate.cleanedQuery) {
+          return true; // Date-only match
+        }
+        const queryToUse = parsedSearchDate.cleanedQuery.toLowerCase();
+        return command.title.toLowerCase().includes(queryToUse) ||
+               (command.description && command.description.toLowerCase().includes(queryToUse)) ||
+               (command.fullContent && command.fullContent.toLowerCase().includes(queryToUse));
+      }
+
+      const searchLower = search.toLowerCase();
+      const entryDate = command.lastModified;
+      
+      const dateFormats = entryDate ? [
+        entryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
+        entryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' }),
+        entryDate.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+        entryDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+        entryDate.toLocaleDateString('en-US', { month: 'long', day: '2-digit' }),
+        entryDate.getFullYear().toString(),
+      ] : [];
+      
+      return command.title.toLowerCase().includes(searchLower) ||
+             (command.description && command.description.toLowerCase().includes(searchLower)) ||
+             (command.fullContent && command.fullContent.toLowerCase().includes(searchLower)) ||
+             dateFormats.some(dateFormat => dateFormat.toLowerCase().includes(searchLower));
+    }
+    
+    return true;
+  });
+
+  // Sort and format the final list of entries
+  const finalEntryCommands = search.trim() || timelineFilter !== 'all'
+    ? filteredEntryCommands.sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0))
+    : filteredEntryCommands
+        .sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0))
+        .slice(0, 4); // Keep standard behavior of showing top 4 if no search/filters are active
+
+  // Filter static commands based on search (only show if no date filter is active)
+  const filteredStaticCommands = timelineFilter === 'all' && !parsedSearchDate.isParsed
+    ? staticCommands.filter(command => 
+        command.title.toLowerCase().includes(search.toLowerCase()) ||
+        (command.description && command.description.toLowerCase().includes(search.toLowerCase()))
+      )
+    : []; // Hide actions if date filtering is active
 
   // Combine filtered commands
-  const filteredCommands = [...filteredStaticCommands, ...filteredEntryCommands];
+  const filteredCommands = [...filteredStaticCommands, ...finalEntryCommands];
 
   // Get theme options for dropdown
   const getThemeOptions = () => {
@@ -373,17 +701,30 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   // Handle entry deletion
   const handleDeleteEntry = (entryId: string) => {
     setEntryToDelete(entryId);
+    setTimeout(() => {
+      setIsDeleteModalOpen(true);
+    }, 50);
   };
 
   const confirmDelete = () => {
     if (entryToDelete) {
       deleteEntry(entryToDelete);
-      setEntryToDelete(null);
+      toast({
+        description: "Note deleted successfully",
+        duration: 2000,
+      });
     }
+    setIsDeleteModalOpen(false);
+    setTimeout(() => {
+      setEntryToDelete(null);
+    }, 400);
   };
 
   const cancelDelete = () => {
-    setEntryToDelete(null);
+    setIsDeleteModalOpen(false);
+    setTimeout(() => {
+      setEntryToDelete(null);
+    }, 400);
   };
 
   const handleCopyClick = async (entry: any, e: React.MouseEvent) => {
@@ -395,12 +736,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         const plainText = getEntryPlainText(fullEntry.content);
         await navigator.clipboard.writeText(plainText);
         // Show toast only on desktop (not mobile)
-        if (window.matchMedia('(min-width: 768px)').matches) {
-          toast({
-            description: "Note copied to clipboard",
-            duration: 2000,
-          });
-        }
+        toast({
+          description: "Note copied to clipboard",
+          duration: 2000,
+        });
         console.log('Entry copied to clipboard');
       }
     } catch (err) {
@@ -423,8 +762,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         const link = document.createElement('a');
         link.href = url;
         
-        // Generate filename from first line or use date
-        const firstLine = plainText.split('\n')[0].trim();
+        const lines = plainText.split('\n');
+        const firstLine = (lines.find(line => line.trim() !== '') || '').trim();
         const filename = firstLine 
           ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
           : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
@@ -438,12 +777,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         URL.revokeObjectURL(url);
         
         // Show toast only on desktop (not mobile)
-        if (window.matchMedia('(min-width: 768px)').matches) {
-          toast({
-            description: "Note exported as .txt file",
-            duration: 2000,
-          });
-        }
+        toast({
+          description: "Note exported as .txt file",
+          duration: 2000,
+        });
         console.log('Entry exported as .txt file');
       }
     } catch (err) {
@@ -459,17 +796,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       if (fullEntry && !isContentEmpty(fullEntry.content)) {
         branchOffEntry(fullEntry.id);
         // Show toast only on desktop (not mobile)
-        if (window.matchMedia('(min-width: 768px)').matches) {
-          const originalDate = new Date(fullEntry.date).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-          });
-          toast({
-            description: `Entry branched off from ${originalDate}`,
-            duration: 2000,
-          });
-        }
+        const originalDate = new Date(fullEntry.date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+        toast({
+          description: `Entry branched off from ${originalDate}`,
+          duration: 2000,
+        });
         console.log('Entry branched off');
       }
     } catch (err) {
@@ -487,29 +822,39 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
+      // If timeline or date range filter popovers are open, block normal command navigation
+      if (showTimelineFilter || showDateRangeFilter) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowTimelineFilter(false);
+          setShowDateRangeFilter(false);
+        }
+        return;
+      }
+
       // If dropdown is open, handle dropdown navigation
       if (showSpecialThemes) {
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.min(prev + 1, themeOptions.length - 1));
+            setDropdownSelectedIndex(prev => prev === -1 ? 0 : Math.min(prev + 1, themeOptions.length - 1));
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+            setDropdownSelectedIndex(prev => prev === -1 ? themeOptions.length - 1 : Math.max(prev - 1, 0));
             break;
           case 'Enter':
             e.preventDefault();
             if (themeOptions[dropdownSelectedIndex]) {
               themeOptions[dropdownSelectedIndex].action();
-              setShowSpecialThemes(null);
-              onClose();
             }
             break;
           case 'Escape':
             e.preventDefault();
+            e.stopPropagation();
             setShowSpecialThemes(null);
-            setDropdownSelectedIndex(0);
+            setDropdownSelectedIndex(-1);
             break;
         }
         return;
@@ -520,78 +865,54 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.min(prev + 1, fonts.length - 1));
+            setDropdownSelectedIndex(prev => prev === -1 ? 0 : Math.min(prev + 1, fonts.length - 1));
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+            setDropdownSelectedIndex(prev => prev === -1 ? fonts.length - 1 : Math.max(prev - 1, 0));
             break;
           case 'Enter':
             e.preventDefault();
             if (fonts[dropdownSelectedIndex]) {
               setSelectedFont(fonts[dropdownSelectedIndex].value as any);
-              setShowFonts(null);
-              onClose();
             }
             break;
           case 'Escape':
             e.preventDefault();
+            e.stopPropagation();
             setShowFonts(null);
-            setDropdownSelectedIndex(0);
+            setDropdownSelectedIndex(-1);
             break;
         }
         return;
       }
 
-      // If music dropdown is open, handle music navigation
-      if (showMusic) {
-        switch (e.key) {
-          case 'ArrowDown':
-            e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.min(prev + 1, tracks.length - 1));
-            break;
-          case 'ArrowUp':
-            e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
-            break;
-          case 'Enter':
-            e.preventDefault();
-            if (tracks[dropdownSelectedIndex]) {
-              selectAndPlayTrack(tracks[dropdownSelectedIndex]);
-              setShowMusic(null);
-              onClose();
-            }
-            break;
-          case 'Escape':
-            e.preventDefault();
-            setShowMusic(null);
-            setDropdownSelectedIndex(0);
-            break;
-        }
-        return;
-      }
+
 
       // If kebab menu is open, handle kebab navigation
       if (showKebabMenu) {
-                          const kebabOptions = ['copy', 'branch-off', 'export', 'delete'];
+        const kebabOptions = isExportExpanded 
+          ? ['copy', 'branch-off', 'export', 'export-md', 'export-txt', 'export-json', 'delete']
+          : ['copy', 'branch-off', 'export', 'delete'];
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.min(prev + 1, kebabOptions.length - 1));
+            setDropdownSelectedIndex(prev => prev === -1 ? 0 : Math.min(prev + 1, kebabOptions.length - 1));
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+            setDropdownSelectedIndex(prev => prev === -1 ? kebabOptions.length - 1 : Math.max(prev - 1, 0));
             break;
           case 'Enter':
             e.preventDefault();
-            if (dropdownSelectedIndex === 0) {
-              // Copy action
-              const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && !isContentEmpty(fullEntry.content)) {
+            const option = kebabOptions[dropdownSelectedIndex];
+            const fullEntry = entries.find(e => e.id === showKebabMenu);
+            if (!fullEntry) return;
+
+            if (option === 'copy') {
+              if (!isContentEmpty(fullEntry.content)) {
                 const plainText = getEntryPlainText(fullEntry.content);
                 navigator.clipboard.writeText(plainText);
-                // Show toast only on desktop (not mobile)
                 if (window.matchMedia('(min-width: 768px)').matches) {
                   toast({
                     description: "Note copied to clipboard",
@@ -599,12 +920,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   });
                 }
               }
-            } else if (dropdownSelectedIndex === 1) {
-              // Branch off action
-              const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && !isContentEmpty(fullEntry.content)) {
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
+            } else if (option === 'branch-off') {
+              if (!isContentEmpty(fullEntry.content)) {
                 branchOffEntry(fullEntry.id);
-                // Show toast only on desktop (not mobile)
                 if (window.matchMedia('(min-width: 768px)').matches) {
                   const originalDate = new Date(fullEntry.date).toLocaleDateString('en-US', {
                     month: 'short',
@@ -617,16 +938,36 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   });
                 }
               }
-            } else if (dropdownSelectedIndex === 2) {
-              // Export action
-              const fullEntry = entries.find(e => e.id === showKebabMenu);
-              if (fullEntry && !isContentEmpty(fullEntry.content)) {
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
+            } else if (option === 'export') {
+              // Toggle export expansion
+              setIsExportExpanded(prev => !prev);
+            } else if (option === 'export-md') {
+              if (!isContentEmpty(fullEntry.content)) {
+                try {
+                  exportEntryAsMarkdown(fullEntry);
+                  toast({
+                    title: 'Exported as Markdown',
+                    description: 'Note exported successfully',
+                  });
+                } catch (err) {
+                  console.error('Failed to export as markdown:', err);
+                }
+              }
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
+            } else if (option === 'export-txt') {
+              if (!isContentEmpty(fullEntry.content)) {
                 const plainText = getEntryPlainText(fullEntry.content);
                 const blob = new Blob([plainText], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                const firstLine = plainText.split('\n')[0].trim();
+                const lines = plainText.split('\n');
+                const firstLine = (lines.find(line => line.trim() !== '') || '').trim();
                 const filename = firstLine 
                   ? `${firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`
                   : `note-${new Date(fullEntry.date).toISOString().split('T')[0]}.txt`;
@@ -635,7 +976,6 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
-                // Show toast only on desktop (not mobile)
                 if (window.matchMedia('(min-width: 768px)').matches) {
                   toast({
                     description: "Note exported as .txt file",
@@ -643,17 +983,36 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   });
                 }
               }
-            } else if (dropdownSelectedIndex === 3) {
-              // Delete action
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
+            } else if (option === 'export-json') {
+              if (!isContentEmpty(fullEntry.content)) {
+                try {
+                  exportEntryAsJson(fullEntry);
+                  toast({
+                    title: 'Exported as JSON',
+                    description: 'Note exported successfully',
+                  });
+                } catch (err) {
+                  console.error('Failed to export as json:', err);
+                }
+              }
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
+            } else if (option === 'delete') {
               handleDeleteEntry(showKebabMenu);
+              setShowKebabMenu(null);
+              setIsExportExpanded(false);
+              setDropdownSelectedIndex(-1);
             }
-            setShowKebabMenu(null);
-            setDropdownSelectedIndex(0);
             break;
           case 'Escape':
             e.preventDefault();
             setShowKebabMenu(null);
-            setDropdownSelectedIndex(0);
+            setIsExportExpanded(false);
+            setDropdownSelectedIndex(-1);
             break;
         }
         return;
@@ -673,17 +1032,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           break;
         case 'Enter':
           e.preventDefault();
+          e.stopPropagation();
           if (filteredCommands[selectedIndex]) {
             const command = filteredCommands[selectedIndex];
             if (command.isSpecialThemes) {
               setShowSpecialThemes(command.id);
-              setDropdownSelectedIndex(0);
+              setDropdownSelectedIndex(-1);
             } else if (command.isFonts) {
               setShowFonts(command.id);
-              setDropdownSelectedIndex(0);
-            } else if (command.isMusic) {
-              setShowMusic(command.id);
-              setDropdownSelectedIndex(0);
+              setDropdownSelectedIndex(-1);
             } else if (command.action) {
               command.action();
             }
@@ -696,9 +1053,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showMusic, showKebabMenu, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, selectAndPlayTrack, tracks, entries, handleDeleteEntry, branchOffEntry, showScrollbarTemporarily, toast]);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [isOpen, selectedIndex, filteredCommands, showSpecialThemes, showFonts, showKebabMenu, showTimelineFilter, showDateRangeFilter, dropdownSelectedIndex, themeOptions, onClose, setSelectedFont, entries, handleDeleteEntry, branchOffEntry, showScrollbarTemporarily, toast, searchInputRef]);
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -737,7 +1094,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
-          <DialogPrimitive.Content className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
+          <DialogPrimitive.Content
+            onEscapeKeyDown={(e) => {
+              // If any dropdown or filter popover is open, block Radix from closing the dialog —
+              // our keyboard handler will close only the dropdown/popover.
+              if (showSpecialThemes || showFonts || showKebabMenu || showTimelineFilter || showDateRangeFilter) {
+                e.preventDefault();
+              }
+            }}
+            className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
             <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
             <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
         <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
@@ -758,6 +1123,181 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             </div>
           </div>
 
+          {/* Date Filters Bar */}
+          <div className="flex items-center gap-2 px-6 pb-4 pt-1 bg-background/20 border-b border-border/10 overflow-x-auto select-none no-scrollbar animate-in fade-in-0 slide-in-from-top-1 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+            {/* Timeline Preset Pill */}
+            <Popover open={showTimelineFilter} onOpenChange={setShowTimelineFilter}>
+              <PopoverTrigger asChild>
+                <button className={cn(
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  timelineFilter !== 'all'
+                    ? "is-active"
+                    : "text-foreground/90"
+                )}>
+                  <Filter className="h-3 w-3 opacity-80" />
+                  <span>
+                    {timelineFilter === 'all' && 'All Time'}
+                    {timelineFilter === 'today' && 'Today'}
+                    {timelineFilter === 'yesterday' && 'Yesterday'}
+                    {timelineFilter === '7days' && 'Last 7 Days'}
+                    {timelineFilter === '30days' && 'Last 30 Days'}
+                    {timelineFilter === 'month' && 'This Month'}
+                    {timelineFilter === 'custom' && 'Custom Date'}
+                  </span>
+                  <svg 
+                    className="h-3 w-3 bg-current opacity-70 flex-shrink-0" 
+                    aria-hidden="true" 
+                    focusable="false" 
+                    style={{
+                      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskPosition: 'center center',
+                      WebkitMaskPosition: 'center center',
+                    }}
+                  />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent forceMount className="w-44 p-0 border-0 bg-transparent shadow-none" align="start">
+                <AnimatePresence>
+                  {showTimelineFilter && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className="w-full p-1 bg-background/95 backdrop-blur-xl border border-border/40 shadow-xl rounded-2xl"
+                    >
+                      <div className="space-y-0.5">
+                        {[
+                          { val: 'all', label: 'All Time' },
+                          { val: 'today', label: 'Today' },
+                          { val: 'yesterday', label: 'Yesterday' },
+                          { val: '7days', label: 'Last 7 Days' },
+                          { val: '30days', label: 'Last 30 Days' },
+                          { val: 'month', label: 'This Month' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            onClick={() => {
+                              setTimelineFilter(opt.val as any);
+                              setDateRange(undefined);
+                              setShowTimelineFilter(false);
+                            }}
+                            className={cn(
+                              "w-full px-2.5 py-1.5 text-left rounded-lg transition-colors text-[13px] font-medium flex items-center justify-between",
+                              timelineFilter === opt.val ? "bg-primary/8 text-primary" : "hover:bg-muted/50 text-foreground/80 hover:text-foreground"
+                            )}
+                          >
+                            <span>{opt.label}</span>
+                            {timelineFilter === opt.val && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </PopoverContent>
+            </Popover>
+
+            {/* Custom Date Range Pill */}
+            <Popover open={showDateRangeFilter} onOpenChange={setShowDateRangeFilter}>
+              <PopoverTrigger asChild>
+                <button className={cn(
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  timelineFilter === 'custom'
+                    ? "is-active"
+                    : "text-foreground/90"
+                )}>
+                  <svg 
+                    className="h-3 w-3 bg-current opacity-80 flex-shrink-0" 
+                    aria-hidden="true" 
+                    focusable="false" 
+                    style={{
+                      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
+                      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskPosition: 'center center',
+                      WebkitMaskPosition: 'center center',
+                    }}
+                  />
+                  <span>
+                    {timelineFilter === 'custom' && dateRange ? (
+                      dateRange.to ? (
+                        `${format(dateRange.from!, 'MMM d')} - ${format(dateRange.to, 'MMM d, yyyy')}`
+                      ) : (
+                        format(dateRange.from!, 'MMMM d, yyyy')
+                      )
+                    ) : (
+                      'Select Date'
+                    )}
+                  </span>
+                  <svg 
+                    className="h-3 w-3 bg-current opacity-70 flex-shrink-0" 
+                    aria-hidden="true" 
+                    focusable="false" 
+                    style={{
+                      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskPosition: 'center center',
+                      WebkitMaskPosition: 'center center',
+                    }}
+                  />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent forceMount className="w-auto p-0 border-0 bg-transparent shadow-none" align="start">
+                <AnimatePresence>
+                  {showDateRangeFilter && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className="bg-background/95 backdrop-blur-xl border border-border/40 shadow-xl rounded-2xl p-0 overflow-hidden"
+                    >
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={(range) => {
+                          setDateRange(range);
+                          if (range?.from) {
+                            setTimelineFilter('custom');
+                          } else {
+                            setTimelineFilter('all');
+                          }
+                        }}
+                        numberOfMonths={1}
+                        captionLayout="dropdown-buttons"
+                        fromYear={2000}
+                        toYear={new Date().getFullYear() + 10}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </PopoverContent>
+            </Popover>
+
+            {/* Reset Button */}
+            {timelineFilter !== 'all' && (
+              <button
+                onClick={() => {
+                  setTimelineFilter('all');
+                  setDateRange(undefined);
+                }}
+                className="rounded-full text-[11px] font-medium px-2.5 py-1.5 flex items-center gap-1 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all outline-none"
+              >
+                <ClearIcon className="h-3 w-3" />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+
           {/* Commands List */}
           <div 
             ref={listRef}
@@ -769,7 +1309,19 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           >
             {filteredCommands.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <FileText className="h-7 w-7 mx-auto mb-3 text-muted-foreground/40" />
+                <svg 
+                  className="h-7 w-7 mx-auto mb-3 bg-muted-foreground/40 flex-shrink-0" 
+                  aria-hidden="true" 
+                  focusable="false" 
+                  style={{
+                    maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+                    WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskPosition: 'center center',
+                    WebkitMaskPosition: 'center center',
+                  }}
+                />
                 <p className="text-[14px] font-medium text-muted-foreground/70 mb-1">No results found</p>
                 <p className="text-[13px] text-muted-foreground/50">Try a different search term</p>
               </div>
@@ -784,249 +1336,195 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   className="animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-out"
                 >
                   {command.isSpecialThemes ? (
-                    <Popover 
-                      open={showSpecialThemes === command.id} 
+                    <Popover
+                      open={showSpecialThemes === command.id}
                       onOpenChange={(open) => setShowSpecialThemes(open ? command.id : null)}
                     >
                       <PopoverTrigger asChild>
                         <button
-                          onClick={() => setShowSpecialThemes(command.id)}
+                          tabIndex={-1}
+                          onClick={() => setShowSpecialThemes(showSpecialThemes === command.id ? null : command.id)}
                           className={cn(
                             "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
-                            index === selectedIndex 
-                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm" 
+                            index === selectedIndex
+                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm"
                               : "hover:bg-muted/30"
                           )}
                         >
-                          <div className={cn(
-                            "flex-shrink-0 transition-colors",
-                            index === selectedIndex ? "text-primary" : "text-muted-foreground/70"
-                          )}>
+                          <div className={cn("flex-shrink-0 transition-colors", index === selectedIndex ? "text-primary" : "text-muted-foreground/70")}>
                             {command.icon}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
-                                index === selectedIndex ? "text-foreground" : "text-foreground/90"
-                              )}>
+                              <span className={cn("text-[14px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
                                 {command.title}
                               </span>
-                              <ChevronDown className={cn(
-                                "h-3 w-3 transition-colors",
-                                index === selectedIndex ? "text-primary/70" : "text-muted-foreground/50"
-                              )} />
+                              <svg 
+                                className={cn("h-3 w-3 transition-colors", index === selectedIndex ? "bg-primary/70" : "bg-muted-foreground/50")} 
+                                aria-hidden="true" 
+                                focusable="false" 
+                                style={{
+                                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                  maskRepeat: 'no-repeat',
+                                  WebkitMaskRepeat: 'no-repeat',
+                                  maskPosition: 'center center',
+                                  WebkitMaskPosition: 'center center',
+                                }}
+                              />
                             </div>
                             {command.description && (
-                              <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
-                                index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
-                              )}>
+                              <p className={cn("text-[12px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
                                 {command.description}
                               </p>
                             )}
                           </div>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
-                        <div className="space-y-0.5">
-                          {themeOptions.map((option, index) => {
-                            const getGradient = (themeId: string) => {
-                              const gradients: Record<string, string> = {
-                                'light': 'from-gray-100 to-gray-200 border border-gray-300',
-                                'dark': 'from-gray-700 to-gray-800 border border-gray-600',
-                                'amethyst-light': 'from-purple-300 to-pink-300',
-                                'amethyst-dark': 'from-purple-600 to-pink-600',
-                                'cosmic-light': 'from-blue-300 to-purple-400',
-                                'cosmic-dark': 'from-blue-800 to-purple-900',
-                                'perpetuity-light': 'from-teal-300 to-cyan-400',
-                                'perpetuity-dark': 'from-teal-600 to-cyan-700',
-                                'quantum-rose-light': 'from-pink-300 to-rose-400',
-                                'quantum-rose-dark': 'from-pink-600 to-fuchsia-700',
-                                'clean-slate-light': 'from-slate-200 to-indigo-300',
-                                'clean-slate-dark': 'from-slate-600 to-indigo-600'
-                              };
-                              return gradients[themeId] || 'from-gray-300 to-gray-400';
-                            };
-
-                            return (
-                              <button
-                                key={option.id}
-                                onClick={() => {
-                                  option.action();
-                                  setShowSpecialThemes(null);
-                                  onClose();
-                                }}
-                                className={cn(
-                                  "w-full px-3 py-2.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
-                                  index === dropdownSelectedIndex 
-                                    ? "bg-primary/20 text-primary" 
-                                    : "hover:bg-muted/50"
-                                )}
-                              >
-                                <div className={cn("h-3 w-3 rounded-full bg-gradient-to-r", getGradient(option.id))}></div>
-                                {option.name}
-                              </button>
-                            );
-                          })}
-                        </div>
+                      <PopoverContent
+                        forceMount
+                        className="w-56 p-0 border-0 bg-transparent shadow-none"
+                        align="start"
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                      >
+                        <AnimatePresence>
+                          {showSpecialThemes === command.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                              className="w-full p-2 bg-background/95 backdrop-blur-xl border border-border/30 shadow-xl rounded-2xl"
+                            >
+                              <div className="space-y-0.5">
+                                {themeOptions.map((option, optIdx) => {
+                                  const gradients: Record<string, string> = {
+                                    'light': 'from-gray-100 to-gray-200 border border-gray-300',
+                                    'dark': 'from-gray-700 to-gray-800 border border-gray-600',
+                                    'amethyst-light': 'from-purple-300 to-pink-300',
+                                    'amethyst-dark': 'from-purple-600 to-pink-600',
+                                    'cosmic-light': 'from-blue-300 to-purple-400',
+                                    'cosmic-dark': 'from-blue-800 to-purple-900',
+                                    'perpetuity-light': 'from-teal-300 to-cyan-400',
+                                    'perpetuity-dark': 'from-teal-600 to-cyan-700',
+                                    'quantum-rose-light': 'from-pink-300 to-rose-400',
+                                    'quantum-rose-dark': 'from-pink-600 to-fuchsia-700',
+                                    'clean-slate-light': 'from-slate-200 to-indigo-300',
+                                    'clean-slate-dark': 'from-slate-600 to-indigo-600'
+                                  };
+                                  return (
+                                    <button
+                                      key={option.id}
+                                      tabIndex={-1}
+                                      onClick={() => { option.action(); }}
+                                      className={cn(
+                                        "w-full px-3 py-1.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
+                                        optIdx === dropdownSelectedIndex 
+                                          ? "bg-primary/20 text-primary" 
+                                          : theme === option.id 
+                                            ? "bg-primary/10 text-primary" 
+                                            : "hover:bg-muted/50 text-foreground/80 hover:text-foreground"
+                                      )}
+                                    >
+                                      <div className={cn("h-3 w-3 rounded-full bg-gradient-to-r flex-shrink-0", gradients[option.id] || 'from-gray-300 to-gray-400')} />
+                                      <span className="flex-1 truncate">{option.name}</span>
+                                      {theme === option.id && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </PopoverContent>
                     </Popover>
                   ) : command.isFonts ? (
-                    <Popover 
-                      open={showFonts === command.id} 
+                    <Popover
+                      open={showFonts === command.id}
                       onOpenChange={(open) => setShowFonts(open ? command.id : null)}
                     >
                       <PopoverTrigger asChild>
                         <button
-                          onClick={() => setShowFonts(command.id)}
+                          tabIndex={-1}
+                          onClick={() => setShowFonts(showFonts === command.id ? null : command.id)}
                           className={cn(
                             "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
-                            index === selectedIndex 
-                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm" 
+                            index === selectedIndex
+                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm"
                               : "hover:bg-muted/30"
                           )}
                         >
-                          <div className={cn(
-                            "flex-shrink-0 transition-colors",
-                            index === selectedIndex ? "text-primary" : "text-muted-foreground/70"
-                          )}>
+                          <div className={cn("flex-shrink-0 transition-colors", index === selectedIndex ? "text-primary" : "text-muted-foreground/70")}>
                             {command.icon}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
-                                index === selectedIndex ? "text-foreground" : "text-foreground/90"
-                              )}>
+                              <span className={cn("text-[14px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
                                 {command.title}
                               </span>
-                              <ChevronDown className={cn(
-                                "h-3 w-3 transition-colors",
-                                index === selectedIndex ? "text-primary/70" : "text-muted-foreground/50"
-                              )} />
+                              <svg 
+                                className={cn("h-3 w-3 transition-colors", index === selectedIndex ? "bg-primary/70" : "bg-muted-foreground/50")} 
+                                aria-hidden="true" 
+                                focusable="false" 
+                                style={{
+                                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                  maskRepeat: 'no-repeat',
+                                  WebkitMaskRepeat: 'no-repeat',
+                                  maskPosition: 'center center',
+                                  WebkitMaskPosition: 'center center',
+                                }}
+                              />
                             </div>
                             {command.description && (
-                              <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
-                                index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
-                              )}>
+                              <p className={cn("text-[12px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
                                 {command.description}
                               </p>
                             )}
                           </div>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
-                        <div className="space-y-0.5">
-                          {fonts.map((font, fontIndex) => (
-                                                         <button
-                               key={font.value}
-                               onClick={() => {
-                                 setSelectedFont(font.value as any);
-                                 setShowFonts(null);
-                                 onClose();
-                               }}
-                               className={cn(
-                                 "w-full px-3 py-2.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
-                                 fontIndex === dropdownSelectedIndex 
-                                   ? "bg-primary/20 text-primary" 
-                                   : "hover:bg-muted/50",
-                                 selectedFont === font.value && "bg-primary/10 border border-primary/30",
-                                 {
-                                   'font-geist': font.value === 'geist',
-                                   'font-space': font.value === 'space',
-                                   'font-lora': font.value === 'lora',
-                                   'font-instrument-italic': font.value === 'instrument-italic',
-                                   'font-playfair': font.value === 'playfair',
-                                 },
-                                 font.value === 'instrument-italic' && 'italic'
-                               )}
-                             >
-                               <Type className="h-3 w-3" />
-                               <span>{font.label}</span>
-                               {selectedFont === font.value && (
-                                 <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>
-                               )}
-                             </button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  ) : command.isMusic ? (
-                    <Popover 
-                      open={showMusic === command.id} 
-                      onOpenChange={(open) => setShowMusic(open ? command.id : null)}
-                    >
-                      <PopoverTrigger asChild>
-                        <button
-                          onClick={() => setShowMusic(command.id)}
-                          className={cn(
-                            "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
-                            index === selectedIndex 
-                              ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm" 
-                              : "hover:bg-muted/30"
-                          )}
-                        >
-                          <div className={cn(
-                            "flex-shrink-0 transition-colors",
-                            index === selectedIndex ? "text-primary" : "text-muted-foreground/70"
-                          )}>
-                            {command.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className={cn(
-                                "text-[14px] font-medium truncate transition-colors",
-                                index === selectedIndex ? "text-foreground" : "text-foreground/90"
-                              )}>
-                                {command.title}
-                              </span>
-                              <ChevronDown className={cn(
-                                "h-3 w-3 transition-colors",
-                                index === selectedIndex ? "text-primary/70" : "text-muted-foreground/50"
-                              )} />
-                            </div>
-                            {command.description && (
-                              <p className={cn(
-                                "text-[12px] line-clamp-1 transition-colors",
-                                index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
-                              )}>
-                                {command.description}
-                              </p>
-                            )}
-                          </div>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 bg-background/95 backdrop-blur-xl border-0 shadow-xl rounded-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200 ease-out" align="start">
-                        <div className="space-y-0.5">
-                          {tracks.map((track, trackIndex) => (
-                            <button
-                              key={track.id}
-                              onClick={() => {
-                                selectAndPlayTrack(track);
-                                setShowMusic(null);
-                                onClose();
-                              }}
-                              className={cn(
-                                "w-full px-3 py-2.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
-                                trackIndex === dropdownSelectedIndex 
-                                  ? "bg-primary/20 text-primary" 
-                                  : "hover:bg-muted/50",
-                                currentTrack?.id === track.id && "bg-primary/10 border border-primary/30"
-                              )}
+                      <PopoverContent
+                        forceMount
+                        className="w-56 p-0 border-0 bg-transparent shadow-none"
+                        align="start"
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                      >
+                        <AnimatePresence>
+                          {showFonts === command.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                              className="w-full p-2 bg-background/95 backdrop-blur-xl border border-border/30 shadow-xl rounded-2xl"
                             >
-                              <Music className="h-3 w-3" />
-                                                             <div className="flex-1 min-w-0">
-                                 <div className="font-medium truncate">{track.title}</div>
-                                 <div className="text-[11px] text-muted-foreground/70 truncate">{track.filename}</div>
-                               </div>
-                              {currentTrack?.id === track.id && (
-                                <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
+                              <div className="space-y-0.5">
+                                {fonts.map((font, fontIdx) => (
+                                  <button
+                                    key={font.value}
+                                    tabIndex={-1}
+                                    onClick={() => { setSelectedFont(font.value as any); }}
+                                    className={cn(
+                                      "w-full px-3 py-1.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
+                                      fontIdx === dropdownSelectedIndex 
+                                        ? "bg-primary/20 text-primary" 
+                                        : selectedFont === font.value 
+                                          ? "bg-primary/10 text-primary" 
+                                          : "hover:bg-muted/50 text-foreground/80 hover:text-foreground",
+                                      { 'font-geist': font.value === 'geist', 'font-space': font.value === 'space', 'font-lora': font.value === 'lora', 'font-instrument-italic': font.value === 'instrument-italic', 'font-playfair': font.value === 'playfair' },
+                                      font.value === 'instrument-italic' && 'italic'
+                                    )}
+                                  >
+                                    <Type className="h-3 w-3 flex-shrink-0" />
+                                    <span className="flex-1 truncate">{font.label}</span>
+                                    {selectedFont === font.value && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </PopoverContent>
                     </Popover>
                   ) : (
@@ -1080,24 +1578,26 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                       </button>
                       
                       {/* Kebab menu for entries */}
-                      {command.type === 'entry' && (hoveredEntryId === command.id || index === selectedIndex) && (
+                      {command.type === 'entry' && (hoveredEntryId === command.id || index === selectedIndex || showKebabMenu === command.id) && (
                         <Popover 
                           open={showKebabMenu === command.id} 
                           onOpenChange={(open) => {
                             setShowKebabMenu(open ? command.id : null);
                             if (open) {
-                              setDropdownSelectedIndex(0); // Reset to first option when opening
+                              setDropdownSelectedIndex(-1); // Reset to -1 when opening
+                              setIsExportExpanded(false);
                             }
                           }}
                         >
                           <PopoverTrigger asChild>
-                        <button
+                            <button
                               onClick={() => {
                                 setShowKebabMenu(command.id);
-                                setDropdownSelectedIndex(0); // Reset to first option when opening
-                          }}
-                          className={cn(
-                            "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
+                                setDropdownSelectedIndex(-1); // Reset to -1 when opening
+                                setIsExportExpanded(false);
+                              }}
+                              className={cn(
+                                "flex-shrink-0 p-2 mr-4 rounded-lg transition-all duration-200",
                                 "text-muted-foreground hover:text-foreground hover:bg-primary/10"
                               )}
                               title="Entry options"
@@ -1107,112 +1607,237 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                             </button>
                           </PopoverTrigger>
                           <PopoverContent 
-                            className="w-40 p-1 bg-background border border-border shadow-lg rounded-md" 
+                            forceMount
+                            className="w-48 p-0 border-0 bg-transparent shadow-none focus:outline-none pointer-events-auto" 
                             align="end"
-                            sideOffset={4}
+                            sideOffset={5}
                           >
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => {
-                                  const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
-                                    handleCopyClick(command, new MouseEvent('click') as any);
-                                    setShowKebabMenu(null);
-                                    setDropdownSelectedIndex(0);
-                                  }
-                                }}
-                                disabled={(() => {
-                                  const entry = entries.find(e => e.id === command.id);
-                                  return !entry || isContentEmpty(entry.content);
-                                })()}
-                                className={cn(
-                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
-                                  dropdownSelectedIndex === 0 && showKebabMenu === command.id
-                                    ? "bg-primary/20 text-primary" 
-                                    : (() => {
+                            <AnimatePresence>
+                              {showKebabMenu === command.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                  className="w-full p-1 bg-background/85 backdrop-blur-xl border border-border/40 shadow-xl rounded-2xl"
+                                >
+                                  <div className="space-y-0.5">
+                                    <button
+                                      onClick={() => {
+                                        const fullEntry = entries.find(entry => entry.id === command.id);
+                                        if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                                          handleCopyClick(command, new MouseEvent('click') as any);
+                                          setShowKebabMenu(null);
+                                          setIsExportExpanded(false);
+                                          setDropdownSelectedIndex(-1);
+                                        }
+                                      }}
+                                      disabled={isExportExpanded || (() => {
                                         const entry = entries.find(e => e.id === command.id);
-                                        return entry && !isContentEmpty(entry.content);
-                                      })()
-                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                    : "opacity-50 cursor-not-allowed"
-                                )}
-                              >
-                                <Copy className="h-4 w-4" />
-                                Copy Note
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
-                                    handleBranchOffClick(command, new MouseEvent('click') as any);
-                                    setShowKebabMenu(null);
-                                    setDropdownSelectedIndex(0);
-                                  }
-                                }}
-                                disabled={(() => {
-                                  const entry = entries.find(e => e.id === command.id);
-                                  return !entry || isContentEmpty(entry.content);
-                                })()}
-                                className={cn(
-                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
-                                  dropdownSelectedIndex === 1 && showKebabMenu === command.id
-                                    ? "bg-primary/20 text-primary" 
-                                    : (() => {
+                                        return !entry || isContentEmpty(entry.content);
+                                      })()}
+                                      style={{
+                                        opacity: isExportExpanded ? 0.35 : 1,
+                                        filter: isExportExpanded ? 'blur(0.5px)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      className={cn(
+                                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer outline-none focus:outline-none",
+                                        dropdownSelectedIndex === 0 && showKebabMenu === command.id
+                                          ? "bg-primary/12 text-primary" 
+                                          : (() => {
+                                              const entry = entries.find(e => e.id === command.id);
+                                              return entry && !isContentEmpty(entry.content);
+                                            })() && !isExportExpanded
+                                          ? "hover:bg-primary/8 focus:bg-primary/8 text-foreground/90 hover:text-foreground" 
+                                          : "opacity-40 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <Copy className="h-3.5 w-3.5 opacity-70" />
+                                      <span>Copy Note</span>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const fullEntry = entries.find(entry => entry.id === command.id);
+                                        if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                                          handleBranchOffClick(command, new MouseEvent('click') as any);
+                                          setShowKebabMenu(null);
+                                          setIsExportExpanded(false);
+                                          setDropdownSelectedIndex(-1);
+                                        }
+                                      }}
+                                      disabled={isExportExpanded || (() => {
                                         const entry = entries.find(e => e.id === command.id);
-                                        return entry && !isContentEmpty(entry.content);
-                                      })()
-                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                    : "opacity-50 cursor-not-allowed"
-                                )}
-                              >
-                                <BranchOffIcon className="h-4 w-4" />
-                                Branch Off
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const fullEntry = entries.find(entry => entry.id === command.id);
-                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
-                                    handleExportClick(command, new MouseEvent('click') as any);
-                                    setShowKebabMenu(null);
-                                    setDropdownSelectedIndex(0);
-                                  }
-                                }}
-                                disabled={(() => {
-                                  const entry = entries.find(e => e.id === command.id);
-                                  return !entry || isContentEmpty(entry.content);
-                                })()}
-                                className={cn(
-                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
-                                  dropdownSelectedIndex === 2 && showKebabMenu === command.id
-                                    ? "bg-primary/20 text-primary" 
-                                    : (() => {
+                                        return !entry || isContentEmpty(entry.content);
+                                      })()}
+                                      style={{
+                                        opacity: isExportExpanded ? 0.35 : 1,
+                                        filter: isExportExpanded ? 'blur(0.5px)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      className={cn(
+                                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer outline-none focus:outline-none",
+                                        dropdownSelectedIndex === 1 && showKebabMenu === command.id
+                                          ? "bg-primary/12 text-primary" 
+                                          : (() => {
+                                              const entry = entries.find(e => e.id === command.id);
+                                              return entry && !isContentEmpty(entry.content);
+                                            })() && !isExportExpanded
+                                          ? "hover:bg-primary/8 focus:bg-primary/8 text-foreground/90 hover:text-foreground" 
+                                          : "opacity-40 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <BranchOffIcon className="h-3.5 w-3.5 opacity-70" />
+                                      <span>Branch Off</span>
+                                    </button>
+                                    
+                                    {/* Export Note Trigger */}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const fullEntry = entries.find(entry => entry.id === command.id);
+                                        if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                                          setIsExportExpanded(!isExportExpanded);
+                                        }
+                                      }}
+                                      disabled={(() => {
                                         const entry = entries.find(e => e.id === command.id);
-                                        return entry && !isContentEmpty(entry.content);
-                                      })()
-                                    ? "hover:bg-primary/10 focus:bg-primary/10" 
-                                    : "opacity-50 cursor-not-allowed"
-                          )}
-                              >
-                                <Download className="h-4 w-4" />
-                                Export as .txt
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleDeleteEntry(command.id);
-                                  setShowKebabMenu(null);
-                                  setDropdownSelectedIndex(0);
-                                }}
-                                className={cn(
-                                  "w-full px-2 py-1.5 text-left rounded-sm transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer",
-                                  dropdownSelectedIndex === 3 && showKebabMenu === command.id
-                                    ? "bg-destructive/20 text-destructive" 
-                                    : "text-destructive hover:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
-                                )}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                                Delete
-                        </button>
-                            </div>
+                                        return !entry || isContentEmpty(entry.content);
+                                      })()}
+                                      className={cn(
+                                        "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer outline-none focus:outline-none select-none",
+                                        dropdownSelectedIndex === 2 && showKebabMenu === command.id
+                                          ? "bg-primary/12 text-primary"
+                                          : (() => {
+                                              const entry = entries.find(e => e.id === command.id);
+                                              return entry && !isContentEmpty(entry.content);
+                                            })()
+                                          ? "hover:bg-primary/8 focus:bg-primary/8 text-foreground/90 hover:text-foreground" 
+                                          : "opacity-40 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <svg 
+                                          xmlns="http://www.w3.org/2000/svg" 
+                                          width="14" 
+                                          height="14" 
+                                          viewBox="0 0 24 24" 
+                                          fill="none" 
+                                          stroke="currentColor" 
+                                          strokeWidth="2" 
+                                          strokeLinecap="round" 
+                                          strokeLinejoin="round" 
+                                          className="opacity-70"
+                                        >
+                                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                          <polyline points="17 8 12 3 7 8" />
+                                          <line x1="12" x2="12" y1="3" y2="15" />
+                                        </svg>
+                                        <span>Export Note</span>
+                                      </div>
+                                      <motion.div
+                                        animate={{ rotate: isExportExpanded ? 90 : 0 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                      >
+                                        <ChevronRight size={14} className="opacity-50" />
+                                      </motion.div>
+                                    </button>
+
+                                    {/* Inline Export Options */}
+                                    <AnimatePresence initial={false}>
+                                      {isExportExpanded && (
+                                        <motion.div
+                                          initial={{ height: 0, opacity: 0 }}
+                                          animate={{ height: 'auto', opacity: 1 }}
+                                          exit={{ height: 0, opacity: 0 }}
+                                          transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                          style={{ overflow: 'hidden' }}
+                                        >
+                                          <div className="pl-6 pr-1 py-0.5 flex flex-col gap-0.5">
+                                            {[
+                                              { label: 'as Markdown (.md)', Icon: FileCode, key: 'export-md', idx: 3 },
+                                              { label: 'as Plain Text (.txt)', Icon: FileText, key: 'export-txt', idx: 4 },
+                                              { label: 'as JSON (.json)', Icon: FileJson, key: 'export-json', idx: 5 },
+                                            ].map((opt) => (
+                                              <button
+                                                key={opt.label}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const fullEntry = entries.find(entry => entry.id === command.id);
+                                                  if (fullEntry && !isContentEmpty(fullEntry.content)) {
+                                                    if (opt.key === 'export-md') {
+                                                      try {
+                                                        exportEntryAsMarkdown(fullEntry);
+                                                        toast({
+                                                          title: 'Exported as Markdown',
+                                                          description: 'Note exported successfully',
+                                                        });
+                                                      } catch (err) {
+                                                        console.error(err);
+                                                      }
+                                                    } else if (opt.key === 'export-txt') {
+                                                      handleExportClick(command, new MouseEvent('click') as any);
+                                                    } else if (opt.key === 'export-json') {
+                                                      try {
+                                                        exportEntryAsJson(fullEntry);
+                                                        toast({
+                                                          title: 'Exported as JSON',
+                                                          description: 'Note exported successfully',
+                                                        });
+                                                      } catch (err) {
+                                                        console.error(err);
+                                                      }
+                                                    }
+                                                  }
+                                                  setShowKebabMenu(null);
+                                                  setIsExportExpanded(false);
+                                                  setDropdownSelectedIndex(-1);
+                                                }}
+                                                className={cn(
+                                                  "w-full flex items-center gap-2 px-2 py-1 rounded-lg text-[12px] font-medium transition-all duration-150 cursor-pointer outline-none focus:outline-none text-left",
+                                                  dropdownSelectedIndex === opt.idx && showKebabMenu === command.id
+                                                    ? "bg-primary/12 text-primary"
+                                                    : "text-foreground/80 hover:bg-primary/8 hover:text-primary focus:bg-primary/8 focus:text-primary"
+                                                )}
+                                              >
+                                                <opt.Icon className="h-3.5 w-3.5 opacity-70" />
+                                                <span>{opt.label}</span>
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
+
+                                    <button
+                                      onClick={() => {
+                                        handleDeleteEntry(command.id);
+                                        setShowKebabMenu(null);
+                                        setIsExportExpanded(false);
+                                        setDropdownSelectedIndex(-1);
+                                      }}
+                                      disabled={isExportExpanded}
+                                      style={{
+                                        opacity: isExportExpanded ? 0.35 : 1,
+                                        filter: isExportExpanded ? 'blur(0.5px)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      className={cn(
+                                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer outline-none focus:outline-none text-destructive",
+                                        (isExportExpanded ? dropdownSelectedIndex === 6 : dropdownSelectedIndex === 3) && showKebabMenu === command.id
+                                          ? "bg-destructive/15 text-destructive" 
+                                          : !isExportExpanded
+                                          ? "hover:bg-destructive/8 focus:bg-destructive/8 hover:text-destructive focus:text-destructive"
+                                          : "opacity-40 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive/80" />
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </PopoverContent>
                         </Popover>
                       )}
@@ -1250,7 +1875,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        isOpen={entryToDelete !== null}
+        isOpen={isDeleteModalOpen}
         onConfirm={confirmDelete}
         onClose={cancelDelete}
         entryTitle={entryToDeleteTitle}

@@ -37,135 +37,199 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
   // Load entries and initialize today's entry if needed
   useEffect(() => {
+    let active = true;
+
+    // Failsafe: if loading takes more than 8 seconds, force-unblock
+    const failsafeTimer = setTimeout(() => {
+      if (active) {
+        setIsLoading(false);
+      }
+    }, 8000);
+
     const initializeEntries = async () => {
       try {
         // Try to load from IndexedDB first
         let loadedEntries = await db.getEntries();
+        if (!active) return;
         
         // If no entries in IndexedDB, try migrating from localStorage
         if (loadedEntries.length === 0) {
           await db.migrateFromLocalStorage();
           loadedEntries = await db.getEntries();
+          if (!active) return;
         }
 
         // MIGRATION: Check if entries need to be migrated from plain text to BlockNote format
         const migrationStatus = await db.getMigrationStatus();
+        if (!active) return;
         const needsMigration = !migrationStatus || migrationStatus.version < 1;
 
         if (needsMigration) {
-          console.log('Starting entry migration to BlockNote format...');
-          const totalEntries = loadedEntries.length;
-          let migratedCount = 0;
-          const failedEntries: string[] = [];
+          // Check if there are actually any plain-text entries that need converting.
+          // New users have no entries — skip the UI entirely and just mark done.
+          const plainTextEntries = loadedEntries.filter(
+            e => typeof e.content === 'string' && !e.contentFormat
+          );
 
-          // Migrate each entry
-          for (const entry of loadedEntries) {
-            // Only migrate if content is plain text
-            if (typeof entry.content === 'string' && !entry.contentFormat) {
-              try {
-                const { success, migratedContent, error } = migrateEntryContent(entry.content);
-                
-                if (success) {
-                  // Update entry with migrated content
-                  entry.content = migratedContent;
-                  entry.contentFormat = 'blocknote';
-                  entry.migratedAt = new Date().toISOString();
+          if (plainTextEntries.length === 0) {
+            // Nothing to migrate — silently mark as done
+            await db.saveMigrationStatus({
+              version: 1,
+              completedAt: new Date().toISOString(),
+              totalEntries: 0,
+              migratedEntries: 0,
+              failedEntries: [],
+            });
+            if (!active) return;
+          } else {
+
+            console.log('Starting entry migration to BlockNote format...');
+
+            // Hide the loading screen immediately — MigrationStatusDialog owns the UI from here
+            setIsLoading(false);
+
+            // Step 1: Show the welcome screen and wait for user to click Continue
+            window.dispatchEvent(new CustomEvent('migration-welcome'));
+            await new Promise<void>(resolve => {
+              const onReady = () => {
+                window.removeEventListener('migration-ready', onReady);
+                resolve();
+              };
+              window.addEventListener('migration-ready', onReady);
+            });
+            if (!active) return;
+
+            // Step 2: Signal UI to start scanning
+            window.dispatchEvent(new CustomEvent('migration-indexing', {
+              detail: { totalEntries: loadedEntries.length }
+            }));
+
+            // Small pause so scanning screen is visible
+            await new Promise(resolve => setTimeout(resolve, 700));
+            if (!active) return;
+
+            // Step 3: Start migration
+            window.dispatchEvent(new CustomEvent('migration-start', {
+              detail: { totalEntries: loadedEntries.length }
+            }));
+
+            const totalEntries = loadedEntries.length;
+            let migratedCount = 0;
+            const failedEntries: string[] = [];
+
+            // Migrate each entry
+            for (const entry of loadedEntries) {
+              if (!active) return;
+              // Only migrate if content is plain text
+              if (typeof entry.content === 'string' && !entry.contentFormat) {
+                try {
+                  const { success, migratedContent, error } = migrateEntryContent(entry.content);
                   
-                  // Save migrated entry
+                  if (success) {
+                    entry.content = migratedContent;
+                    entry.contentFormat = 'blocknote';
+                    entry.migratedAt = new Date().toISOString();
+                    await db.saveEntry(entry);
+                    migratedCount++;
+                    window.dispatchEvent(new CustomEvent('migration-progress', {
+                      detail: { migratedCount, totalEntries }
+                    }));
+                    console.log(`Migrated entry ${entry.id}`);
+                  } else {
+                    entry.contentFormat = 'plaintext';
+                    entry.migrationError = error;
+                    await db.saveEntry(entry);
+                    failedEntries.push(entry.id);
+                    console.error(`Failed to migrate entry ${entry.id}:`, error);
+                  }
+                } catch (error) {
+                  entry.contentFormat = 'plaintext';
+                  entry.migrationError = error instanceof Error ? error.message : String(error);
                   await db.saveEntry(entry);
-                  migratedCount++;
-                  console.log(`Migrated entry ${entry.id}`);
-                } else {
-                  // Migration failed, keep original content
-                  entry.migrationError = error;
                   failedEntries.push(entry.id);
-                  console.error(`Failed to migrate entry ${entry.id}:`, error);
+                  console.error(`Error migrating entry ${entry.id}:`, error);
                 }
-              } catch (error) {
-                failedEntries.push(entry.id);
-                console.error(`Error migrating entry ${entry.id}:`, error);
               }
             }
-          }
 
-          // Save migration status
-          await db.saveMigrationStatus({
-            version: 1,
-            completedAt: new Date().toISOString(),
-            totalEntries,
-            migratedEntries: migratedCount,
-            failedEntries,
-          });
+            if (!active) return;
 
-          console.log(`Migration complete: ${migratedCount}/${totalEntries} entries migrated`);
-          if (failedEntries.length > 0) {
-            console.warn(`${failedEntries.length} entries failed to migrate:`, failedEntries);
-          }
-        }
+            // Save migration status
+            const finalStatus = {
+              version: 1,
+              completedAt: new Date().toISOString(),
+              totalEntries,
+              migratedEntries: migratedCount,
+              failedEntries,
+            };
+            await db.saveMigrationStatus(finalStatus);
+            window.dispatchEvent(new CustomEvent('migration-complete', {
+              detail: finalStatus
+            }));
 
-        // Get today's date
-        const today = new Date().toISOString().split('T')[0];
+            console.log(`Migration complete: ${migratedCount}/${totalEntries} entries migrated`);
+            if (failedEntries.length > 0) {
+              console.warn(`${failedEntries.length} entries failed to migrate:`, failedEntries);
+            }
+          } // end else (has plain-text entries)
+        } // end if (needsMigration)
+
+        if (!active) return;
+
+        // Get today's date in local timezone YYYY-MM-DD
+        const getLocalDateString = (d: Date) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        const today = getLocalDateString(new Date());
         
-        // Find all entries for today
+        // Find today's entries using timezone-safe local dates
         const todayEntries = loadedEntries.filter(entry => {
-          const entryDate = new Date(entry.date).toISOString().split('T')[0];
+          const entryDate = getLocalDateString(new Date(entry.date));
           return entryDate === today;
         });
 
-        // If there are multiple entries for today, keep only one (the first non-empty, or the first one)
-        let todayEntry: Entry | undefined;
-        if (todayEntries.length > 1) {
-          console.warn(`Found ${todayEntries.length} entries for today, cleaning up duplicates`);
-          
-          // Find the first non-empty entry, or just use the first one
-          todayEntry = todayEntries.find(e => !isContentEmpty(e.content)) || todayEntries[0];
-          
-          // Delete the duplicate entries
-          for (const entry of todayEntries) {
-            if (entry.id !== todayEntry.id) {
-              await db.deleteEntry(entry.id);
-            }
-          }
-          
-          // Remove duplicates from loaded entries
-          loadedEntries = loadedEntries.filter(entry => {
-            const entryDate = new Date(entry.date).toISOString().split('T')[0];
-            if (entryDate === today) {
-              return entry.id === todayEntry!.id;
-            }
-            return true;
-          });
-        } else {
-          todayEntry = todayEntries[0];
-        }
-
-        // Remove any empty entries except today's entry
-        loadedEntries = loadedEntries.filter(entry => {
-          const entryDate = new Date(entry.date).toISOString().split('T')[0];
-          return !isContentEmpty(entry.content) || entryDate === today;
-        });
-        
-        // Sort entries by date (newest first)
+        // Sort all entries by date (newest first)
         loadedEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        // If no entry for today exists, create one
-        if (!todayEntry) {
+        if (todayEntries.length === 0) {
+          // No entry for today — create one fresh blank note
           const newEntry: Entry = {
             id: uuidv4(),
             date: new Date().toISOString(),
-            content: ''
+            content: '',
           };
           await db.saveEntry(newEntry);
+          if (!active) return;
           loadedEntries = [newEntry, ...loadedEntries];
+          setEntries(loadedEntries);
           setCurrentEntry(newEntry);
+          // Save as last-edited so refresh restores it
+          localStorage.setItem('last-edited-entry', newEntry.id);
         } else {
-          // If today's entry exists, make it the current entry
-          setCurrentEntry(todayEntry);
+          setEntries(loadedEntries);
+          // Restore last-edited entry (survives refresh)
+          const lastEditedId = localStorage.getItem('last-edited-entry');
+          const lastEdited = lastEditedId ? loadedEntries.find(e => e.id === lastEditedId) : null;
+          if (lastEdited) {
+            setCurrentEntry(lastEdited);
+          } else {
+            // Fall back to most recent non-branched entry for today, or newest overall
+            const preferred = todayEntries
+              .filter(e => !e.isBranchedOff)
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+            setCurrentEntry(preferred ?? loadedEntries[0]);
+          }
         }
-
-        setEntries(loadedEntries);
       } catch (error) {
+        if (!active) return;
         console.error('Failed to initialize entries:', error);
+        // Signal migration error to UI
+        window.dispatchEvent(new CustomEvent('migration-error', {
+          detail: { message: error instanceof Error ? error.message : 'Unknown error' }
+        }));
         // Even if loading fails, try to create a today's entry
         try {
           const newEntry: Entry = {
@@ -174,6 +238,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
             content: ''
           };
           await db.saveEntry(newEntry);
+          if (!active) return;
           setEntries([newEntry]);
           setCurrentEntry(newEntry);
         } catch (fallbackError) {
@@ -182,11 +247,24 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           setCurrentEntry(null);
         }
       } finally {
-        setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+        }
       }
     };
 
-    initializeEntries();
+    // Delay start slightly to allow Strict Mode synchronous cleanup to run
+    const initTimer = setTimeout(() => {
+      if (active) {
+        initializeEntries();
+      }
+    }, 0);
+
+    return () => {
+      active = false;
+      clearTimeout(failsafeTimer);
+      clearTimeout(initTimer);
+    };
   }, []);
 
   // Save last edited entry ID when current entry changes
@@ -198,16 +276,6 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
   const updateEntryContent = async (id: string, content: string | PartialBlock[]) => {
     try {
-      // If content is empty, delete the entry (unless it's today's entry)
-      const today = new Date().toISOString().split('T')[0];
-      const entry = entries.find(e => e.id === id);
-      const entryDate = entry ? new Date(entry.date).toISOString().split('T')[0] : '';
-      
-      if (isContentEmpty(content) && entryDate !== today) {
-        await deleteEntry(id);
-        return;
-      }
-
       // Determine content format
       const contentFormat: 'blocknote' | 'plaintext' = Array.isArray(content) ? 'blocknote' : 'plaintext';
 
@@ -331,7 +399,11 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background">
+        <div className="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+      </div>
+    );
   }
 
   return (

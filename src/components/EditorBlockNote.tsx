@@ -7,14 +7,26 @@ import { cn } from '@/lib/utils';
 import { fonts } from '@/lib/fonts';
 import packageJson from '../../package.json';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectScrollUpButton,
+  SelectScrollDownButton
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sidebar } from '@/components/Sidebar';
 import { StatusBar } from '@/components/StatusBar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useBlockNoteEditor } from '@/hooks/useBlockNoteEditor';
-import { BlockNoteView } from '@blocknote/shadcn';
+import { BlockNoteView, ShadCNDefaultComponents } from '@blocknote/shadcn';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 import '@blocknote/shadcn/style.css';
 import '@/styles/blocknote-custom.css';
 import type { PartialBlock } from '@blocknote/core';
@@ -22,15 +34,80 @@ import { mediaStorage } from '@/lib/mediaStorage';
 import { 
   MoonIcon, 
   SunIcon, 
-  Type, 
-  Undo2,
-  Redo2,
   Download,
   Upload
 } from 'lucide-react';
-import { exportBackup, importBackup } from '@/lib/backup';
+import { exportBackup, importBackup, getReferencedMediaIds, getReferencedMediaCount } from '@/lib/backup';
+import { db } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
 import { BackupStatusDialog } from '@/components/BackupStatusDialog';
+
+const BlockNoteSelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = 'popper', ...props }, ref) => {
+  // Lock the portal container element on mount so it remains static during component's lifetime.
+  // This prevents React/Radix from trying to migrate DOM elements between body and .bn-editor,
+  // resolving the DOM unmount crash ("Failed to execute 'removeChild' on 'Node'") completely.
+  const container = React.useMemo(() => {
+    if (typeof document === 'undefined') return undefined;
+    const editorEl = document.querySelector('.bn-editor');
+    return (editorEl?.parentElement instanceof HTMLElement ? editorEl.parentElement : undefined);
+  }, []);
+
+  return (
+    <SelectPrimitive.Portal container={container}>
+      <SelectPrimitive.Content
+        ref={ref}
+        className={cn(
+          'relative z-[9999] max-h-96 min-w-[190px] overflow-hidden rounded-2xl border border-border/40 bg-background/85 backdrop-blur-xl text-popover-foreground shadow-2xl pointer-events-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          position === 'popper' &&
+            'data-[side=bottom]:translate-y-1.5 data-[side=left]:-translate-x-1.5 data-[side=right]:translate-x-1.5 data-[side=top]:-translate-y-1.5',
+          className
+        )}
+        position={position}
+        {...props}
+      >
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            'p-1.5',
+            position === 'popper' &&
+              'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+});
+BlockNoteSelectContent.displayName = 'BlockNoteSelectContent';
+
+const SafeDropdownMenuTrigger = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
+>((props, ref) => (
+  <DropdownMenuPrimitive.Trigger ref={ref} data-slot="dropdown-menu-trigger" {...props} />
+));
+SafeDropdownMenuTrigger.displayName = 'SafeDropdownMenuTrigger';
+
+const SafeTooltipTrigger = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
+>((props, ref) => (
+  <TooltipPrimitive.Trigger ref={ref} data-slot="tooltip-trigger" {...props} />
+));
+SafeTooltipTrigger.displayName = 'SafeTooltipTrigger';
+
+const SafePopoverTrigger = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
+>((props, ref) => (
+  <PopoverPrimitive.Trigger ref={ref} data-slot="popover-trigger" {...props} />
+));
+SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 
 // Custom Fullscreen icons
 const FullscreenIcon = () => (
@@ -75,21 +152,18 @@ const ExitFullscreenIcon = () => (
 
 const SettingsIcon = () => (
   <svg 
-    width="14" 
-    height="14" 
-    viewBox="0 0 14 14" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-4 w-4"
-  >
-    <path 
-      fillRule="evenodd" 
-      clipRule="evenodd" 
-      d="M5.45494 0.450248C5.4805 0.194648 5.69558 0 5.95246 0H8.04747C8.30435 0 8.51943 0.194647 8.54499 0.450248L8.73073 2.30766C9.26926 2.50637 9.76418 2.79513 10.1972 3.15568L11.9 2.38721C12.1342 2.28155 12.4103 2.37049 12.5387 2.59295L13.5862 4.40728C13.7147 4.62975 13.6536 4.91334 13.4451 5.06327L11.9286 6.15339C11.9755 6.42858 12 6.71143 12 7C12 7.28864 11.9755 7.57157 11.9286 7.84682L13.4451 8.93696C13.6536 9.0869 13.7147 9.37049 13.5862 9.59295L12.5387 11.4073C12.4103 11.6297 12.1342 11.7187 11.9 11.613L10.197 10.8445C9.76404 11.205 9.26918 11.4937 8.73073 11.6923L8.54499 13.5498C8.51943 13.8054 8.30435 14 8.04747 14H5.95246C5.69558 14 5.4805 13.8054 5.45494 13.5498L5.2692 11.6923C4.73067 11.4936 4.23575 11.2049 3.80271 10.8443L2.0999 11.6128C1.86577 11.7185 1.58966 11.6295 1.46122 11.4071L0.413712 9.59272C0.285275 9.37026 0.346303 9.08667 0.554879 8.93673L2.07134 7.84661C2.02441 7.57142 1.99996 7.28857 1.99996 7C1.99996 6.71136 2.02442 6.42843 2.07138 6.15318L0.554879 5.06304C0.346302 4.9131 0.285274 4.62951 0.413712 4.40705L1.46122 2.59272C1.58966 2.37025 1.86577 2.28131 2.0999 2.38698L3.80289 3.15552C4.23589 2.79505 4.73075 2.50634 5.2692 2.30766L5.45494 0.450248ZM5.27747 8.01699L5.25611 7.98C5.09301 7.69039 4.99996 7.35606 4.99996 7C4.99996 5.89543 5.8954 5 6.99996 5C7.73323 5 8.37433 5.39461 8.72249 5.98306L8.74379 6.01995C8.90691 6.30957 8.99996 6.64392 8.99996 7C8.99996 8.10457 8.10453 9 6.99996 9C6.26672 9 5.62563 8.60541 5.27747 8.01699Z" 
-      fill="currentColor" 
-      fillOpacity="0.5"
-    />
-  </svg>
+    className="h-4 w-4 bg-current flex-shrink-0" 
+    aria-hidden="true" 
+    focusable="false" 
+    style={{
+      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
+      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
+      maskRepeat: 'no-repeat',
+      WebkitMaskRepeat: 'no-repeat',
+      maskPosition: 'center center',
+      WebkitMaskPosition: 'center center',
+    }}
+  />
 );
 
 export function EditorBlockNote({ 
@@ -131,30 +205,76 @@ export function EditorBlockNote({
 
   // Backup/Restore handlers
   const handleExportBackup = async () => {
+    // Fetch actual counts so we can display them in the real modal
+    let totalEntries = 0;
+    let totalMedia = 0;
+    try {
+      const allEntries = await db.getEntries();
+      const validEntries = allEntries.filter(entry => entry && typeof entry === 'object' && entry.id);
+      totalEntries = validEntries.length;
+      
+      const referencedMediaIds = getReferencedMediaIds(validEntries);
+      const media = await mediaStorage.getAllMedia();
+      const validMedia = media.filter(m => referencedMediaIds.has(m.id));
+      const validMediaIds = new Set(validMedia.map(m => m.id));
+      totalMedia = getReferencedMediaCount(validEntries, validMediaIds);
+    } catch (e) {
+      console.warn('Failed to fetch counts for export dialog', e);
+      totalEntries = 0;
+      totalMedia = 0;
+    }
+
     setBackupDialog({
       isOpen: true,
       type: 'export',
       status: 'preparing',
       progress: 0,
+      stats: {
+        entriesProcessed: 0,
+        totalEntries,
+        mediaProcessed: 0,
+        totalMedia,
+      }
     });
 
     try {
-      // Simulate progress for better UX
-      setBackupDialog(prev => ({ ...prev, status: 'processing', progress: 30 }));
+      // Transition to processing state
+      setBackupDialog(prev => ({ 
+        ...prev, 
+        status: 'processing', 
+        progress: 30,
+        stats: {
+          entriesProcessed: Math.round(totalEntries * 0.3),
+          totalEntries,
+          mediaProcessed: Math.round(totalMedia * 0.3),
+          totalMedia,
+        }
+      }));
       
-      await exportBackup();
+      const result = await exportBackup();
       
-      setBackupDialog(prev => ({ ...prev, progress: 100, status: 'complete' }));
+      setBackupDialog(prev => ({ 
+        ...prev, 
+        progress: 100, 
+        status: 'complete',
+        stats: {
+          entriesProcessed: result.entriesCount,
+          totalEntries: result.entriesCount,
+          mediaProcessed: result.mediaCount,
+          totalMedia: result.mediaCount,
+        }
+      }));
       
       // Auto-close after 2 seconds
       setTimeout(() => {
         setBackupDialog(prev => ({ ...prev, isOpen: false }));
       }, 2000);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to export backup. Please try again.';
       setBackupDialog(prev => ({
         ...prev,
         status: 'error',
-        error: 'Failed to export backup. Please try again.',
+        error: message,
       }));
     }
   };
@@ -175,7 +295,31 @@ export function EditorBlockNote({
       });
 
       try {
-        setBackupDialog(prev => ({ ...prev, status: 'processing', progress: 20 }));
+        // Load the zip metadata first to get the total count for the progress stats!
+        const JSZip = (await import('jszip')).default;
+        const zip = await JSZip.loadAsync(file);
+        const backupFile = zip.file('backup.json');
+        let totalEntries = 0;
+        let totalMedia = 0;
+        
+        if (backupFile) {
+          const content = await backupFile.async('string');
+          const data = JSON.parse(content);
+          totalEntries = data.entries?.length || 0;
+          totalMedia = data.mediaFiles?.length || 0;
+        }
+
+        setBackupDialog(prev => ({ 
+          ...prev, 
+          status: 'processing', 
+          progress: 20,
+          stats: {
+            entriesProcessed: 0,
+            totalEntries,
+            mediaProcessed: 0,
+            totalMedia,
+          }
+        }));
         
         const result = await importBackup(file);
         
@@ -185,7 +329,9 @@ export function EditorBlockNote({
             progress: 100,
             status: 'complete',
             stats: {
+              entriesProcessed: result.entriesImported,
               totalEntries: result.entriesImported,
+              mediaProcessed: result.mediaImported,
               totalMedia: result.mediaImported,
             },
           }));
@@ -237,6 +383,15 @@ export function EditorBlockNote({
   // Track save state
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+
+  // Track window width for responsive font picker labels
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Update editor content when current entry changes
   useEffect(() => {
@@ -323,6 +478,16 @@ export function EditorBlockNote({
       setIsDirty(false);
     }
   });
+
+  // Toggle body class so CSS can hide BlockNote's portaled side menu when sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+    return () => document.body.classList.remove('sidebar-open');
+  }, [isSidebarOpen]);
 
   // Handle fullscreen toggle
   const toggleFullscreen = () => {
@@ -454,12 +619,12 @@ export function EditorBlockNote({
       />
       
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-      <header className="h-12 px-4 flex justify-between items-center border-b border-border/10 flex-shrink-0">
-        <div className="flex items-center gap-2">
+      <header className="fixed top-4 left-0 right-0 z-40 pointer-events-none flex justify-between items-center h-12 px-4 md:px-8 lg:px-12 bg-transparent border-b-0">
+        <div className="pointer-events-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-dock static shadow-lg">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+            className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
             onClick={() => setIsSidebarOpen(true)}
           >
             <svg
@@ -480,34 +645,74 @@ export function EditorBlockNote({
             </svg>
             <span className="sr-only">Open Sidebar</span>
           </Button>
+          
+          <div className="border-l border-border/30 h-4 mx-0.5" />
+          
           <Select value={selectedFont} onValueChange={setSelectedFont}>
             <SelectTrigger 
               className={cn(
-                "h-8 w-[200px] hover:bg-primary/10 transition-colors border-border",
+                "h-8 w-[140px] md:w-[155px] border-none bg-transparent hover:bg-primary/5 transition-all shadow-none font-medium rounded-full py-0 px-2",
                 {
+                'font-general-sans': selectedFont === 'general-sans',
                 'font-geist': selectedFont === 'geist',
                 'font-space': selectedFont === 'space',
                 'font-lora': selectedFont === 'lora',
                 'font-instrument-italic italic': selectedFont === 'instrument-italic',
+                'font-playfair': selectedFont === 'playfair',
                 }
               )}
             >
-              <Type className="h-4 w-4 text-muted-foreground mr-2" />
-              <SelectValue />
+              <svg 
+                className="h-4 w-4 bg-muted-foreground/60 dark:bg-muted-foreground/60 flex-shrink-0 mr-1.5" 
+                aria-hidden="true" 
+                focusable="false" 
+                style={{
+                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center center',
+                  WebkitMaskPosition: 'center center',
+                }}
+              />
+              <span className="truncate">
+                {(() => {
+                  const isMobile = windowWidth < 768;
+                  if (isMobile) {
+                    return {
+                      'geist': 'Geist Sans',
+                      'lora': 'Lora',
+                      'general-sans': 'General',
+                      'space': 'Space',
+                      'instrument-italic': 'Instrument',
+                      'playfair': 'Playfair'
+                    }[selectedFont] || selectedFont;
+                  } else {
+                    return {
+                      'geist': 'Geist Sans',
+                      'general-sans': 'General Sans',
+                      'space': 'Space',
+                      'lora': 'Lora',
+                      'instrument-italic': 'Instrument',
+                      'playfair': 'Playfair'
+                    }[selectedFont] || selectedFont;
+                  }
+                })()}
+              </span>
             </SelectTrigger>
             <SelectContent 
-              className="min-w-[200px] border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+              className="min-w-[170px]"
               position="popper"
-              sideOffset={4}
+              sideOffset={6}
             >
               {fonts.map(font => (
                 <SelectItem 
                   key={font.value} 
                   value={font.value}
                   className={cn(
-                    "text-base cursor-pointer transition-colors",
-                    "data-[highlighted]:bg-primary/10 data-[highlighted]:text-primary",
+                    "text-[13px] cursor-pointer transition-colors",
                     {
+                      'font-general-sans': font.value === 'general-sans',
                       'font-geist': font.value === 'geist',
                       'font-space': font.value === 'space',
                       'font-lora': font.value === 'lora',
@@ -525,21 +730,23 @@ export function EditorBlockNote({
         </div>
         
         {/* Centered ⌘K hint */}
-        <div className="hidden md:flex items-center text-xs text-muted-foreground/60 bg-muted/20 px-2 py-1 rounded-md relative overflow-hidden border border-primary/20 shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
-          <div className="relative z-10 flex items-center">
-            <kbd className="text-[14px] font-medium">⌘K</kbd>
-            <span className="ml-1">for quick search</span>
+        <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none z-50">
+          <div className="pointer-events-auto flex items-center text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1.5 rounded-full shadow-md overflow-hidden h-9">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/0 to-primary/5 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
+            <div className="relative z-10 flex items-center gap-1">
+              <kbd className="text-[13px] font-medium font-sans">⌘K</kbd>
+              <span className="opacity-80">for quick search</span>
+            </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="pointer-events-auto flex items-center justify-center h-11 w-11 p-0 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleFullscreen}
-            className="hidden md:flex h-8 w-8 hover:bg-primary/10 hover:text-primary"
+            className="hidden md:flex h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
           >
             {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
             <span className="sr-only">Toggle fullscreen</span>
@@ -549,234 +756,149 @@ export function EditorBlockNote({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 <SettingsIcon />
                 <span className="sr-only">Settings</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 rounded-xl shadow-lg border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 p-0 overflow-hidden">
-              <div className="px-5 py-5">
-                <div className="mb-3">
-                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Font Size</span>
-                  <div className="flex items-center gap-3">
-                    <Slider
-                      value={[fontSize]}
-                      onValueChange={([value]) => setFontSize(value)}
-                      max={28}
-                      min={16}
-                      step={1}
-                      className="flex-1"
-                    />
-                    <span className="w-10 text-sm text-muted-foreground text-right">{fontSize}px</span>
+            <PopoverContent
+              align="end"
+              sideOffset={10}
+              className="p-0 border-0 rounded-xl shadow-lg border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 overflow-hidden"
+              style={{
+                width: 320,
+                background: 'hsl(var(--background))',
+                borderRadius: 20,
+                boxShadow: '0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                fontFamily: 'inherit',
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ padding: '20px 20px 4px' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 600, color: 'hsl(var(--foreground))', letterSpacing: '-0.2px' }}>Settings</div>
+                    <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 1 }}>Appearance &amp; preferences</div>
                   </div>
+                  <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', fontFamily: 'monospace', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
+                    v{packageJson.version}
+                  </span>
                 </div>
-                <div className="border-t border-border my-4" />
-                <div className="mb-3">
-                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Theme</span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={theme === 'light' || theme.endsWith('-light') ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => {
-                        if (theme.includes('-')) {
-                          const baseTheme = theme.endsWith('-dark') 
-                            ? theme.slice(0, -5)
-                            : theme.endsWith('-light') 
-                              ? theme.slice(0, -6)
-                              : theme;
-                          const lightVariant = `${baseTheme}-light` as const;
-                          const validLightThemes = {
-                            'amethyst-light': 'amethyst-light',
-                            'cosmic-light': 'cosmic-light', 
-                            'perpetuity-light': 'perpetuity-light',
-                            'quantum-rose-light': 'quantum-rose-light',
-                            'clean-slate-light': 'clean-slate-light'
-                          } as const;
-                          
-                          if (lightVariant in validLightThemes) {
-                            setTheme(validLightThemes[lightVariant as keyof typeof validLightThemes]);
-                          } else {
-                            setTheme('light');
+
+                {/* Font size row */}
+                <div style={{ borderRadius: 14, border: '1px solid hsl(var(--border))', overflow: 'hidden', marginBottom: 10 }}>
+                  <div style={{ padding: '12px 14px', borderBottom: '1px solid hsl(var(--border)/0.6)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Font size</span>
+                      <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontVariantNumeric: 'tabular-nums', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
+                        {fontSize}px
+                      </span>
+                    </div>
+                    <Slider value={[fontSize]} onValueChange={([v]) => setFontSize(v)} max={28} min={16} step={1} />
+                  </div>
+
+                  {/* Theme toggle */}
+                  <div style={{ padding: '12px 14px' }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 8 }}>Theme</div>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                      {[
+                        { label: 'Light', Icon: SunIcon, isActive: theme === 'light' || theme.endsWith('-light'),
+                          onClick: () => {
+                            if (theme.includes('-')) { const b = theme.endsWith('-dark') ? theme.slice(0,-5) : theme.endsWith('-light') ? theme.slice(0,-6) : theme; const v={'amethyst-light':'amethyst-light','cosmic-light':'cosmic-light','perpetuity-light':'perpetuity-light','quantum-rose-light':'quantum-rose-light','clean-slate-light':'clean-slate-light'} as Record<string,string>; setTheme((v[`${b}-light`]??'light') as any); } else setTheme('light');
                           }
-                        } else {
-                          setTheme('light');
-                        }
-                      }}
-                      className={cn(
-                        'flex-1 rounded-md',
-                        (theme === 'light' || theme.endsWith('-light')) ? 'ring-2 ring-primary/40' : ''
-                      )}
-                    >
-                      <SunIcon className="h-4 w-4 mr-1" /> Light
-                    </Button>
-                    <Button
-                      variant={theme === 'dark' || theme.endsWith('-dark') ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => {
-                        if (theme.includes('-')) {
-                          const baseTheme = theme.endsWith('-dark') 
-                            ? theme.slice(0, -5)
-                            : theme.endsWith('-light') 
-                              ? theme.slice(0, -6)
-                              : theme;
-                          const darkVariant = `${baseTheme}-dark` as const;
-                          const validDarkThemes = {
-                            'amethyst-dark': 'amethyst-dark',
-                            'cosmic-dark': 'cosmic-dark',
-                            'perpetuity-dark': 'perpetuity-dark', 
-                            'quantum-rose-dark': 'quantum-rose-dark',
-                            'clean-slate-dark': 'clean-slate-dark'
-                          } as const;
-                          
-                          if (darkVariant in validDarkThemes) {
-                            setTheme(validDarkThemes[darkVariant as keyof typeof validDarkThemes]);
-                          } else {
-                            setTheme('dark');
+                        },
+                        { label: 'Dark', Icon: MoonIcon, isActive: theme === 'dark' || theme.endsWith('-dark'),
+                          onClick: () => {
+                            if (theme.includes('-')) { const b = theme.endsWith('-dark') ? theme.slice(0,-5) : theme.endsWith('-light') ? theme.slice(0,-6) : theme; const v={'amethyst-dark':'amethyst-dark','cosmic-dark':'cosmic-dark','perpetuity-dark':'perpetuity-dark','quantum-rose-dark':'quantum-rose-dark','clean-slate-dark':'clean-slate-dark'} as Record<string,string>; setTheme((v[`${b}-dark`]??'dark') as any); } else setTheme('dark');
                           }
-                        } else {
-                          setTheme('dark');
-                        }
-                      }}
-                      className={cn(
-                        'flex-1 rounded-md',
-                        (theme === 'dark' || theme.endsWith('-dark')) ? 'ring-2 ring-primary/40' : ''
-                      )}
-                    >
-                      <MoonIcon className="h-4 w-4 mr-1" /> Dark
-                    </Button>
+                        },
+                      ].map(({ label, Icon, isActive, onClick }) => (
+                        <button key={label} onClick={onClick} style={{
+                          flex: 1, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          fontSize: 13, fontWeight: 500,
+                          background: isActive ? 'hsl(var(--primary)/0.1)' : 'hsl(var(--muted))',
+                          color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                          border: `1.5px solid ${isActive ? 'hsl(var(--primary)/0.4)' : 'transparent'}`,
+                          borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .12s',
+                        }}
+                          onMouseEnter={e => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = 'hsl(var(--accent))';
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = 'hsl(var(--muted))';
+                            }
+                          }}
+                        >
+                          <Icon className="h-3.5 w-3.5" /> {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Special themes */}
+                    <Select value={theme} onValueChange={setTheme}>
+                      <SelectTrigger className="w-full h-9 text-xs" style={{ borderRadius: 10 }}>
+                        <SelectValue placeholder="Special theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(theme === 'light' || theme.endsWith('-light')) && (<>
+                          <SelectItem value="light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300"/>Default Light</div></SelectItem>
+                          <SelectItem value="amethyst-light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-purple-300 to-pink-300"/>Amethyst Light</div></SelectItem>
+                          <SelectItem value="cosmic-light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-blue-300 to-purple-400"/>Cosmic Light</div></SelectItem>
+                          <SelectItem value="perpetuity-light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-teal-300 to-cyan-400"/>Perpetuity Light</div></SelectItem>
+                          <SelectItem value="quantum-rose-light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-pink-300 to-rose-400"/>Quantum Rose Light</div></SelectItem>
+                          <SelectItem value="clean-slate-light"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-slate-200 to-indigo-300"/>Clean Slate Light</div></SelectItem>
+                        </>)}
+                        {(theme === 'dark' || theme.endsWith('-dark')) && (<>
+                          <SelectItem value="dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-gray-700 to-gray-800 border border-gray-600"/>Default Dark</div></SelectItem>
+                          <SelectItem value="amethyst-dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"/>Amethyst Dark</div></SelectItem>
+                          <SelectItem value="cosmic-dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-blue-800 to-purple-900"/>Cosmic Dark</div></SelectItem>
+                          <SelectItem value="perpetuity-dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-teal-600 to-cyan-700"/>Perpetuity Dark</div></SelectItem>
+                          <SelectItem value="quantum-rose-dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"/>Quantum Rose Dark</div></SelectItem>
+                          <SelectItem value="clean-slate-dark"><div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-gradient-to-r from-slate-600 to-indigo-600"/>Clean Slate Dark</div></SelectItem>
+                        </>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <div className="mb-3">
-                  <span className="block text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">Special Themes</span>
-                  <Select 
-                    value={theme} 
-                    onValueChange={setTheme}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a special theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(theme === 'light' || theme.endsWith('-light')) && (
-                        <>
-                          <SelectItem value="light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300"></div>
-                              Default Light
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="amethyst-light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-300 to-pink-300"></div>
-                              Amethyst Light
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="cosmic-light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-300 to-purple-400"></div>
-                              Cosmic Light
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="perpetuity-light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-300 to-cyan-400"></div>
-                              Perpetuity Light
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="quantum-rose-light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-300 to-rose-400"></div>
-                              Quantum Rose Light
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="clean-slate-light">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-slate-200 to-indigo-300"></div>
-                              Clean Slate Light
-                            </div>
-                          </SelectItem>
-                        </>
-                      )}
-                      {(theme === 'dark' || theme.endsWith('-dark')) && (
-                        <>
-                          <SelectItem value="dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-gray-700 to-gray-800 border border-gray-600"></div>
-                              Default Dark
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="amethyst-dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600"></div>
-                              Amethyst Dark
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="cosmic-dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-800 to-purple-900"></div>
-                              Cosmic Dark
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="perpetuity-dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-teal-600 to-cyan-700"></div>
-                              Perpetuity Dark
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="quantum-rose-dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-700"></div>
-                              Quantum Rose Dark
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="clean-slate-dark">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full bg-gradient-to-r from-slate-600 to-indigo-600"></div>
-                              Clean Slate Dark
-                            </div>
-                          </SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="border-t border-border my-4" />
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={handleExportBackup}
+
+                {/* Action rows */}
+                <div style={{ borderRadius: 14, border: '1px solid hsl(var(--border))', overflow: 'hidden', marginBottom: 16 }}>
+                  {[
+                    { label: 'Export backup',   sub: 'Download all your notes',    Icon: Download, onClick: handleExportBackup },
+                    { label: 'Import backup',   sub: 'Restore from a file',         Icon: Upload,   onClick: handleImportBackup },
+                    { label: 'Show onboarding', sub: 'Replay the intro tour',       Icon: null,     onClick: () => onShowOnboarding && onShowOnboarding() },
+                  ].map(({ label, sub, Icon, onClick }, i, arr) => (
+                    <button key={label} onClick={onClick} style={{
+                      width: '100%', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '11px 14px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: i < arr.length - 1 ? '1px solid hsl(var(--border)/0.6)' : 'none',
+                      cursor: 'pointer', fontFamily: 'inherit', transition: 'background .12s',
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--accent))')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <Download className="h-3.5 w-3.5 mr-1.5" />
-                      Export
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={handleImportBackup}
-                    >
-                      <Upload className="h-3.5 w-3.5 mr-1.5" />
-                      Import
-                    </Button>
-                  </div>
-                  <Button
-                    variant="default"
-                    className="w-full text-sm font-medium"
-                    onClick={() => onShowOnboarding && onShowOnboarding()}
-                  >
-                    Show Onboarding
-                  </Button>
+                      {Icon && (
+                        <div style={{ width: 32, height: 32, borderRadius: 9, background: 'hsl(var(--muted))', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Icon size={14} style={{ color: 'hsl(var(--foreground))' }} />
+                        </div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>{label}</div>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{sub}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <div className="mt-3 pt-2">
-                  <div className="text-center">
-                    <span className="text-[12px] text-muted-foreground/60 font-mono tracking-wide">
-                      v{packageJson.version}
-                    </span>
-                  </div>
-                </div>
+
+
               </div>
             </PopoverContent>
           </Popover>
@@ -786,6 +908,7 @@ export function EditorBlockNote({
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        isCommandPaletteOpen={isCommandPaletteOpen}
       />
 
       <CommandPalette
@@ -793,12 +916,13 @@ export function EditorBlockNote({
         onClose={closeCommandPalette}
       />
 
-      <main className="flex-1 flex flex-col px-4 md:px-8 lg:px-16 py-8 max-w-4xl mx-auto w-full overflow-hidden">
+      <main className="flex-1 flex flex-col px-8 md:px-8 lg:px-16 pt-0 pb-0 max-w-4xl mx-auto w-full overflow-hidden">
         <h1 className="sr-only">typein - Free Minimalist Writing App | Distraction-Free Text Editor</h1>
         <div 
           className={cn(
             "relative flex-1 min-h-0 editor-wrapper",
             {
+              'font-general-sans': selectedFont === 'general-sans',
               'font-geist': selectedFont === 'geist',
               'font-space': selectedFont === 'space',
               'font-lora': selectedFont === 'lora',
@@ -818,6 +942,27 @@ export function EditorBlockNote({
               className="w-full h-full"
               data-theming-css-variables-demo
               sideMenu={true}
+              shadCNComponents={{
+                Select: {
+                  Select: ShadCNDefaultComponents.Select.Select,
+                  SelectTrigger: ShadCNDefaultComponents.Select.SelectTrigger,
+                  SelectValue: ShadCNDefaultComponents.Select.SelectValue,
+                  SelectContent: BlockNoteSelectContent as any,
+                  SelectItem: SelectItem as any,
+                },
+                DropdownMenu: {
+                  ...ShadCNDefaultComponents.DropdownMenu,
+                  DropdownMenuTrigger: SafeDropdownMenuTrigger as any,
+                },
+                Tooltip: {
+                  ...ShadCNDefaultComponents.Tooltip,
+                  TooltipTrigger: SafeTooltipTrigger as any,
+                },
+                Popover: {
+                  ...ShadCNDefaultComponents.Popover,
+                  PopoverTrigger: SafePopoverTrigger as any,
+                }
+              }}
             />
           )}
         </div>
@@ -828,10 +973,6 @@ export function EditorBlockNote({
         charCount={charCount}
         lastSaved={lastSaved}
         isDirty={isDirty}
-        shortcuts={[
-          { icon: <Undo2 className="h-3 w-3" />, combo: '⌘ + Z' },
-          { icon: <Redo2 className="h-3 w-3" />, combo: '⌘ + Y' },
-        ]}
       />
       </div>
     </>
