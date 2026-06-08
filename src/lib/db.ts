@@ -75,7 +75,6 @@ class typeinDB {
           this.useLocalStorageFallback = true;
           resolve();
         };
-
         request.onsuccess = () => {
           if (timeoutFired) return;
           clearTimeout(initTimeout);
@@ -89,9 +88,18 @@ class typeinDB {
             console.error(errorMsg);
           };
 
+          // Close database connection if another tab/version requests an upgrade
+          this.db.onversionchange = () => {
+            console.warn('Database version change requested by another tab/session. Closing connection.');
+            if (this.db) {
+              this.db.close();
+              this.db = null;
+            }
+          };
+
           resolve();
         };
-        
+
         request.onupgradeneeded = (event) => {
           if (timeoutFired) return;
           console.log('Upgrading IndexedDB schema...');
