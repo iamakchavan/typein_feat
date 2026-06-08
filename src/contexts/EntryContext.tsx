@@ -5,6 +5,29 @@ import type { PartialBlock } from '@blocknote/core';
 import { migrateEntryContent } from '@/lib/migration';
 import { isContentEmpty } from '@/lib/entryHelpers';
 
+// Timezone-safe local date string helper (YYYY-MM-DD)
+export const getLocalDateString = (d: Date): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Timezone-safe date parser
+export function parseDateSafe(dateStr: string | Date | undefined | null): Date {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  
+  // If it's a date-only string (YYYY-MM-DD), parse it as local time by creating Date with local args
+  if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  const parsed = new Date(dateStr);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 export interface Entry {
   id: string;
   date: string;
@@ -177,22 +200,16 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         if (!active) return;
 
         // Get today's date in local timezone YYYY-MM-DD
-        const getLocalDateString = (d: Date) => {
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
         const today = getLocalDateString(new Date());
         
         // Find today's entries using timezone-safe local dates
         const todayEntries = loadedEntries.filter(entry => {
-          const entryDate = getLocalDateString(new Date(entry.date));
+          const entryDate = getLocalDateString(parseDateSafe(entry.date));
           return entryDate === today;
         });
 
         // Sort all entries by date (newest first)
-        loadedEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        loadedEntries.sort((a, b) => parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime());
 
         if (todayEntries.length === 0) {
           // No entry for today — create one fresh blank note
@@ -219,7 +236,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
             // Fall back to most recent non-branched entry for today, or newest overall
             const preferred = todayEntries
               .filter(e => !e.isBranchedOff)
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+              .sort((a, b) => parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime())[0];
             setCurrentEntry(preferred ?? loadedEntries[0]);
           }
         }
@@ -366,7 +383,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
       if (!entryToBranchOff) return;
 
       const today = new Date().toISOString();
-      const originalDate = new Date(entryToBranchOff.date).toISOString().split('T')[0];
+      const originalDate = getLocalDateString(parseDateSafe(entryToBranchOff.date));
       
       const branchedEntry: Entry = {
         id: uuidv4(),
@@ -387,7 +404,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         return updated.sort((a, b) => {
           if (a.pinned && !b.pinned) return -1;
           if (!a.pinned && b.pinned) return 1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
         });
       });
       

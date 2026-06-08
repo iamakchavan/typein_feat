@@ -34,34 +34,51 @@ class typeinDB {
   private readonly DB_NAME = 'typein-db';
   private readonly DB_VERSION = 6; // Increment version for media store
   private initPromise: Promise<void> | null = null;
+  public useLocalStorageFallback = false;
 
   async init() {
     if (this.initPromise) return this.initPromise;
 
-    this.initPromise = new Promise<void>((resolve, reject) => {
+    this.initPromise = new Promise<void>((resolve) => {
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        console.warn('IndexedDB not supported or running in SSR. Falling back to localStorage.');
+        this.useLocalStorageFallback = true;
+        resolve();
+        return;
+      }
+
+      let timeoutFired = false;
+      const initTimeout = setTimeout(() => {
+        timeoutFired = true;
+        console.error('IndexedDB initialization timed out after 1.5s. Falling back to localStorage.');
+        this.useLocalStorageFallback = true;
+        resolve();
+      }, 1500);
+
       try {
         console.log('Initializing IndexedDB...');
         const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
         
         request.onerror = () => {
+          if (timeoutFired) return;
+          clearTimeout(initTimeout);
           const errorMsg = `Failed to open IndexedDB: ${request.error?.message || 'Unknown error'}`;
-          console.error(errorMsg);
-          // Add visible error notification or status update here
-          window.dispatchEvent(new CustomEvent('db-error', { 
-            detail: { message: errorMsg } 
-          }));
-          reject(request.error);
+          console.error(errorMsg + '. Falling back to localStorage.');
+          this.useLocalStorageFallback = true;
+          resolve();
         };
 
         request.onblocked = () => {
-          const errorMsg = 'Database blocked. Please close other tabs with this site open';
-          console.error(errorMsg);
-          window.dispatchEvent(new CustomEvent('db-error', { 
-            detail: { message: errorMsg } 
-          }));
+          if (timeoutFired) return;
+          clearTimeout(initTimeout);
+          console.error('Database blocked. Falling back to localStorage.');
+          this.useLocalStorageFallback = true;
+          resolve();
         };
 
         request.onsuccess = () => {
+          if (timeoutFired) return;
+          clearTimeout(initTimeout);
           console.log('Successfully opened IndexedDB');
           this.db = request.result;
 
@@ -70,15 +87,13 @@ class typeinDB {
             const target = event.target as IDBRequest;
             const errorMsg = `Database error: ${target.error?.message || 'Unknown error'}`;
             console.error(errorMsg);
-            window.dispatchEvent(new CustomEvent('db-error', { 
-              detail: { message: errorMsg } 
-            }));
           };
 
           resolve();
         };
         
         request.onupgradeneeded = (event) => {
+          if (timeoutFired) return;
           console.log('Upgrading IndexedDB schema...');
           const db = (event.target as IDBOpenDBRequest).result;
           
@@ -116,12 +131,14 @@ class typeinDB {
             }
           } catch (error) {
             console.error('Error during database upgrade:', error);
-            throw error;
           }
         };
       } catch (error) {
+        if (timeoutFired) return;
+        clearTimeout(initTimeout);
         console.error('Error initializing IndexedDB:', error);
-        reject(error);
+        this.useLocalStorageFallback = true;
+        resolve();
       }
     });
 
@@ -130,6 +147,12 @@ class typeinDB {
 
   // Entry operations
   async getEntries(): Promise<Entry[]> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Loading entries from localStorage');
+      const data = localStorage.getItem('typein-entries');
+      return data ? JSON.parse(data) : [];
+    }
     console.log('Fetching all entries from IndexedDB...');
     return this.performTransaction('entries', 'readonly', (store) => {
       return store.getAll() as unknown as Promise<Entry[]>;
@@ -137,6 +160,19 @@ class typeinDB {
   }
 
   async saveEntry(entry: Entry): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Saving entry to localStorage:', entry.id);
+      const entries = await this.getEntries();
+      const index = entries.findIndex(e => e.id === entry.id);
+      if (index > -1) {
+        entries[index] = entry;
+      } else {
+        entries.push(entry);
+      }
+      localStorage.setItem('typein-entries', JSON.stringify(entries));
+      return;
+    }
     console.log('Saving entry to IndexedDB:', entry.id);
     return this.performTransaction('entries', 'readwrite', (store) => {
       store.put(entry);
@@ -144,6 +180,14 @@ class typeinDB {
   }
 
   async deleteEntry(id: string): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Deleting entry from localStorage:', id);
+      const entries = await this.getEntries();
+      const updated = entries.filter(e => e.id !== id);
+      localStorage.setItem('typein-entries', JSON.stringify(updated));
+      return;
+    }
     console.log('Deleting entry from IndexedDB:', id);
     return this.performTransaction('entries', 'readwrite', async (store) => {
       // Verify the entry exists before deleting
@@ -158,6 +202,7 @@ class typeinDB {
 
   // Editor state operations
   private async verifyDatabaseAccess(): Promise<boolean> {
+    if (this.useLocalStorageFallback) return true;
     try {
       // Try to write and read a test value
       await this.performTransaction('editor', 'readwrite', (store) => {
@@ -181,6 +226,12 @@ class typeinDB {
   }
 
   async saveEditorState(data: StorageData): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Saving editor state to localStorage');
+      localStorage.setItem('editor-state', JSON.stringify(data));
+      return;
+    }
     console.log('Saving editor state to IndexedDB...');
     try {
       const compressed = await this.compress(data);
@@ -201,6 +252,12 @@ class typeinDB {
   }
 
   async getEditorState(): Promise<StorageData | null> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Loading editor state from localStorage');
+      const data = localStorage.getItem('editor-state');
+      return data ? JSON.parse(data) : null;
+    }
     console.log('Fetching editor state from IndexedDB...');
     const compressed = await this.performTransaction('editor', 'readonly', (store) => {
       return store.get('current') as unknown as Promise<Uint8Array | null>;
@@ -215,6 +272,11 @@ class typeinDB {
 
   // Theme operations
   async saveTheme(theme: string): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      localStorage.setItem('editor-theme', theme);
+      return;
+    }
     console.log('Saving theme to IndexedDB:', theme);
     return this.performTransaction('theme', 'readwrite', (store) => {
       store.put(theme, 'current');
@@ -222,6 +284,10 @@ class typeinDB {
   }
 
   async getTheme(): Promise<string | null> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      return localStorage.getItem('editor-theme');
+    }
     console.log('Fetching theme from IndexedDB...');
     return this.performTransaction('theme', 'readonly', (store) => {
       return store.get('current') as unknown as Promise<string | null>;
@@ -230,6 +296,11 @@ class typeinDB {
 
   // Font preferences operations
   async saveFontPreferences(preferences: FontPreferences): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      localStorage.setItem('font-preferences', JSON.stringify(preferences));
+      return;
+    }
     console.log('Saving font preferences to IndexedDB:', preferences);
     return this.performTransaction('fontPreferences', 'readwrite', (store) => {
       store.put(preferences, 'current');
@@ -237,6 +308,11 @@ class typeinDB {
   }
 
   async getFontPreferences(): Promise<FontPreferences | null> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      const data = localStorage.getItem('font-preferences');
+      return data ? JSON.parse(data) : null;
+    }
     console.log('Fetching font preferences from IndexedDB...');
     return this.performTransaction('fontPreferences', 'readonly', (store) => {
       return store.get('current') as unknown as Promise<FontPreferences | null>;
@@ -273,6 +349,9 @@ class typeinDB {
     operation: (store: IDBObjectStore) => T | Promise<T>
   ): Promise<T> {
     await this.init();
+    if (this.useLocalStorageFallback) {
+      throw new Error(`IndexedDB transaction failed because database is in localStorage fallback mode`);
+    }
 
     return new Promise((resolve, reject) => {
       if (!this.db) {
@@ -321,9 +400,12 @@ class typeinDB {
 
   // Migration helper
   async migrateFromLocalStorage(): Promise<void> {
-    console.log('Starting migration from localStorage to IndexedDB...');
     await this.init();
-
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Skipping localStorage to IndexedDB migration (database not available)');
+      return;
+    }
+    console.log('Starting migration from localStorage to IndexedDB...');
     try {
       // Migrate entries
       const savedEntries = localStorage.getItem('typein-entries');
@@ -410,9 +492,12 @@ class typeinDB {
 
   // Verification methods
   async verifyDatabase(): Promise<boolean> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      console.log('Fallback: Database verification succeeded (running on localStorage fallback)');
+      return true;
+    }
     try {
-      await this.init();
-      
       // Verify stores exist
       const storeNames = ['entries', 'editor', 'theme', 'fontPreferences'];
       const missingStores = storeNames.filter(name => !this.db?.objectStoreNames.contains(name));
@@ -470,6 +555,11 @@ class typeinDB {
 
   // Migration status operations
   async getMigrationStatus(): Promise<MigrationStatus | null> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      const data = localStorage.getItem('migration-status-v6');
+      return data ? JSON.parse(data) : null;
+    }
     console.log('Fetching migration status from IndexedDB...');
     return this.performTransaction('migrationStatus', 'readonly', (store) => {
       return store.get('current') as unknown as Promise<MigrationStatus | null>;
@@ -477,6 +567,11 @@ class typeinDB {
   }
 
   async saveMigrationStatus(status: MigrationStatus): Promise<void> {
+    await this.init();
+    if (this.useLocalStorageFallback) {
+      localStorage.setItem('migration-status-v6', JSON.stringify(status));
+      return;
+    }
     console.log('Saving migration status to IndexedDB:', status);
     return this.performTransaction('migrationStatus', 'readwrite', (store) => {
       store.put(status, 'current');
