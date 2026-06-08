@@ -805,6 +805,11 @@ export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
     window.addEventListener('migration-welcome', open);
     window.addEventListener('migration-indexing', open);
     window.addEventListener('migration-error', open);
+    
+    // Dispatch that the dialog is mounted and ready to receive events
+    console.log('MigrationStatusDialog: Dispatching migration-dialog-mounted');
+    window.dispatchEvent(new CustomEvent('migration-dialog-mounted'));
+    
     return () => {
       window.removeEventListener('migration-welcome', open);
       window.removeEventListener('migration-indexing', open);
@@ -815,6 +820,7 @@ export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
   const handleClose = () => {
     setActive(false);
     onClose?.();
+    window.dispatchEvent(new CustomEvent('migration-cancelled'));
   };
 
   return (

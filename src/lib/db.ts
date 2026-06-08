@@ -369,16 +369,36 @@ class typeinDB {
         return;
       }
 
+      let timeoutFired = false;
+      const txTimeout = setTimeout(() => {
+        timeoutFired = true;
+        console.error(`Transaction on store "${storeName}" timed out after 1.0s. Falling back to localStorage.`);
+        this.useLocalStorageFallback = true;
+        if (this.db) {
+          try {
+            this.db.close();
+          } catch (e) {
+            console.error('Error closing database after transaction timeout:', e);
+          }
+          this.db = null;
+        }
+        reject(new Error('IndexedDB transaction timed out'));
+      }, 1000);
+
       try {
         const transaction = this.db.transaction(storeName, mode);
         const store = transaction.objectStore(storeName);
         
         transaction.onerror = () => {
+          if (timeoutFired) return;
+          clearTimeout(txTimeout);
           console.error(`Transaction error (${storeName}):`, transaction.error);
           reject(transaction.error);
         };
 
         transaction.onabort = () => {
+          if (timeoutFired) return;
+          clearTimeout(txTimeout);
           console.error(`Transaction aborted (${storeName}):`, transaction.error);
           reject(transaction.error);
         };
@@ -387,6 +407,8 @@ class typeinDB {
           const request = operation(store);
           
           transaction.oncomplete = () => {
+            if (timeoutFired) return;
+            clearTimeout(txTimeout);
             if (request instanceof IDBRequest) {
               resolve(request.result);
             } else if (request instanceof Promise) {
@@ -396,10 +418,14 @@ class typeinDB {
             }
           };
         } catch (error) {
+          if (timeoutFired) return;
+          clearTimeout(txTimeout);
           console.error(`Error in transaction operation (${storeName}):`, error);
           reject(error);
         }
       } catch (error) {
+        if (timeoutFired) return;
+        clearTimeout(txTimeout);
         console.error(`Error creating transaction (${storeName}):`, error);
         reject(error);
       }

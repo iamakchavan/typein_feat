@@ -105,95 +105,126 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
             });
             if (!active) return;
           } else {
-
             console.log('Starting entry migration to BlockNote format...');
+
+            // Set up a promise that resolves when 'migration-dialog-mounted' is fired
+            const dialogMountedPromise = new Promise<void>((resolve) => {
+              const onMounted = () => {
+                window.removeEventListener('migration-dialog-mounted', onMounted);
+                resolve();
+              };
+              window.addEventListener('migration-dialog-mounted', onMounted);
+              // Failsafe timeout of 2.0s in case the dialog is somehow already mounted or fails to mount
+              setTimeout(resolve, 2000);
+            });
 
             // Hide the loading screen immediately — MigrationStatusDialog owns the UI from here
             setIsLoading(false);
 
-            // Step 1: Show the welcome screen and wait for user to click Continue
+            // Wait for the dialog to be mounted and ready to receive events
+            await dialogMountedPromise;
+            if (!active) return;
+
+            // Step 1: Show the welcome screen and wait for user to click Continue or Cancel
             window.dispatchEvent(new CustomEvent('migration-welcome'));
+            
+            let migrationCancelled = false;
             await new Promise<void>(resolve => {
               const onReady = () => {
                 window.removeEventListener('migration-ready', onReady);
+                window.removeEventListener('migration-cancelled', onCancel);
+                migrationCancelled = false;
+                resolve();
+              };
+              const onCancel = () => {
+                window.removeEventListener('migration-ready', onReady);
+                window.removeEventListener('migration-cancelled', onCancel);
+                migrationCancelled = true;
                 resolve();
               };
               window.addEventListener('migration-ready', onReady);
+              window.addEventListener('migration-cancelled', onCancel);
             });
+            
             if (!active) return;
 
-            // Step 2: Signal UI to start scanning
-            window.dispatchEvent(new CustomEvent('migration-indexing', {
-              detail: { totalEntries: loadedEntries.length }
-            }));
+            if (migrationCancelled) {
+              console.log('Migration cancelled by user. Loading entries without format conversion.');
+              // We do not run the migration loop, just proceed to load entries as they are.
+            } else {
+              // Step 2: Signal UI to start scanning
+              window.dispatchEvent(new CustomEvent('migration-indexing', {
+                detail: { totalEntries: loadedEntries.length }
+              }));
 
-            // Small pause so scanning screen is visible
-            await new Promise(resolve => setTimeout(resolve, 700));
-            if (!active) return;
-
-            // Step 3: Start migration
-            window.dispatchEvent(new CustomEvent('migration-start', {
-              detail: { totalEntries: loadedEntries.length }
-            }));
-
-            const totalEntries = loadedEntries.length;
-            let migratedCount = 0;
-            const failedEntries: string[] = [];
-
-            // Migrate each entry
-            for (const entry of loadedEntries) {
+              // Small pause so scanning screen is visible
+              await new Promise(resolve => setTimeout(resolve, 700));
               if (!active) return;
-              // Only migrate if content is plain text
-              if (typeof entry.content === 'string' && !entry.contentFormat) {
-                try {
-                  const { success, migratedContent, error } = migrateEntryContent(entry.content);
-                  
-                  if (success) {
-                    entry.content = migratedContent;
-                    entry.contentFormat = 'blocknote';
-                    entry.migratedAt = new Date().toISOString();
-                    await db.saveEntry(entry);
-                    migratedCount++;
-                    window.dispatchEvent(new CustomEvent('migration-progress', {
-                      detail: { migratedCount, totalEntries }
-                    }));
-                    console.log(`Migrated entry ${entry.id}`);
-                  } else {
+
+              // Step 3: Start migration
+              window.dispatchEvent(new CustomEvent('migration-start', {
+                detail: { totalEntries: loadedEntries.length }
+              }));
+
+              const totalEntries = loadedEntries.length;
+              let migratedCount = 0;
+              const failedEntries: string[] = [];
+
+              // Migrate each entry
+              for (const entry of loadedEntries) {
+                if (!active) return;
+                // Only migrate if content is plain text
+                if (typeof entry.content === 'string' && !entry.contentFormat) {
+                  try {
+                    const { success, migratedContent, error } = migrateEntryContent(entry.content);
+                    
+                    if (success) {
+                      entry.content = migratedContent;
+                      entry.contentFormat = 'blocknote';
+                      entry.migratedAt = new Date().toISOString();
+                      await db.saveEntry(entry);
+                      migratedCount++;
+                      window.dispatchEvent(new CustomEvent('migration-progress', {
+                        detail: { migratedCount, totalEntries }
+                      }));
+                      console.log(`Migrated entry ${entry.id}`);
+                    } else {
+                      entry.contentFormat = 'plaintext';
+                      entry.migrationError = error;
+                      await db.saveEntry(entry);
+                      failedEntries.push(entry.id);
+                      console.error(`Failed to migrate entry ${entry.id}:`, error);
+                    }
+                  } catch (error) {
                     entry.contentFormat = 'plaintext';
-                    entry.migrationError = error;
+                    entry.migrationError = error instanceof Error ? error.message : String(error);
                     await db.saveEntry(entry);
                     failedEntries.push(entry.id);
-                    console.error(`Failed to migrate entry ${entry.id}:`, error);
+                    console.error(`Error migrating entry ${entry.id}:`, error);
                   }
-                } catch (error) {
-                  entry.contentFormat = 'plaintext';
-                  entry.migrationError = error instanceof Error ? error.message : String(error);
-                  await db.saveEntry(entry);
-                  failedEntries.push(entry.id);
-                  console.error(`Error migrating entry ${entry.id}:`, error);
                 }
               }
-            }
 
-            if (!active) return;
+              if (!active) return;
 
-            // Save migration status
-            const finalStatus = {
-              version: 1,
-              completedAt: new Date().toISOString(),
-              totalEntries,
-              migratedEntries: migratedCount,
-              failedEntries,
-            };
-            await db.saveMigrationStatus(finalStatus);
-            window.dispatchEvent(new CustomEvent('migration-complete', {
-              detail: finalStatus
-            }));
+              // Save migration status
+              const finalStatus = {
+                version: 1,
+                completedAt: new Date().toISOString(),
+                totalEntries,
+                migratedEntries: migratedCount,
+                failedEntries,
+              };
+              await db.saveMigrationStatus(finalStatus);
+              window.dispatchEvent(new CustomEvent('migration-complete', {
+                detail: finalStatus
+              }));
 
-            console.log(`Migration complete: ${migratedCount}/${totalEntries} entries migrated`);
-            if (failedEntries.length > 0) {
-              console.warn(`${failedEntries.length} entries failed to migrate:`, failedEntries);
-            }
+              console.log(`Migration complete: ${migratedCount}/${totalEntries} entries migrated`);
+              if (failedEntries.length > 0) {
+                console.warn(`${failedEntries.length} entries failed to migrate:`, failedEntries);
+              }
+            } // end else (migration not cancelled)
           } // end else (has plain-text entries)
         } // end if (needsMigration)
 
@@ -243,11 +274,63 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (!active) return;
         console.error('Failed to initialize entries:', error);
+
+        // Hide the loading screen so the MigrationStatusDialog mounts
+        setIsLoading(false);
+
+        // Wait a small delay to ensure MigrationStatusDialog is mounted and listening
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (!active) return;
+
         // Signal migration error to UI
         window.dispatchEvent(new CustomEvent('migration-error', {
           detail: { message: error instanceof Error ? error.message : 'Unknown error' }
         }));
-        // Even if loading fails, try to create a today's entry
+
+        // Recovery: Try loading entries from fallback database mode
+        try {
+          console.log('IndexedDB failed/timed out. Attempting fallback recovery...');
+          let fallbackEntries = await db.getEntries();
+          if (active) {
+            if (fallbackEntries.length > 0) {
+              console.log(`Fallback recovery: Loaded ${fallbackEntries.length} entries from fallback`);
+              const today = getLocalDateString(new Date());
+              const todayEntries = fallbackEntries.filter(entry => getLocalDateString(parseDateSafe(entry.date)) === today);
+              
+              if (todayEntries.length === 0) {
+                const newEntry: Entry = {
+                  id: uuidv4(),
+                  date: new Date().toISOString(),
+                  content: '',
+                };
+                await db.saveEntry(newEntry);
+                fallbackEntries = [newEntry, ...fallbackEntries];
+                fallbackEntries.sort((a, b) => parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime());
+                setEntries(fallbackEntries);
+                setCurrentEntry(newEntry);
+                localStorage.setItem('last-edited-entry', newEntry.id);
+              } else {
+                fallbackEntries.sort((a, b) => parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime());
+                setEntries(fallbackEntries);
+                const lastEditedId = localStorage.getItem('last-edited-entry');
+                const lastEdited = lastEditedId ? fallbackEntries.find(e => e.id === lastEditedId) : null;
+                if (lastEdited) {
+                  setCurrentEntry(lastEdited);
+                } else {
+                  const preferred = todayEntries
+                    .filter(e => !e.isBranchedOff)
+                    .sort((a, b) => parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime())[0];
+                  setCurrentEntry(preferred ?? fallbackEntries[0]);
+                }
+              }
+              return; // Recovery successful, exit catch block!
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Fallback recovery failed to load entries:', fallbackError);
+        }
+
+        // Even if loading fails and no fallback entries exist, try to create a today's entry
         try {
           const newEntry: Entry = {
             id: uuidv4(),

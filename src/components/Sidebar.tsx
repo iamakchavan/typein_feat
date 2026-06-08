@@ -8,7 +8,7 @@ import {
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
-import { useEntries, Entry } from '@/contexts/EntryContext';
+import { useEntries, Entry, parseDateSafe } from '@/contexts/EntryContext';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
@@ -611,7 +611,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                             )}
                             {entry.isBranchedOff && (
                               <div
-                                title={`Branched off from ${entry.originalEntryDate ? format(new Date(entry.originalEntryDate), 'MMM dd, yyyy') : 'original entry'}`}
+                                title={`Branched off from ${entry.originalEntryDate ? format(parseDateSafe(entry.originalEntryDate), 'MMM dd, yyyy') : 'original entry'}`}
                                 style={{ display: 'flex', alignItems: 'center' }}
                               >
                                 <BranchOffIcon className={cn(
