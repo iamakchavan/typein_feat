@@ -35,8 +35,19 @@ const FORMATS = [
   { value: 'json' as const, label: 'JSON',       sub: '.json', Icon: Braces    },
 ];
 
-const spring = { type: 'spring', stiffness: 500, damping: 40, mass: 0.8 };
-const springMed = { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
+// Detect mobile devices for performance-optimized transitions
+const isMobileDevice = typeof window !== 'undefined' && (
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  window.innerWidth < 768
+);
+
+const spring = isMobileDevice
+  ? { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.28 }
+  : { type: 'spring', stiffness: 500, damping: 40, mass: 0.8 };
+
+const springMed = isMobileDevice
+  ? { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.32 }
+  : { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
 
 export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: ImportModalProps) {
   const { theme } = useTheme();
@@ -279,8 +290,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
-                        style={{ overflow: 'hidden' }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                        style={{ overflow: 'hidden', willChange: 'height, opacity' }}
                       >
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4, paddingBottom: 20 }}>
                           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'hsl(var(--muted-foreground))' }}>

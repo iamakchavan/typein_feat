@@ -66,8 +66,19 @@ const BranchOffIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const spring = { type: 'spring', stiffness: 500, damping: 40, mass: 0.8 };
-const springMed = { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
+// Detect mobile devices for performance-optimized transitions
+const isMobileDevice = typeof window !== 'undefined' && (
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  window.innerWidth < 768
+);
+
+const spring = isMobileDevice
+  ? { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.28 }
+  : { type: 'spring', stiffness: 500, damping: 40, mass: 0.8 };
+
+const springMed = isMobileDevice
+  ? { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.32 }
+  : { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
 
 export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = false }: SidebarProps) {
   const { entries, currentEntry, setCurrentEntry, createNewEntry, deleteEntry, togglePinEntry, branchOffEntry } = useEntries();
