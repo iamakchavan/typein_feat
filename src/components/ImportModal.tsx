@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Upload, ChevronRight } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon } from './Icons';
+import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon, SidebarImportPillIcon, ImportModalTitleIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 
 interface ImportModalProps {
@@ -109,7 +109,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                 }}
                 className="liquid-glass-dock shadow-lg text-foreground/90"
               >
-                <Upload className="h-3.5 w-3.5 mr-2 opacity-85" />
+                <SidebarImportPillIcon className="h-3.5 w-3.5 mr-2 opacity-85" />
                 Import Notes
               </div>
             </motion.div>
@@ -172,7 +172,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                       justifyContent: 'center',
                       marginBottom: 16,
                     }}>
-                      <Upload size={24} />
+                      <ImportModalTitleIcon size={24} />
                     </div>
                     <div style={{
                       fontSize: 26,

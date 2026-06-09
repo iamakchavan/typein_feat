@@ -315,13 +315,6 @@ export const RetainOriginalDateIcon = ({ className, size = 16, style }: IconProp
       strokeWidth="1.5"
       strokeLinecap="round"
     />
-    <circle
-      cx="16.5"
-      cy="16.5"
-      r="1.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
   </svg>
 );
 
@@ -364,6 +357,119 @@ export const ImportAsNewEntryIcon = ({ className, size = 16, style }: IconProps)
       stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const SidebarImportPillIcon = ({ className, size = 16, style }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ width: size, height: size, ...style }}
+  >
+    <path
+      opacity="0.5"
+      d="M20.5 7V13C20.5 16.7712 20.5 18.6569 19.3284 19.8284C18.1569 21 16.2712 21 12.5 21H11.5C7.72876 21 5.84315 21 4.67157 19.8284C3.5 18.6569 3.5 16.7712 3.5 13V7"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M2 5C2 4.05719 2 3.58579 2.29289 3.29289C2.58579 3 3.05719 3 4 3H20C20.9428 3 21.4142 3 21.7071 3.29289C22 3.58579 22 4.05719 22 5C22 5.94281 22 6.41421 21.7071 6.70711C21.4142 7 20.9428 7 20 7H4C3.05719 7 2.58579 7 2.29289 6.70711C2 6.41421 2 5.94281 2 5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M12 7L12 16M12 16L15 12.6667M12 16L9 12.6667"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const ImportModalTitleIcon = ({ className, size = 16, style }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ width: size, height: size, ...style }}
+  >
+    <path
+      d="M12.5575 17.5017C12.4152 17.6598 12.2126 17.75 12 17.75C11.7874 17.75 11.5848 17.6598 11.4425 17.5017L8.44254 14.1684C8.16544 13.8605 8.1904 13.3863 8.49828 13.1092C8.80617 12.8321 9.28038 12.8571 9.55748 13.1649L11.25 15.0455L11.25 7.00002H4C3.84905 7.00005 3.6452 7.00008 3.5 6.99805V13C3.5 16.7713 3.5 18.6569 4.67157 19.8284C5.84315 21 7.72876 21 11.5 21H12.5C16.2712 21 18.1569 21 19.3284 19.8284C20.5 18.6569 20.5 16.7713 20.5 13V6.99805C20.3548 7.00008 20.1509 7.00005 20 7.00002H12.75L12.75 15.0455L14.4425 13.1649C14.7196 12.8571 15.1938 12.8321 15.5017 13.1092C15.8096 13.3863 15.8346 13.8605 15.5575 14.1684L12.5575 17.5017Z"
+      fill="currentColor"
+    />
+    <g opacity="0.5">
+      <path
+        d="M2 5C2 4.05719 2 3.58579 2.29289 3.29289C2.58579 3 3.05719 3 4 3H20C20.9428 3 21.4142 3 21.7071 3.29289C22 3.58579 22 4.05719 22 5C22 5.94281 22 6.41421 21.7071 6.70711C21.4142 7 20.9428 7 20 7H4C3.05719 7 2.58579 7 2.29289 6.70711C2 6.41421 2 5.94281 2 5Z"
+        fill="currentColor"
+      />
+    </g>
+  </svg>
+);
+
+export const ColorPresetIcon = ({ className, size = 16, style }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ width: size, height: size, ...style }}
+  >
+    <path
+      d="M2 6C2 3.79086 3.79086 2 6 2C8.20914 2 10 3.79086 10 6V18C10 20.2091 8.20914 22 6 22C3.79086 22 2 20.2091 2 18V6Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M10 8.24268L13.3137 4.92902C14.8758 3.36692 17.4084 3.36692 18.9705 4.92902C20.5326 6.49112 20.5326 9.02378 18.9705 10.5859L9.3064 20.25"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      opacity="0.5"
+      d="M6 22L18 22C20.2091 22 22 20.2091 22 18C22 15.7909 20.2091 14 18 14L15.5 14"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      opacity="0.5"
+      d="M7 18C7 18.5523 6.55228 19 6 19C5.44772 19 5 18.5523 5 18C5 17.4477 5.44772 17 6 17C6.55228 17 7 17.4477 7 18Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
+export const ColorPresetFillIcon = ({ className, size = 16, style }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ width: size, height: size, ...style }}
+  >
+    <path
+      d="M7 18C7 18.5523 6.55228 19 6 19C5.44772 19 5 18.5523 5 18C5 17.4477 5.44772 17 6 17C6.55228 17 7 17.4477 7 18Z"
+      fill="currentColor"
+    />
+    <path
+      opacity="0.4"
+      d="M10 6V18C10 20.2091 8.20914 22 6 22C3.79086 22 2 20.2091 2 18V6C2 3.79086 3.79086 2 6 2C8.20914 2 10 3.79086 10 6Z"
+      fill="currentColor"
+    />
+    <path
+      opacity="0.7"
+      d="M9.24756 20.3357L13.2218 16.3614L19.0599 10.2719C20.5819 8.68438 20.5554 6.17138 19.0003 4.61629C17.4218 3.03773 14.8624 3.03773 13.2838 4.61629L10 7.90015V18C10 18.8718 9.72106 19.6786 9.24756 20.3357Z"
+      fill="currentColor"
+    />
+    <path
+      d="M13.2218 16.3617L9.24756 20.336C9.72014 19.6801 9.99891 18.8752 10 18.0053C9.99711 20.212 8.20736 22 6 22H17.8994C20.1086 22 21.8994 20.2091 21.8994 18C21.8994 15.7909 20.1086 14 17.8994 14H15.486L13.2218 16.3617Z"
+      fill="currentColor"
     />
   </svg>
 );

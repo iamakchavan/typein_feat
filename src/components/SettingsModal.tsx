@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Palette, Check } from 'lucide-react';
-import { SettingsIcon } from './Icons';
+import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
+import { SettingsIcon, ColorPresetIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
@@ -513,7 +513,7 @@ export function SettingsModal({
                             flexShrink: 0,
                             marginTop: 2,
                           }}>
-                            <Palette size={18} />
+                            <ColorPresetIcon size={18} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
                             <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Color Preset</div>
@@ -953,7 +953,7 @@ export function SettingsModal({
                         justifyContent: 'center',
                         marginBottom: 16,
                       }}>
-                        <Palette size={24} />
+                        <ColorPresetIcon size={24} />
                       </div>
                       <div style={{
                         fontSize: 24,

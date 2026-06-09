@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
-  X, Trash2, Search, MoreVertical, Pin, Upload, 
+  X, Trash2, Search, MoreVertical, Pin, 
   ChevronRight, Filter
 } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon } from './Icons';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, SidebarImportPillIcon } from './Icons';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
@@ -999,7 +999,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                     }}
                     className="liquid-glass-dock shadow-lg focus:outline-none pointer-events-auto text-foreground/90"
                   >
-                    <Upload className="h-3.5 w-3.5 mr-2 opacity-85" />
+                    <SidebarImportPillIcon className="h-3.5 w-3.5 mr-2 opacity-85" />
                     Import Notes
                   </button>
 

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon } from './Icons';
+import { Search, Clock, Sun, Moon, Trash2, Type, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, ColorPresetFillIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -433,9 +433,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     },
     {
       id: 'special-themes',
-      title: 'Special Themes',
-      description: 'Browse special theme variants',
-      icon: <Palette className="h-4 w-4" />,
+      title: 'Color Preset',
+      description: 'Browse color preset variants',
+      icon: <ColorPresetFillIcon className="h-4 w-4" />,
       type: 'special-themes',
       isSpecialThemes: true
     },
