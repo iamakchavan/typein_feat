@@ -259,133 +259,116 @@ export function SettingsModal({
                       flexDirection: 'column',
                     }}
                   >
-                    {/* Group 1: Typography & Font Selection */}
+                    {/* Card 1: Font Family Selection */}
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: 0.08 }}
-                      style={{ marginBottom: 20 }}
+                      animate={{ 
+                        opacity: isSliding ? 0 : 1,
+                        y: isSliding ? 10 : 0
+                      }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      style={{ marginBottom: 20, pointerEvents: isSliding ? 'none' : 'auto' }}
                     >
-                      <motion.div 
-                        animate={{
-                          background: isSliding ? 'hsla(var(--background)/0.95)' : 'hsl(var(--muted)/0.12)',
-                          borderColor: isSliding ? 'hsl(var(--border)/0.65)' : 'hsl(var(--border)/0.4)',
-                          boxShadow: isSliding ? '0 20px 40px rgba(0,0,0,0.3)' : 'none',
-                          backdropFilter: isSliding ? 'blur(20px)' : 'blur(10px)',
-                          padding: isSliding ? '0px 0px' : '8px 0px',
-                        }}
-                        transition={{ duration: 0.22, ease: 'easeInOut' }}
-                        style={{
-                          borderRadius: 20,
-                          borderWidth: 1,
-                          borderStyle: 'solid',
-                          display: 'flex',
-                          flexDirection: 'column',
-                        }}
-                      >
-                        {/* Font Family selection modal row button */}
-                        <motion.div
-                          animate={{ 
-                            opacity: isSliding ? 0 : 1,
-                            height: isSliding ? 0 : 'auto'
+                      <div style={{
+                        borderRadius: 20,
+                        border: '1px solid hsl(var(--border)/0.4)',
+                        background: 'hsl(var(--muted)/0.12)',
+                        backdropFilter: 'blur(10px)',
+                        padding: '8px 0',
+                      }}>
+                        <button
+                          onClick={() => setIsFontSheetOpen(true)}
+                          style={{
+                            width: '100%',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'start',
+                            gap: 14,
+                            padding: '14px 20px',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            transition: 'background .12s ease-in-out',
                           }}
-                          transition={{ duration: 0.22, ease: 'easeInOut' }}
-                          style={{ 
-                            pointerEvents: isSliding ? 'none' : 'auto',
-                            overflow: 'hidden'
-                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--muted)/0.35)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <button
-                            onClick={() => setIsFontSheetOpen(true)}
-                            style={{
-                              width: '100%',
-                              textAlign: 'left',
-                              display: 'flex',
-                              alignItems: 'start',
-                              gap: 14,
-                              padding: '14px 20px',
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontFamily: 'inherit',
-                              transition: 'background .12s ease-in-out',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--muted)/0.35)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <div style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: 12,
-                              background: 'hsl(var(--primary)/0.08)',
-                              color: 'hsl(var(--primary))',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                              marginTop: 2,
-                            }}>
-                              <FontSelectorIcon />
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
-                              <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
-                              <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected interface typeface</div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'center', flexShrink: 0 }}>
-                              <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }} className={`font-${selectedFont}`}>
-                                {selectedFontLabel}
-                              </span>
-                              <svg 
-                                className="h-3.5 w-3.5 bg-muted-foreground/60 flex-shrink-0" 
-                                aria-hidden="true" 
-                                focusable="false" 
-                                style={{
-                                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
-                                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
-                                  maskRepeat: 'no-repeat',
-                                  WebkitMaskRepeat: 'no-repeat',
-                                  maskPosition: 'center center',
-                                  WebkitMaskPosition: 'center center',
-                                }}
-                              />
-                            </div>
-                          </button>
-                        </motion.div>
-
-                        <motion.div 
-                          animate={{ 
-                            opacity: isSliding ? 0 : 1,
-                            height: isSliding ? 0 : 1
-                          }}
-                          transition={{ duration: 0.22, ease: 'easeInOut' }}
-                          style={{ 
-                            background: 'hsl(var(--border)/0.2)', 
-                            margin: '0 20px',
-                            overflow: 'hidden'
-                          }} 
-                        />
-
-                        {/* Font Size slider row */}
-                        <div style={{ padding: '16px 20px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                            <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Font Size</span>
-                            <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontVariantNumeric: 'tabular-nums', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
-                              {fontSize}px
+                          <div style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 12,
+                            background: 'hsl(var(--primary)/0.08)',
+                            color: 'hsl(var(--primary))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}>
+                            <FontSelectorIcon />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
+                            <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected interface typeface</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'center', flexShrink: 0 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }} className={`font-${selectedFont}`}>
+                              {selectedFontLabel}
                             </span>
+                            <svg 
+                              className="h-3.5 w-3.5 bg-muted-foreground/60 flex-shrink-0" 
+                              aria-hidden="true" 
+                              focusable="false" 
+                              style={{
+                                maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
+                                maskRepeat: 'no-repeat',
+                                WebkitMaskRepeat: 'no-repeat',
+                                maskPosition: 'center center',
+                                WebkitMaskPosition: 'center center',
+                              }}
+                            />
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                            <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontWeight: 500 }}>A</span>
-                            <div 
-                              style={{ flex: 1 }}
-                              onPointerDown={() => setIsSliding(true)}
-                              onTouchStart={() => setIsSliding(true)}
-                            >
-                              <Slider value={[fontSize]} onValueChange={([v]) => setFontSize(v)} max={28} min={16} step={1} />
-                            </div>
-                            <span style={{ fontSize: 18, color: 'hsl(var(--muted-foreground))', fontWeight: 500 }}>A</span>
-                          </div>
+                        </button>
+                      </div>
+                    </motion.div>
+
+                    {/* Card 2: Font Size Selection */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ 
+                        opacity: 1,
+                        y: 0,
+                        background: isSliding ? 'hsla(var(--background)/0.95)' : 'hsl(var(--muted)/0.12)',
+                        borderColor: isSliding ? 'hsl(var(--border)/0.65)' : 'hsl(var(--border)/0.4)',
+                      }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      style={{
+                        borderRadius: 20,
+                        borderWidth: 1,
+                        borderStyle: 'solid',
+                        padding: '16px 20px',
+                        marginBottom: 20,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Font Size</span>
+                        <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontVariantNumeric: 'tabular-nums', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
+                          {fontSize}px
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontWeight: 500 }}>A</span>
+                        <div 
+                          style={{ flex: 1 }}
+                          onPointerDown={() => setIsSliding(true)}
+                          onTouchStart={() => setIsSliding(true)}
+                        >
+                          <Slider value={[fontSize]} onValueChange={([v]) => setFontSize(v)} max={28} min={16} step={1} />
                         </div>
-                      </motion.div>
+                        <span style={{ fontSize: 18, color: 'hsl(var(--muted-foreground))', fontWeight: 500 }}>A</span>
+                      </div>
                     </motion.div>
 
                     {/* Group 2: Theme preferences */}
