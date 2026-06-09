@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
-import { SettingsIcon, ColorPresetIcon, FontSelectorIcon } from './Icons';
+import { X, Download, Upload, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
+import { SettingsIcon, ColorPresetIcon, FontSelectorIcon, ReplayOnboardingIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
@@ -573,7 +573,7 @@ export function SettingsModal({
                           ...(onShowOnboarding ? [{
                             label: 'Replay onboarding',
                             sub: 'Review the quick intro tour',
-                            Icon: Sparkles,
+                            Icon: ReplayOnboardingIcon,
                             onClick: () => {
                               onClose();
                               onShowOnboarding();
