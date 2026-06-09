@@ -248,12 +248,12 @@ export function ExportWarningDialog({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: isMobileDevice ? 44 : 52,
+                        height: 52,
                         borderRadius: 99,
                         background: 'hsl(var(--primary))',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: isMobileDevice ? 13 : 14,
+                        fontSize: 14,
                         fontWeight: 600,
                         color: 'hsl(var(--primary-foreground))',
                         fontFamily: 'inherit',
@@ -274,12 +274,12 @@ export function ExportWarningDialog({
                         transition={spring}
                         style={{
                           flex: 1,
-                          height: isMobileDevice ? 42 : 50,
+                          height: 50,
                           borderRadius: 99,
                           background: 'hsl(var(--muted))',
                           border: 'none',
                           cursor: 'pointer',
-                          fontSize: isMobileDevice ? 13 : 14,
+                          fontSize: 14,
                           fontWeight: 500,
                           color: 'hsl(var(--foreground))',
                           fontFamily: 'inherit',
@@ -293,12 +293,12 @@ export function ExportWarningDialog({
                         transition={spring}
                         style={{
                           flex: 1.3,
-                          height: isMobileDevice ? 42 : 50,
+                          height: 50,
                           borderRadius: 99,
                           background: 'transparent',
                           border: '1px solid hsl(var(--border))',
                           cursor: 'pointer',
-                          fontSize: isMobileDevice ? 12.5 : 13,
+                          fontSize: 13,
                           fontWeight: 500,
                           color: 'hsl(var(--muted-foreground))',
                           fontFamily: 'inherit',

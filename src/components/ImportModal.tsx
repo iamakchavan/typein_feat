@@ -468,12 +468,12 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                       transition={spring}
                       style={{
                         flex: 1,
-                        height: isMobileDevice ? 44 : 52,
+                        height: 52,
                         borderRadius: 99,
                         background: 'hsl(var(--muted))',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: isMobileDevice ? 13 : 14,
+                        fontSize: 14,
                         fontWeight: 500,
                         color: 'hsl(var(--foreground))',
                         fontFamily: 'inherit',
@@ -487,12 +487,12 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                       transition={spring}
                       style={{
                         flex: 2,
-                        height: isMobileDevice ? 44 : 52,
+                        height: 52,
                         borderRadius: 99,
                         background: 'hsl(var(--primary))',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: isMobileDevice ? 13 : 14,
+                        fontSize: 14,
                         fontWeight: 600,
                         color: 'hsl(var(--primary-foreground))',
                         fontFamily: 'inherit',
