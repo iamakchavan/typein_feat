@@ -272,22 +272,28 @@ export function SettingsModal({
                           borderColor: isSliding ? 'hsl(var(--border)/0.65)' : 'hsl(var(--border)/0.4)',
                           boxShadow: isSliding ? '0 20px 40px rgba(0,0,0,0.3)' : 'none',
                           backdropFilter: isSliding ? 'blur(20px)' : 'blur(10px)',
+                          padding: isSliding ? '0px 0px' : '8px 0px',
                         }}
                         transition={{ duration: 0.22, ease: 'easeInOut' }}
                         style={{
                           borderRadius: 20,
                           borderWidth: 1,
                           borderStyle: 'solid',
-                          padding: '8px 0',
                           display: 'flex',
                           flexDirection: 'column',
                         }}
                       >
                         {/* Font Family selection modal row button */}
                         <motion.div
-                          animate={{ opacity: isSliding ? 0 : 1 }}
+                          animate={{ 
+                            opacity: isSliding ? 0 : 1,
+                            height: isSliding ? 0 : 'auto'
+                          }}
                           transition={{ duration: 0.22, ease: 'easeInOut' }}
-                          style={{ pointerEvents: isSliding ? 'none' : 'auto' }}
+                          style={{ 
+                            pointerEvents: isSliding ? 'none' : 'auto',
+                            overflow: 'hidden'
+                          }}
                         >
                           <button
                             onClick={() => setIsFontSheetOpen(true)}
@@ -347,9 +353,16 @@ export function SettingsModal({
                         </motion.div>
 
                         <motion.div 
-                          animate={{ opacity: isSliding ? 0 : 1 }}
+                          animate={{ 
+                            opacity: isSliding ? 0 : 1,
+                            height: isSliding ? 0 : 1
+                          }}
                           transition={{ duration: 0.22, ease: 'easeInOut' }}
-                          style={{ height: 1, background: 'hsl(var(--border)/0.2)', margin: '0 20px' }} 
+                          style={{ 
+                            background: 'hsl(var(--border)/0.2)', 
+                            margin: '0 20px',
+                            overflow: 'hidden'
+                          }} 
                         />
 
                         {/* Font Size slider row */}
