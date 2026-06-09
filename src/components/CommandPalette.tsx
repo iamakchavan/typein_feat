@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Copy, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon } from './Icons';
+import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, PinIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -519,7 +519,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               WebkitMaskPosition: 'center center',
             }}
           />
-          <Pin className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
+          <PinIcon className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
         </div>
       ) : (
         <svg 
@@ -1654,7 +1654,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                           : "opacity-40 cursor-not-allowed"
                                       )}
                                     >
-                                      <Copy className="h-3.5 w-3.5 opacity-70" />
+                                       <CopyIcon className="h-3.5 w-3.5 opacity-70" />
                                       <span>Copy Note</span>
                                     </button>
                                     <button

@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
-  X, Trash2, Search, MoreVertical, Copy, Pin, Upload, 
+  X, Trash2, Search, MoreVertical, Upload, 
   ChevronRight, Filter
 } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon } from './Icons';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, PinIcon } from './Icons';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
@@ -615,7 +615,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                               {format(entryDate, 'MMM dd, yyyy')}
                             </span>
                             {entry.pinned && (
-                              <Pin size={11} style={{
+                              <PinIcon size={11} style={{
                                 color: isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary)/0.75)',
                                 flexShrink: 0,
                                 transition: 'color 0.2s',
@@ -765,7 +765,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                                       )}
                                       style={itemFadeStyle}
                                     >
-                                      <Pin className="h-3.5 w-3.5 opacity-70" />
+                                      <PinIcon className="h-3.5 w-3.5 opacity-70" />
                                       <span>{entry.pinned ? 'Unpin note' : 'Pin note'}</span>
                                     </DropdownMenuItem>
 
@@ -797,7 +797,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                                       )}
                                       style={itemFadeStyle}
                                     >
-                                      <Copy className="h-3.5 w-3.5 opacity-70" />
+                                      <CopyIcon className="h-3.5 w-3.5 opacity-70" />
                                       <span>Copy Note</span>
                                     </DropdownMenuItem>
 
