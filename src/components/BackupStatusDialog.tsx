@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { CheckCircle2, Download, Upload, Loader2, AlertCircle, X, FileText, Image } from 'lucide-react';
+import { CheckCircle2, Download, Upload, Loader2, AlertCircle, X, Image } from 'lucide-react';
+import { EntryPageIcon } from './Icons';
 import { db } from '@/lib/db';
 import { mediaStorage } from '@/lib/mediaStorage';
 import { getReferencedMediaIds, getReferencedMediaCount } from '@/lib/backup';
@@ -320,7 +321,7 @@ export function BackupStatusDialog({
                                 flexShrink: 0,
                                 transition: 'all 0.3s ease',
                               }}>
-                                <FileText size={18} />
+                                <EntryPageIcon size={18} />
                               </div>
                               
                               {/* Content */}

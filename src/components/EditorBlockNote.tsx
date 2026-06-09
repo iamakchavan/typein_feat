@@ -133,62 +133,7 @@ const SafePopoverTrigger = React.forwardRef<
 ));
 SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 
-// Custom Fullscreen icons
-const FullscreenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-4 w-4"
-  >
-    <path d="M3 7V3h4" />
-    <path d="M21 7V3h-4" />
-    <path d="M3 17v4h4" />
-    <path d="M21 17v4h-4" />
-  </svg>
-);
-
-const ExitFullscreenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-4 w-4"
-  >
-    <path d="M7 3v4H3" />
-    <path d="M17 3v4h4" />
-    <path d="M7 21v-4H3" />
-    <path d="M17 21v-4h4" />
-  </svg>
-);
-
-const SettingsIcon = () => (
-  <svg 
-    className="h-4 w-4 bg-current flex-shrink-0" 
-    aria-hidden="true" 
-    focusable="false" 
-    style={{
-      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
-      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/gear.svg")',
-      maskRepeat: 'no-repeat',
-      WebkitMaskRepeat: 'no-repeat',
-      maskPosition: 'center center',
-      WebkitMaskPosition: 'center center',
-    }}
-  />
-);
+import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon } from './Icons';
 
 export function EditorBlockNote({ 
   onShowOnboarding, 

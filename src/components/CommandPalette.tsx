@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Copy, Pin, Filter, ChevronRight, FileText, FileCode, FileJson, X as ClearIcon } from 'lucide-react';
+import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Copy, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -1755,9 +1756,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                         >
                                           <div className="pl-6 pr-1 py-0.5 flex flex-col gap-0.5">
                                             {[
-                                              { label: 'as Markdown (.md)', Icon: FileCode, key: 'export-md', idx: 3 },
-                                              { label: 'as Plain Text (.txt)', Icon: FileText, key: 'export-txt', idx: 4 },
-                                              { label: 'as JSON (.json)', Icon: FileJson, key: 'export-json', idx: 5 },
+                                              { label: 'as Markdown (.md)', Icon: MarkdownFileIcon, key: 'export-md', idx: 3 },
+                                              { label: 'as Plain Text (.txt)', Icon: EntryPageIcon, key: 'export-txt', idx: 4 },
+                                              { label: 'as JSON (.json)', Icon: JsonFileIcon, key: 'export-json', idx: 5 },
                                             ].map((opt) => (
                                               <button
                                                 key={opt.label}

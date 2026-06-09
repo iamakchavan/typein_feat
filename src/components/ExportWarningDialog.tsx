@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { AlertTriangle, FileJson, X } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
+import { JsonFileIcon } from './Icons';
 
 interface ExportWarningDialogProps {
   isOpen: boolean;
@@ -217,7 +218,7 @@ export function ExportWarningDialog({
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}>
-                        <FileJson size={16} />
+                        <JsonFileIcon size={16} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
@@ -258,7 +259,7 @@ export function ExportWarningDialog({
                         gap: 8,
                       }}
                     >
-                      <FileJson size={16} />
+                      <JsonFileIcon size={16} />
                       Use JSON (Preserve Everything)
                     </motion.button>
                     

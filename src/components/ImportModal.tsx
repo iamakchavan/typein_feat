@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { AlignLeft, Type, Upload, CalendarPlus, Braces, HardDriveDownload, ChevronRight } from 'lucide-react';
+import { Upload, CalendarPlus, ChevronRight } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 
 interface ImportModalProps {
@@ -30,9 +31,9 @@ const CustomCalendarIcon = ({ size = 16 }: { size?: number }) => (
 );
 
 const FORMATS = [
-  { value: 'md'   as const, label: 'Markdown',  sub: '.md',   Icon: AlignLeft },
-  { value: 'txt'  as const, label: 'Plain Text', sub: '.txt',  Icon: Type      },
-  { value: 'json' as const, label: 'JSON',       sub: '.json', Icon: Braces    },
+  { value: 'md'   as const, label: 'Markdown',  sub: '.md',   Icon: MarkdownFileIcon },
+  { value: 'txt'  as const, label: 'Plain Text', sub: '.txt',  Icon: EntryPageIcon    },
+  { value: 'json' as const, label: 'JSON',       sub: '.json', Icon: JsonFileIcon    },
 ];
 
 // Detect mobile devices for performance-optimized transitions
@@ -454,7 +455,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}>
-                        <HardDriveDownload size={16} />
+                        <RestoreBackupIcon size={18} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>

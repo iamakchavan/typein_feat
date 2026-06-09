@@ -3,8 +3,9 @@ import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import { cn } from '@/lib/utils';
 import { 
   X, Trash2, Search, MoreVertical, Copy, Pin, Upload, 
-  FileJson, FileCode, FileText, ChevronRight, Filter
+  ChevronRight, Filter
 } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon } from './Icons';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
@@ -867,9 +868,9 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                                             gap: 2,
                                           }}>
                                             {[
-                                              { label: 'as Markdown (.md)', Icon: FileCode, onClick: (e: any) => handleExportMarkdownClick(entry, e) },
-                                              { label: 'as Plain Text (.txt)', Icon: FileText, onClick: (e: any) => handleExportTxtClick(entry, e) },
-                                              { label: 'as JSON (.json)', Icon: FileJson, onClick: (e: any) => handleExportJsonClick(entry, e) },
+                                              { label: 'as Markdown (.md)', Icon: MarkdownFileIcon, onClick: (e: any) => handleExportMarkdownClick(entry, e) },
+                                              { label: 'as Plain Text (.txt)', Icon: EntryPageIcon, onClick: (e: any) => handleExportTxtClick(entry, e) },
+                                              { label: 'as JSON (.json)', Icon: JsonFileIcon, onClick: (e: any) => handleExportJsonClick(entry, e) },
                                             ].map((opt) => (
                                               <DropdownMenuItem
                                                 key={opt.label}

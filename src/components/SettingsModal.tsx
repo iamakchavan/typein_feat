@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Settings, Palette, Check } from 'lucide-react';
+import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Palette, Check } from 'lucide-react';
+import { SettingsIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
@@ -230,7 +231,7 @@ export function SettingsModal({
                         justifyContent: 'center',
                         marginBottom: 16,
                       }}>
-                        <Settings size={24} />
+                        <SettingsIcon size={24} />
                       </div>
                       <div style={{
                         fontSize: 26,
