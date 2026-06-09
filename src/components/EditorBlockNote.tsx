@@ -49,21 +49,7 @@ const springMed = isMobileDevice
   ? { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.32 }
   : { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
 
-const FontSelectorIcon = () => (
-  <svg 
-    className="h-[18px] w-[18px] bg-primary flex-shrink-0" 
-    aria-hidden="true" 
-    focusable="false" 
-    style={{
-      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-      maskRepeat: 'no-repeat',
-      WebkitMaskRepeat: 'no-repeat',
-      maskPosition: 'center center',
-      WebkitMaskPosition: 'center center',
-    }}
-  />
-);
+
 
 
 const BlockNoteSelectContent = React.forwardRef<
@@ -133,7 +119,7 @@ const SafePopoverTrigger = React.forwardRef<
 ));
 SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 
-import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon } from './Icons';
+import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
 
 export function EditorBlockNote({ 
   onShowOnboarding, 
@@ -700,7 +686,7 @@ export function EditorBlockNote({
                         justifyContent: 'center',
                         marginBottom: 16,
                       }}>
-                        <FontSelectorIcon />
+                        <FontSelectorIcon size={24} />
                       </div>
                       <div style={{
                         fontSize: 24,
@@ -838,19 +824,7 @@ export function EditorBlockNote({
               )}
             >
               <div className="flex items-center truncate">
-                <svg 
-                  className="h-4 w-4 bg-muted-foreground/60 dark:bg-muted-foreground/60 flex-shrink-0 mr-1.5" 
-                  aria-hidden="true" 
-                  focusable="false" 
-                  style={{
-                    maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-                    WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskPosition: 'center center',
-                    WebkitMaskPosition: 'center center',
-                  }}
-                />
+                <FontSelectorIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 mr-1.5" />
                 <span className="truncate">
                   {{
                     'geist': 'Geist Sans',
@@ -891,19 +865,7 @@ export function EditorBlockNote({
                   }
                 )}
               >
-                <svg 
-                  className="h-4 w-4 bg-muted-foreground/60 dark:bg-muted-foreground/60 flex-shrink-0 mr-1.5" 
-                  aria-hidden="true" 
-                  focusable="false" 
-                  style={{
-                    maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-                    WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskPosition: 'center center',
-                    WebkitMaskPosition: 'center center',
-                  }}
-                />
+                <FontSelectorIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 mr-1.5" />
                 <span className="truncate">
                   {(() => {
                     const isMobile = windowWidth < 768;

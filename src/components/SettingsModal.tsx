@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
-import { SettingsIcon, ColorPresetIcon } from './Icons';
+import { SettingsIcon, ColorPresetIcon, FontSelectorIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
@@ -44,22 +44,7 @@ const themeLabels: Record<string, string> = {
   'clean-slate-dark': 'Clean Slate Dark',
 };
 
-// Custom FA message-text SVG mask icon for font family
-const FontSelectorIcon = () => (
-  <svg 
-    className="h-[18px] w-[18px] bg-primary flex-shrink-0" 
-    aria-hidden="true" 
-    focusable="false" 
-    style={{
-      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-      maskRepeat: 'no-repeat',
-      WebkitMaskRepeat: 'no-repeat',
-      maskPosition: 'center center',
-      WebkitMaskPosition: 'center center',
-    }}
-  />
-);
+
 
 export function SettingsModal({
   isOpen,
@@ -307,7 +292,7 @@ export function SettingsModal({
                             flexShrink: 0,
                             marginTop: 2,
                           }}>
-                            <FontSelectorIcon />
+                            <FontSelectorIcon size={18} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
                             <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
@@ -770,7 +755,7 @@ export function SettingsModal({
                         justifyContent: 'center',
                         marginBottom: 16,
                       }}>
-                        <FontSelectorIcon />
+                        <FontSelectorIcon size={24} />
                       </div>
                       <div style={{
                         fontSize: 24,

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Trash2, Type, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, ColorPresetFillIcon } from './Icons';
+import { Search, Clock, Sun, Moon, Trash2, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, ColorPresetFillIcon, FontSelectorIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -443,21 +443,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       id: 'fonts',
       title: 'Change Font',
       description: `Browse available fonts (currently: ${fonts.find(f => f.value === selectedFont)?.label || 'Geist'})`,
-      icon: (
-        <svg 
-          className="h-4 w-4 bg-current flex-shrink-0" 
-          aria-hidden="true" 
-          focusable="false" 
-          style={{
-            maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-            WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/message-text.svg")',
-            maskRepeat: 'no-repeat',
-            WebkitMaskRepeat: 'no-repeat',
-            maskPosition: 'center center',
-            WebkitMaskPosition: 'center center',
-          }}
-        />
-      ),
+      icon: <FontSelectorIcon className="h-4 w-4" />,
       type: 'fonts',
       isFonts: true
     },
@@ -1481,7 +1467,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                       font.value === 'instrument-italic' && 'italic'
                                     )}
                                   >
-                                    <Type className="h-3 w-3 flex-shrink-0" />
+                                    <FontSelectorIcon className="h-3 w-3 flex-shrink-0" />
                                     <span className="flex-1 truncate">{font.label}</span>
                                     {selectedFont === font.value && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />}
                                   </button>
