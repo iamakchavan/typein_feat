@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { Upload, CalendarPlus, ChevronRight } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon } from './Icons';
+import { Upload, ChevronRight } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 
 interface ImportModalProps {
@@ -11,24 +11,6 @@ interface ImportModalProps {
   onImport: (format: 'txt' | 'md' | 'json', retainDate: boolean, file: File) => void;
   onImportBackup: () => void;
 }
-
-const CustomCalendarIcon = ({ size = 16 }: { size?: number }) => (
-  <svg 
-    className="bg-current flex-shrink-0" 
-    aria-hidden="true" 
-    focusable="false" 
-    style={{
-      width: size,
-      height: size,
-      maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
-      WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/calendar.svg")',
-      maskRepeat: 'no-repeat',
-      WebkitMaskRepeat: 'no-repeat',
-      maskPosition: 'center center',
-      WebkitMaskPosition: 'center center',
-    }}
-  />
-);
 
 const FORMATS = [
   { value: 'md'   as const, label: 'Markdown',  sub: '.md',   Icon: MarkdownFileIcon },
@@ -300,8 +282,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {[
-                              { val: true,  label: 'Retain Original Date', sub: "Use the file's original date", Icon: CustomCalendarIcon },
-                              { val: false, label: 'Import as New Entry',   sub: "Use today's date",            Icon: CalendarPlus },
+                              { val: true,  label: 'Retain Original Date', sub: "Use the file's original date", Icon: RetainOriginalDateIcon },
+                              { val: false, label: 'Import as New Entry',   sub: "Use today's date",            Icon: ImportAsNewEntryIcon },
                             ].map((opt) => {
                               const selected = retainDate === opt.val;
                               return (
