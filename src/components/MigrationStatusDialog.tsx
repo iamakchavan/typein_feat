@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Hash, FileText, Image, Table2, Code2, Video, Type, CheckCircle2, AlertCircle, X, Loader2, Database } from 'lucide-react';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface MigrationStatus {
   version: number;
@@ -805,6 +806,9 @@ function Card({ simulate = false, onClose }: Props) {
 
 export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
   const [active, setActive] = useState(simulate);
+
+  // Mobile back button handler
+  useModalBackHandler(active, () => handleClose());
 
   useEffect(() => {
     setActive(simulate);

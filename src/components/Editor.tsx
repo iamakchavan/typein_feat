@@ -43,6 +43,7 @@ import { db } from '@/lib/db';
 import { mediaStorage } from '@/lib/mediaStorage';
 
 import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 export function Editor({ 
   onShowOnboarding, 
@@ -78,6 +79,10 @@ export function Editor({
     status: 'preparing',
     progress: 0,
   });
+
+  // Mobile back button handlers
+  useModalBackHandler(isFontSheetOpen, () => setIsFontSheetOpen(false));
+  useModalBackHandler(backupDialog.isOpen, () => setBackupDialog(prev => ({ ...prev, isOpen: false })));
 
   // Backup/Restore handlers
   const handleExportBackup = async () => {

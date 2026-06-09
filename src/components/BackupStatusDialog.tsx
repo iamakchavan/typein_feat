@@ -6,6 +6,7 @@ import { EntryPageIcon } from './Icons';
 import { db } from '@/lib/db';
 import { mediaStorage } from '@/lib/mediaStorage';
 import { getReferencedMediaIds, getReferencedMediaCount } from '@/lib/backup';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface BackupStatusDialogProps {
   isOpen: boolean;
@@ -45,6 +46,9 @@ export function BackupStatusDialog({
   stats,
   error,
 }: BackupStatusDialogProps) {
+  // Mobile back button handler
+  useModalBackHandler(isOpen, onClose);
+
   const [displayProgress, setDisplayProgress] = useState(0);
 
   // Smooth progress animation

@@ -16,6 +16,7 @@ import { exportEntryAsMarkdown, exportEntryAsJson } from '@/lib/markdown';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -281,6 +282,9 @@ function parseDateQuery(query: string): { start?: Date; end?: Date; isParsed: bo
 }
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+  // Mobile back button handler
+  useModalBackHandler(isOpen, onClose);
+
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);

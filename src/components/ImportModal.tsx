@@ -4,6 +4,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Upload, ChevronRight } from 'lucide-react';
 import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon, SidebarImportPillIcon, ImportModalTitleIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -37,6 +38,9 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
   const isDarkMode = theme === 'dark' || theme.endsWith('-dark');
   const [selectedFormat, setSelectedFormat] = useState<'txt' | 'md' | 'json'>('md');
   const [retainDate, setRetainDate] = useState(true);
+
+  // Mobile back button handler
+  useModalBackHandler(isOpen, onClose);
 
   const handleFileSelect = () => {
     const input = document.createElement('input');

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 import { DeleteTitleIcon } from './Icons';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -30,6 +31,9 @@ export function DeleteConfirmModal({
   onConfirm,
   entryTitle,
 }: DeleteConfirmModalProps) {
+  // Mobile back button handler
+  useModalBackHandler(isOpen, onClose);
+
   return (
     <AnimatePresence>
       {isOpen && (

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertTriangle, X } from 'lucide-react';
 import { JsonFileIcon } from './Icons';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface ExportWarningDialogProps {
   isOpen: boolean;
@@ -33,6 +34,9 @@ export function ExportWarningDialog({
   format,
 }: ExportWarningDialogProps) {
   const formatName = format === 'md' ? 'Markdown' : 'Plain Text';
+
+  // Mobile back button handler
+  useModalBackHandler(isOpen, onClose);
 
   return (
     <AnimatePresence>

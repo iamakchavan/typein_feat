@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 const steps = [
   {
@@ -35,6 +36,9 @@ const steps = [
 ];
 
 export default function OnboardingModal({ onClose }: { onClose: () => void }) {
+  // Mobile back button handler
+  useModalBackHandler(true, onClose);
+
   const [step, setStep] = useState(0);
 
   // Preload all images in background

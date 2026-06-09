@@ -7,6 +7,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
 import packageJson from '../../package.json';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -59,6 +60,11 @@ export function SettingsModal({
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
   const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
+
+  // Register mobile back button handlers
+  useModalBackHandler(isOpen, onClose);
+  useModalBackHandler(isFontSheetOpen, () => setIsFontSheetOpen(false));
+  useModalBackHandler(isThemeSheetOpen, () => setIsThemeSheetOpen(false));
 
   // Handle pointer up on window to ensure we always release sliding state
   useEffect(() => {

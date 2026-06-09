@@ -120,6 +120,7 @@ const SafePopoverTrigger = React.forwardRef<
 SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 
 import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
+import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 export function EditorBlockNote({ 
   onShowOnboarding, 
@@ -136,6 +137,9 @@ export function EditorBlockNote({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
   const { toast } = useToast();
+
+  // Mobile back button handlers
+  useModalBackHandler(isFontSheetOpen, () => setIsFontSheetOpen(false));
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -159,6 +163,8 @@ export function EditorBlockNote({
     status: 'preparing',
     progress: 0,
   });
+
+  useModalBackHandler(backupDialog.isOpen, () => setBackupDialog(prev => ({ ...prev, isOpen: false })));
 
   // Backup/Restore handlers
   const handleExportBackup = async () => {
