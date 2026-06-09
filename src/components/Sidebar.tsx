@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
-  X, Trash2, Search, MoreVertical, Upload, 
+  X, Trash2, Search, MoreVertical, Pin, Upload, 
   ChevronRight, Filter
 } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, PinIcon } from './Icons';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon } from './Icons';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
@@ -614,13 +614,13 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                             >
                               {format(entryDate, 'MMM dd, yyyy')}
                             </span>
-                            {entry.pinned && (
-                              <PinIcon size={11} style={{
-                                color: isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary)/0.75)',
-                                flexShrink: 0,
-                                transition: 'color 0.2s',
-                              }} />
-                            )}
+                             {entry.pinned && (
+                               <Pin size={11} style={{
+                                 color: isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary)/0.75)',
+                                 flexShrink: 0,
+                                 transition: 'color 0.2s',
+                               }} />
+                             )}
                             {entry.isBranchedOff && (
                               <div
                                 title={`Branched off from ${entry.originalEntryDate ? format(parseDateSafe(entry.originalEntryDate), 'MMM dd, yyyy') : 'original entry'}`}
@@ -765,7 +765,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
                                       )}
                                       style={itemFadeStyle}
                                     >
-                                      <PinIcon className="h-3.5 w-3.5 opacity-70" />
+                                       <Pin className="h-3.5 w-3.5 opacity-70" />
                                       <span>{entry.pinned ? 'Unpin note' : 'Pin note'}</span>
                                     </DropdownMenuItem>
 

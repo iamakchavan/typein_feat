@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, PinIcon } from './Icons';
+import { Search, Clock, Sun, Moon, Palette, Trash2, Type, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -506,35 +506,11 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         <BranchOffIcon className="h-4 w-4 text-orange-500" />
       ) : entry.pinned ? (
         <div className="relative">
-          <svg 
-            className="h-4 w-4 bg-current flex-shrink-0" 
-            aria-hidden="true" 
-            focusable="false" 
-            style={{
-              maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-              WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-              maskPosition: 'center center',
-              WebkitMaskPosition: 'center center',
-            }}
-          />
-          <PinIcon className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
+          <EntryPageIcon className="h-4 w-4 flex-shrink-0" />
+          <Pin className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5 text-primary" />
         </div>
       ) : (
-        <svg 
-          className="h-4 w-4 bg-current flex-shrink-0" 
-          aria-hidden="true" 
-          focusable="false" 
-          style={{
-            maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-            WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-            maskRepeat: 'no-repeat',
-            WebkitMaskRepeat: 'no-repeat',
-            maskPosition: 'center center',
-            WebkitMaskPosition: 'center center',
-          }}
-        />
+        <EntryPageIcon className="h-4 w-4 flex-shrink-0" />
       ),
       action: () => {
         setCurrentEntry(entry);
@@ -1310,19 +1286,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           >
             {filteredCommands.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <svg 
-                  className="h-7 w-7 mx-auto mb-3 bg-muted-foreground/40 flex-shrink-0" 
-                  aria-hidden="true" 
-                  focusable="false" 
-                  style={{
-                    maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-                    WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/page.svg")',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskPosition: 'center center',
-                    WebkitMaskPosition: 'center center',
-                  }}
-                />
+                <EntryPageIcon className="h-7 w-7 mx-auto mb-3 text-muted-foreground/40 flex-shrink-0" />
                 <p className="text-[14px] font-medium text-muted-foreground/70 mb-1">No results found</p>
                 <p className="text-[13px] text-muted-foreground/50">Try a different search term</p>
               </div>

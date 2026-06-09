@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
+import { DeleteTitleIcon } from './Icons';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -134,7 +135,7 @@ export function DeleteConfirmModal({
                       justifyContent: 'center',
                       marginBottom: 16,
                     }}>
-                      <Trash2 size={24} />
+                      <DeleteTitleIcon size={24} />
                     </div>
                     <div style={{
                       fontSize: 26,

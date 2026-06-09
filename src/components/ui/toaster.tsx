@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-import { Check, AlertTriangle, FileDown, X, Info } from 'lucide-react';
-import { CopiedSuccessIcon, PinIcon } from '../Icons';
+import { Check, AlertTriangle, Pin, FileDown, X, Info } from 'lucide-react';
+import { CopiedSuccessIcon } from '../Icons';
 
 interface ToastProps {
   id: string;
@@ -28,7 +28,7 @@ function getToastIcon(title?: string, description?: string, variant?: string | n
     return <CopiedSuccessIcon size={18} className="text-primary" />;
   }
   if (d.includes('pinned') || d.includes('unpinned') || t.includes('pin')) {
-    return <PinIcon size={17} className="text-primary" />;
+    return <Pin size={15} className="text-primary" fill="currentColor" />;
   }
   if (d.includes('branch') || t.includes('branch')) {
     return (
