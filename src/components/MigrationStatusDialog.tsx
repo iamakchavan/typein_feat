@@ -210,8 +210,8 @@ function Card({ simulate = false, onClose }: Props) {
               onClick={onClose}
               style={{
                 position: 'absolute',
-                top: 8,
-                right: 20,
+                top: isMobileDevice ? 10 : 8,
+                right: isMobileDevice ? 16 : 20,
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
@@ -243,8 +243,8 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 24,
-                padding: '18px 24px 24px',
+                gap: isMobileDevice ? 16 : 24,
+                padding: isMobileDevice ? '6px 20px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
@@ -252,21 +252,21 @@ function Card({ simulate = false, onClose }: Props) {
               {/* Header */}
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobileDevice ? 44 : 56,
+                  height: isMobileDevice ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobileDevice ? 12 : 18,
                 }}>
-                  <Database size={24} />
+                  <Database size={isMobileDevice ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobileDevice ? 21 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
@@ -277,7 +277,7 @@ function Card({ simulate = false, onClose }: Props) {
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
                   marginBottom: 4,
@@ -289,9 +289,9 @@ function Card({ simulate = false, onClose }: Props) {
               <div style={{ height: 1, background: 'hsl(var(--border)/0.3)' }} />
 
               {/* Features grid */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>What's new</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 274, overflowY: 'auto', paddingRight: 4 }} className="custom-scrollbar-visible">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 6 : 10, marginBottom: 8 }}>
+                <span style={{ fontSize: isMobileDevice ? 10.5 : 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>What's new</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 8 : 10, maxHeight: isMobileDevice ? 200 : 274, overflowY: 'auto', paddingRight: 4 }} className="custom-scrollbar-visible">
                   {FEATURES.map((item) => {
                     const Icon = item.Icon;
                     return (
@@ -301,15 +301,15 @@ function Card({ simulate = false, onClose }: Props) {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 14,
-                          padding: '10px 14px',
+                          padding: isMobileDevice ? '8px 12px' : '10px 14px',
                           borderRadius: 20,
                           background: 'hsl(var(--muted)/0.25)',
                           border: '1px solid hsl(var(--border)/0.2)',
                         }}
                       >
                         <div style={{
-                          width: 36,
-                          height: 36,
+                          width: isMobileDevice ? 32 : 36,
+                          height: isMobileDevice ? 32 : 36,
                           borderRadius: 10,
                           background: 'hsl(var(--primary)/0.08)',
                           color: 'hsl(var(--primary))',
@@ -318,11 +318,11 @@ function Card({ simulate = false, onClose }: Props) {
                           justifyContent: 'center',
                           flexShrink: 0,
                         }}>
-                          <Icon size={18} />
+                          <Icon size={isMobileDevice ? 15 : 18} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>{item.label}</span>
-                          <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{item.desc}</span>
+                          <span style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>{item.label}</span>
+                          <span style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground))' }}>{item.desc}</span>
                         </div>
                       </div>
                     );
@@ -340,12 +340,12 @@ function Card({ simulate = false, onClose }: Props) {
                   transition={spring}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobileDevice ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--muted))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobileDevice ? 13 : 14,
                     fontWeight: 500,
                     color: 'hsl(var(--foreground))',
                     fontFamily: 'inherit',
@@ -359,12 +359,12 @@ function Card({ simulate = false, onClose }: Props) {
                   transition={spring}
                   style={{
                     flex: 2,
-                    height: 52,
+                    height: isMobileDevice ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--primary))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobileDevice ? 13 : 14,
                     fontWeight: 600,
                     color: 'hsl(var(--primary-foreground))',
                     fontFamily: 'inherit',
@@ -391,29 +391,29 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobileDevice ? 14 : 20,
+                padding: isMobileDevice ? '6px 20px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobileDevice ? 44 : 56,
+                  height: isMobileDevice ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobileDevice ? 12 : 18,
                 }}>
-                  <Loader2 size={24} className="animate-spin" />
+                  <Loader2 size={isMobileDevice ? 20 : 24} className="animate-spin" />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobileDevice ? 21 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
@@ -424,10 +424,10 @@ function Card({ simulate = false, onClose }: Props) {
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.45,
-                  marginBottom: 16,
+                  marginBottom: isMobileDevice ? 12 : 16,
                 }}>
                   {indexCount > 0 ? (
                     <>Found {indexCount} notes in local storage...</>
@@ -437,7 +437,7 @@ function Card({ simulate = false, onClose }: Props) {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 8 : 10, marginBottom: 8 }}>
                 <div style={{ height: 6, background: 'hsl(var(--muted))', borderRadius: 99, overflow: 'hidden' }}>
                   <motion.div
                     initial={{ width: 0 }}
@@ -446,7 +446,7 @@ function Card({ simulate = false, onClose }: Props) {
                     style={{ height: '100%', background: 'hsl(var(--primary))', borderRadius: 99 }}
                   />
                 </div>
-                <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+                <span style={{ fontSize: isMobileDevice ? 11 : 12, color: 'hsl(var(--muted-foreground))' }}>
                   Reading browser database cache
                 </span>
               </div>
@@ -465,33 +465,34 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobileDevice ? 14 : 20,
+                padding: isMobileDevice ? '6px 20px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
+              {/* Header */}
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobileDevice ? 44 : 56,
+                  height: isMobileDevice ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobileDevice ? 12 : 18,
                 }}>
                   {isDone ? (
-                    <CheckCircle2 size={24} />
+                    <CheckCircle2 size={isMobileDevice ? 20 : 24} />
                   ) : (
-                    <Loader2 size={24} className="animate-spin" />
+                    <Loader2 size={isMobileDevice ? 20 : 24} className="animate-spin" />
                   )}
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobileDevice ? 21 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
@@ -502,7 +503,7 @@ function Card({ simulate = false, onClose }: Props) {
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.45,
                   marginBottom: 8,
@@ -517,22 +518,22 @@ function Card({ simulate = false, onClose }: Props) {
                   borderRadius: 20,
                   border: '1px solid hsl(var(--border)/0.4)',
                   background: 'hsl(var(--muted)/0.12)',
-                  padding: '20px 24px',
+                  padding: isMobileDevice ? '14px 18px' : '20px 24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16,
-                  marginBottom: 8,
+                  gap: isMobileDevice ? 12 : 16,
+                  marginBottom: isMobileDevice ? 4 : 8,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Converted</span>
-                      <span style={{ fontSize: 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                      <span style={{ fontSize: isMobileDevice ? 10.5 : 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Converted</span>
+                      <span style={{ fontSize: isMobileDevice ? 18 : 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                         {isDone ? <Counter to={status?.migratedEntries ?? current} /> : current}
                       </span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Entries</span>
-                      <span style={{ fontSize: 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                      <span style={{ fontSize: isMobileDevice ? 10.5 : 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Entries</span>
+                      <span style={{ fontSize: isMobileDevice ? 18 : 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                         {total}
                       </span>
                     </div>
@@ -567,8 +568,8 @@ function Card({ simulate = false, onClose }: Props) {
                   <div style={{
                     borderRadius: 20,
                     background: 'hsl(var(--muted)/0.2)',
-                    padding: '12px 16px',
-                    fontSize: 12,
+                    padding: isMobileDevice ? '10px 14px' : '12px 16px',
+                    fontSize: isMobileDevice ? 11 : 12,
                     color: 'hsl(var(--muted-foreground))'
                   }}>
                     <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>{skipped} note{skipped === 1 ? '' : 's'}</span> skipped (kept as plain-text format cleanly, no data lost).
@@ -590,12 +591,12 @@ function Card({ simulate = false, onClose }: Props) {
                     transition={spring}
                     style={{
                       width: '100%',
-                      height: 52,
+                      height: isMobileDevice ? 44 : 52,
                       borderRadius: 99,
                       background: 'hsl(var(--primary))',
                       border: 'none',
                       cursor: 'pointer',
-                      fontSize: 14,
+                      fontSize: isMobileDevice ? 13 : 14,
                       fontWeight: 600,
                       color: 'hsl(var(--primary-foreground))',
                       fontFamily: 'inherit',
@@ -623,29 +624,29 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobileDevice ? 14 : 20,
+                padding: isMobileDevice ? '6px 20px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobileDevice ? 44 : 56,
+                  height: isMobileDevice ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobileDevice ? 12 : 18,
                 }}>
-                  <CheckCircle2 size={24} />
+                  <CheckCircle2 size={isMobileDevice ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobileDevice ? 21 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
@@ -656,10 +657,10 @@ function Card({ simulate = false, onClose }: Props) {
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
-                  marginBottom: 28,
+                  marginBottom: isMobileDevice ? 16 : 28,
                 }}>
                   No legacy entries found on this device. You're ready to get started.
                 </p>
@@ -671,12 +672,12 @@ function Card({ simulate = false, onClose }: Props) {
                 transition={spring}
                 style={{
                   width: '100%',
-                  height: 52,
+                  height: isMobileDevice ? 44 : 52,
                   borderRadius: 99,
                   background: 'hsl(var(--primary))',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 13 : 14,
                   fontWeight: 600,
                   color: 'hsl(var(--primary-foreground))',
                   fontFamily: 'inherit',
@@ -702,29 +703,29 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobileDevice ? 14 : 20,
+                padding: isMobileDevice ? '6px 20px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobileDevice ? 44 : 56,
+                  height: isMobileDevice ? 44 : 56,
                   borderRadius: 99,
                   background: 'rgba(239, 68, 68, 0.1)',
                   color: 'rgb(239, 68, 68)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobileDevice ? 12 : 18,
                 }}>
-                  <AlertCircle size={24} />
+                  <AlertCircle size={isMobileDevice ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobileDevice ? 21 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
@@ -735,10 +736,10 @@ function Card({ simulate = false, onClose }: Props) {
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobileDevice ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
-                  marginBottom: 20,
+                  marginBottom: isMobileDevice ? 14 : 20,
                 }}>
                   An error occurred during database migration. Your original notes remain untouched and completely safe.
                 </p>
@@ -750,11 +751,11 @@ function Card({ simulate = false, onClose }: Props) {
                   background: 'rgba(239, 68, 68, 0.05)',
                   border: '1px solid rgba(239, 68, 68, 0.15)',
                   padding: '12px 16px',
-                  fontSize: 12,
+                  fontSize: isMobileDevice ? 11 : 12,
                   color: 'rgb(239, 68, 68)',
                   fontFamily: 'monospace',
                   wordBreak: 'break-all',
-                  marginBottom: 24,
+                  marginBottom: isMobileDevice ? 16 : 24,
                 }}>
                   {errorMsg}
                 </div>
@@ -765,12 +766,12 @@ function Card({ simulate = false, onClose }: Props) {
                   onClick={() => window.location.reload()}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobileDevice ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--primary))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobileDevice ? 13 : 14,
                     fontWeight: 600,
                     color: 'hsl(var(--primary-foreground))',
                     fontFamily: 'inherit',
@@ -782,12 +783,12 @@ function Card({ simulate = false, onClose }: Props) {
                   onClick={onClose}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobileDevice ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--muted))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobileDevice ? 13 : 14,
                     fontWeight: 500,
                     color: 'hsl(var(--foreground))',
                     fontFamily: 'inherit',

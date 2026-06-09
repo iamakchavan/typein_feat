@@ -96,15 +96,15 @@ export function DeleteConfirmModal({
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                <div style={{ padding: '10px 24px 24px', position: 'relative' }}>
+                <div style={{ padding: isMobileDevice ? '6px 20px 20px' : '10px 24px 24px', position: 'relative' }}>
                   {/* Close button */}
                   <DialogPrimitive.Close asChild>
                     <motion.button
                       whileTap={{ scale: 0.9 }}
                       style={{
                         position: 'absolute',
-                        top: 8,
-                        right: 20,
+                        top: isMobileDevice ? 10 : 8,
+                        right: isMobileDevice ? 16 : 20,
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -126,23 +126,23 @@ export function DeleteConfirmModal({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: 24 }}
+                    style={{ marginBottom: isMobileDevice ? 16 : 24 }}
                   >
                     <div style={{
-                      width: 56,
-                      height: 56,
+                      width: isMobileDevice ? 44 : 56,
+                      height: isMobileDevice ? 44 : 56,
                       borderRadius: 99,
                       background: 'rgba(239, 68, 68, 0.1)',
                       color: 'rgb(239, 68, 68)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: 16,
+                      marginBottom: isMobileDevice ? 12 : 16,
                     }}>
-                      <DeleteTitleIcon size={24} />
+                      <DeleteTitleIcon size={isMobileDevice ? 20 : 24} />
                     </div>
                     <div style={{
-                      fontSize: 26,
+                      fontSize: isMobileDevice ? 21 : 26,
                       fontWeight: 600,
                       color: 'hsl(var(--foreground))',
                       letterSpacing: '-0.6px',
@@ -151,7 +151,7 @@ export function DeleteConfirmModal({
                     }}>
                       Delete Entry
                     </div>
-                    <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: isMobileDevice ? 12.5 : 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
                       Are you sure you want to delete the entry <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>"{entryTitle}"</span>?
                     </div>
                   </motion.div>
@@ -165,15 +165,15 @@ export function DeleteConfirmModal({
                       borderRadius: 20,
                       background: 'rgba(239, 68, 68, 0.05)',
                       border: '1px solid rgba(239, 68, 68, 0.15)',
-                      padding: '16px 20px',
+                      padding: isMobileDevice ? '12px 16px' : '16px 20px',
                       display: 'flex',
                       alignItems: 'start',
-                      gap: 12,
-                      marginBottom: 24,
+                      gap: isMobileDevice ? 10 : 12,
+                      marginBottom: isMobileDevice ? 16 : 24,
                     }}
                   >
-                    <AlertTriangle size={18} style={{ color: 'rgb(239, 68, 68)', flexShrink: 0, marginTop: 1 }} />
-                    <div style={{ fontSize: 13, color: 'rgb(239, 68, 68)', lineHeight: 1.45, fontWeight: 500 }}>
+                    <AlertTriangle size={isMobileDevice ? 16 : 18} style={{ color: 'rgb(239, 68, 68)', flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ fontSize: isMobileDevice ? 12 : 13, color: 'rgb(239, 68, 68)', lineHeight: 1.45, fontWeight: 500 }}>
                       This action is permanent. All text, tables, and media references inside this note will be deleted and cannot be recovered.
                     </div>
                   </motion.div>
@@ -191,12 +191,12 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: 52,
+                        height: isMobileDevice ? 44 : 52,
                         borderRadius: 99,
                         background: 'rgb(239, 68, 68)',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 14,
+                        fontSize: isMobileDevice ? 13 : 14,
                         fontWeight: 600,
                         color: '#ffffff',
                         fontFamily: 'inherit',
@@ -212,7 +212,7 @@ export function DeleteConfirmModal({
                         e.currentTarget.style.background = 'rgb(239, 68, 68)';
                       }}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={isMobileDevice ? 15 : 16} />
                       Delete Entry
                     </motion.button>
                     
@@ -222,12 +222,12 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: 50,
+                        height: isMobileDevice ? 42 : 50,
                         borderRadius: 99,
                         background: 'hsl(var(--muted))',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 14,
+                        fontSize: isMobileDevice ? 13 : 14,
                         fontWeight: 500,
                         color: 'hsl(var(--foreground))',
                         fontFamily: 'inherit',

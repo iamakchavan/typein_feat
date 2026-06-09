@@ -147,15 +147,15 @@ export function BackupStatusDialog({
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                <div style={{ padding: '10px 24px 24px', position: 'relative' }}>
+                <div style={{ padding: isMobileDevice ? '6px 20px 20px' : '10px 24px 24px', position: 'relative' }}>
                   {/* Close button (top right of sheet) */}
                   <DialogPrimitive.Close asChild>
                     <motion.button
                       whileTap={{ scale: 0.9 }}
                       style={{
                         position: 'absolute',
-                        top: 8,
-                        right: 20,
+                        top: isMobileDevice ? 10 : 8,
+                        right: isMobileDevice ? 16 : 20,
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -177,7 +177,7 @@ export function BackupStatusDialog({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                    style={{ marginBottom: isMobileDevice ? 16 : 24, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                   >
                     <motion.div
                       animate={{
@@ -186,28 +186,28 @@ export function BackupStatusDialog({
                       }}
                       transition={spring}
                       style={{
-                        width: 52,
-                        height: 52,
+                        width: isMobileDevice ? 40 : 52,
+                        height: isMobileDevice ? 40 : 52,
                         borderRadius: 99,
                         background: iconBg,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: 14,
+                        marginBottom: isMobileDevice ? 10 : 14,
                       }}
                     >
                       {isComplete ? (
-                        <CheckCircle2 size={22} style={{ color: iconColor }} />
+                        <CheckCircle2 size={isMobileDevice ? 18 : 22} style={{ color: iconColor }} />
                       ) : isError ? (
-                        <AlertCircle size={22} style={{ color: iconColor }} />
+                        <AlertCircle size={isMobileDevice ? 18 : 22} style={{ color: iconColor }} />
                       ) : isExport ? (
-                        <Download size={22} style={{ color: iconColor }} />
+                        <Download size={isMobileDevice ? 18 : 22} style={{ color: iconColor }} />
                       ) : (
-                        <Upload size={22} style={{ color: iconColor }} />
+                        <Upload size={isMobileDevice ? 18 : 22} style={{ color: iconColor }} />
                       )}
                     </motion.div>
 
-                    <div style={{ fontSize: 21, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.3px', lineHeight: 1.2, marginBottom: 4 }}>
+                    <div style={{ fontSize: isMobileDevice ? 18 : 21, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.3px', lineHeight: 1.2, marginBottom: 4 }}>
                       {isComplete
                         ? isExport
                           ? 'Export Complete'
@@ -220,7 +220,7 @@ export function BackupStatusDialog({
                             ? 'Exporting Backup'
                             : 'Importing Backup'}
                     </div>
-                    <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                    <div style={{ fontSize: isMobileDevice ? 12 : 13, color: 'hsl(var(--muted-foreground))' }}>
                       {isComplete
                         ? isExport
                           ? 'Your backup has been downloaded'
@@ -236,7 +236,7 @@ export function BackupStatusDialog({
                   </motion.div>
 
                   {/* Body Content */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 24 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 14 : 20, marginBottom: isMobileDevice ? 16 : 24 }}>
                     {/* Progress Bar */}
                     {isProcessing && (
                       <motion.div

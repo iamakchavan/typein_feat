@@ -577,14 +577,14 @@ export function Editor({
                   </div>
 
                   {/* Header */}
-                  <div style={{ padding: '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
+                  <div style={{ padding: isMobileDevice ? '6px 20px 14px' : '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
                     <DialogPrimitive.Close asChild>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         style={{
                           position: 'absolute',
-                          top: 8,
-                          right: 20,
+                          top: isMobileDevice ? 10 : 8,
+                          right: isMobileDevice ? 16 : 20,
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
@@ -607,20 +607,20 @@ export function Editor({
                       transition={{ ...spring, delay: 0.04 }}
                     >
                       <div style={{
-                        width: 56,
-                        height: 56,
+                        width: isMobileDevice ? 44 : 56,
+                        height: isMobileDevice ? 44 : 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary)/0.1)',
                         color: 'hsl(var(--primary))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: 16,
+                        marginBottom: isMobileDevice ? 12 : 16,
                       }}>
-                        <FontSelectorIcon size={24} />
+                        <FontSelectorIcon size={isMobileDevice ? 20 : 24} />
                       </div>
                       <div style={{
-                        fontSize: 24,
+                        fontSize: isMobileDevice ? 21 : 24,
                         fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         letterSpacing: '-0.5px',
@@ -629,7 +629,7 @@ export function Editor({
                       }}>
                         Font Family
                       </div>
-                      <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: isMobileDevice ? 12.5 : 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
                         Choose your preferred typography for the writing space.
                       </div>
                     </motion.div>
@@ -641,7 +641,7 @@ export function Editor({
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
-                      padding: '0 24px 24px',
+                      padding: isMobileDevice ? '0 16px 16px' : '0 24px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -668,7 +668,7 @@ export function Editor({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              padding: '14px 20px',
+                              padding: isMobileDevice ? '11px 16px' : '14px 20px',
                               background: 'transparent',
                               border: 'none',
                               borderBottom: i < fonts.length - 1 ? '1px solid hsl(var(--border)/0.2)' : 'none',
@@ -680,7 +680,7 @@ export function Editor({
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           >
                             <span className={cn(
-                              "text-[14px]",
+                              isMobileDevice ? "text-[13px]" : "text-[14px]",
                               {
                                 'font-general-sans': font.value === 'general-sans',
                                 'font-geist': font.value === 'geist',
@@ -694,7 +694,7 @@ export function Editor({
                               {font.label}
                             </span>
                             {isSelected && (
-                              <Check size={16} style={{ color: 'hsl(var(--primary))' }} />
+                              <Check size={isMobileDevice ? 14 : 16} style={{ color: 'hsl(var(--primary))' }} />
                             )}
                           </button>
                         );
