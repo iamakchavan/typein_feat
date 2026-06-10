@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
-import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 const steps = [
   {
@@ -36,9 +35,6 @@ const steps = [
 ];
 
 export default function OnboardingModal({ onClose }: { onClose: () => void }) {
-  // Mobile back button handler
-  useModalBackHandler(true, onClose);
-
   const [step, setStep] = useState(0);
 
   // Preload all images in background
@@ -58,10 +54,10 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-background rounded-2xl shadow-2xl max-w-lg w-full md:p-8 p-5 relative flex flex-col items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-background rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-8 relative flex flex-col items-center">
         {/* Progress bar */}
-        <div className="flex justify-center md:mb-6 mb-4 w-full">
+        <div className="flex justify-center mb-6 w-full">
           {steps.map((_, i) => (
             <div
               key={i}
@@ -72,29 +68,29 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
             />
           ))}
         </div>
-        <h2 className="md:text-2xl text-xl font-bold text-center mb-2">{steps[step].title}</h2>
-        <p className="text-muted-foreground text-center md:text-[14px] text-[12.5px] md:mb-6 mb-4">{steps[step].description}</p>
+        <h2 className="text-2xl font-bold text-center mb-2">{steps[step].title}</h2>
+        <p className="text-muted-foreground text-center mb-6">{steps[step].description}</p>
         {steps[step].image && (
           <img
             src={steps[step].image}
             alt="onboarding step"
-            className="rounded-xl md:mb-6 mb-4 w-full object-cover md:max-h-56 max-h-40"
+            className="rounded-xl mb-6 w-full object-cover max-h-56"
           />
         )}
         <div className="flex w-full gap-2 mt-4">
           <Button
             variant="ghost"
-            className="flex-1 rounded-full md:h-11 h-10 md:text-sm text-xs"
+            className="flex-1"
             onClick={() => (step === 0 ? onClose() : setStep(step - 1))}
           >
             {step === 0 ? 'Skip' : 'Back'}
           </Button>
           {step < steps.length - 1 ? (
-            <Button className="flex-1 rounded-full md:h-11 h-10 md:text-sm text-xs" onClick={() => setStep(step + 1)}>
+            <Button className="flex-1" onClick={() => setStep(step + 1)}>
               Next
             </Button>
           ) : (
-            <Button className="flex-1 rounded-full md:h-11 h-10 md:text-sm text-xs" onClick={onClose}>
+            <Button className="flex-1" onClick={onClose}>
               Finish
             </Button>
           )}

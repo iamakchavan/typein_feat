@@ -16,7 +16,6 @@ import { exportEntryAsMarkdown, exportEntryAsJson } from '@/lib/markdown';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
-import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -282,9 +281,6 @@ function parseDateQuery(query: string): { start?: Date; end?: Date; isParsed: bo
 }
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
-  // Mobile back button handler
-  useModalBackHandler(isOpen, onClose);
-
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);
@@ -1074,7 +1070,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
         <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
-          <div className="flex items-center md:gap-4 gap-3 md:px-6 px-4 md:py-5 py-3.5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
+          <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
             <Search className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
             <input
               ref={searchInputRef}
@@ -1082,7 +1078,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               placeholder="Search entries or commands..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent md:text-[15px] text-[14px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
+              className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
               style={{ animationDelay: '150ms', animationFillMode: 'both' }}
             />
             <div className="text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-out" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
@@ -1091,12 +1087,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           </div>
 
           {/* Date Filters Bar */}
-          <div className="flex items-center gap-2 md:px-6 px-4 md:pb-4 pb-3 pt-1 bg-background/20 border-b border-border/10 overflow-x-auto select-none no-scrollbar animate-in fade-in-0 slide-in-from-top-1 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <div className="flex items-center gap-2 px-6 pb-4 pt-1 bg-background/20 border-b border-border/10 overflow-x-auto select-none no-scrollbar animate-in fade-in-0 slide-in-from-top-1 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
             {/* Timeline Preset Pill */}
             <Popover open={showTimelineFilter} onOpenChange={setShowTimelineFilter}>
               <PopoverTrigger asChild>
                 <button className={cn(
-                  "rounded-full md:text-[12px] text-[11px] font-medium md:px-3.5 px-2.5 md:py-1.5 py-1 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
                   timelineFilter !== 'all'
                     ? "is-active"
                     : "text-foreground/90"
@@ -1172,7 +1168,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <Popover open={showDateRangeFilter} onOpenChange={setShowDateRangeFilter}>
               <PopoverTrigger asChild>
                 <button className={cn(
-                  "rounded-full md:text-[12px] text-[11px] font-medium md:px-3.5 px-2.5 md:py-1.5 py-1 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
                   timelineFilter === 'custom'
                     ? "is-active"
                     : "text-foreground/90"
@@ -1300,7 +1296,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           tabIndex={-1}
                           onClick={() => setShowSpecialThemes(showSpecialThemes === command.id ? null : command.id)}
                           className={cn(
-                            "w-full md:px-6 px-4 md:py-3 py-2.5 flex items-center md:gap-4 gap-3 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
+                            "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
                             index === selectedIndex
                               ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm"
                               : "hover:bg-muted/30"
@@ -1311,7 +1307,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className={cn("md:text-[14px] text-[13px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
+                              <span className={cn("text-[14px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
                                 {command.title}
                               </span>
                               <svg 
@@ -1329,7 +1325,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                               />
                             </div>
                             {command.description && (
-                              <p className={cn("md:text-[12px] text-[11px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
+                              <p className={cn("text-[12px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
                                 {command.description}
                               </p>
                             )}
@@ -1373,7 +1369,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                       tabIndex={-1}
                                       onClick={() => { option.action(); }}
                                       className={cn(
-                                        "w-full md:px-3 px-2 md:py-1.5 py-1 text-left rounded-lg transition-colors flex items-center gap-3 md:text-[13px] text-[12px] font-medium",
+                                        "w-full px-3 py-1.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
                                         optIdx === dropdownSelectedIndex 
                                           ? "bg-primary/20 text-primary" 
                                           : theme === option.id 
@@ -1403,7 +1399,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           tabIndex={-1}
                           onClick={() => setShowFonts(showFonts === command.id ? null : command.id)}
                           className={cn(
-                            "w-full md:px-6 px-4 md:py-3 py-2.5 flex items-center md:gap-4 gap-3 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
+                            "w-full px-6 py-3 flex items-center gap-4 text-left transition-all duration-200 rounded-none relative min-w-0 overflow-hidden",
                             index === selectedIndex
                               ? "bg-primary/12 border-r-4 border-primary shadow-sm before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:rounded-r-sm"
                               : "hover:bg-muted/30"
@@ -1414,7 +1410,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className={cn("md:text-[14px] text-[13px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
+                              <span className={cn("text-[14px] font-medium truncate transition-colors", index === selectedIndex ? "text-foreground" : "text-foreground/90")}>
                                 {command.title}
                               </span>
                               <svg 
@@ -1432,7 +1428,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                               />
                             </div>
                             {command.description && (
-                              <p className={cn("md:text-[12px] text-[11px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
+                              <p className={cn("text-[12px] line-clamp-1 transition-colors", index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60")}>
                                 {command.description}
                               </p>
                             )}
@@ -1461,7 +1457,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                     tabIndex={-1}
                                     onClick={() => { setSelectedFont(font.value as any); }}
                                     className={cn(
-                                      "w-full md:px-3 px-2 md:py-1.5 py-1 text-left rounded-lg transition-colors flex items-center gap-3 md:text-[13px] text-[12px] font-medium",
+                                      "w-full px-3 py-1.5 text-left rounded-lg transition-colors flex items-center gap-3 text-[13px] font-medium",
                                       fontIdx === dropdownSelectedIndex 
                                         ? "bg-primary/20 text-primary" 
                                         : selectedFont === font.value 
@@ -1495,7 +1491,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     >
                       <button
                         onClick={command.action}
-                        className="flex-1 md:px-6 px-4 md:py-3 py-2.5 flex items-center md:gap-4 gap-3 text-left min-w-0 overflow-hidden"
+                        className="flex-1 px-6 py-3 flex items-center gap-4 text-left min-w-0 overflow-hidden"
                       >
                         <div className={cn(
                           "flex-shrink-0 transition-colors",
@@ -1506,7 +1502,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={cn(
-                              "md:text-[14px] text-[13px] font-medium truncate transition-colors",
+                              "text-[14px] font-medium truncate transition-colors",
                               index === selectedIndex ? "text-foreground" : "text-foreground/90"
                             )}>
                               {command.title}
@@ -1523,7 +1519,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           </div>
                           {command.description && (
                             <p className={cn(
-                              "md:text-[12px] text-[11px] line-clamp-1 transition-colors",
+                              "text-[12px] line-clamp-1 transition-colors",
                               index === selectedIndex ? "text-muted-foreground/80" : "text-muted-foreground/60"
                             )}>
                               {command.description}

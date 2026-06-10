@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertTriangle, X } from 'lucide-react';
 import { JsonFileIcon } from './Icons';
-import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface ExportWarningDialogProps {
   isOpen: boolean;
@@ -34,9 +33,6 @@ export function ExportWarningDialog({
   format,
 }: ExportWarningDialogProps) {
   const formatName = format === 'md' ? 'Markdown' : 'Plain Text';
-
-  // Mobile back button handler
-  useModalBackHandler(isOpen, onClose);
 
   return (
     <AnimatePresence>
@@ -100,15 +96,15 @@ export function ExportWarningDialog({
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                <div style={{ padding: isMobileDevice ? '6px 20px 20px' : '10px 24px 24px', position: 'relative' }}>
+                <div style={{ padding: '10px 24px 24px', position: 'relative' }}>
                   {/* Close button */}
                   <DialogPrimitive.Close asChild>
                     <motion.button
                       whileTap={{ scale: 0.9 }}
                       style={{
                         position: 'absolute',
-                        top: isMobileDevice ? 10 : 8,
-                        right: isMobileDevice ? 16 : 20,
+                        top: 8,
+                        right: 20,
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -130,23 +126,23 @@ export function ExportWarningDialog({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: isMobileDevice ? 16 : 24 }}
+                    style={{ marginBottom: 24 }}
                   >
                     <div style={{
-                      width: isMobileDevice ? 44 : 56,
-                      height: isMobileDevice ? 44 : 56,
+                      width: 56,
+                      height: 56,
                       borderRadius: 99,
                       background: 'rgba(245, 158, 11, 0.1)',
                       color: 'rgb(245, 158, 11)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: isMobileDevice ? 12 : 16,
+                      marginBottom: 16,
                     }}>
-                      <AlertTriangle size={isMobileDevice ? 20 : 24} />
+                      <AlertTriangle size={24} />
                     </div>
                     <div style={{
-                      fontSize: isMobileDevice ? 21 : 26,
+                      fontSize: 26,
                       fontWeight: 600,
                       color: 'hsl(var(--foreground))',
                       letterSpacing: '-0.6px',
@@ -155,13 +151,13 @@ export function ExportWarningDialog({
                     }}>
                       Some Features May Be Lost
                     </div>
-                    <div style={{ fontSize: isMobileDevice ? 12.5 : 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
                       Exporting as <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>{formatName}</span> may not preserve all formatting and features:
                     </div>
                   </motion.div>
 
                   {/* Body Content */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 10 : 16, marginBottom: isMobileDevice ? 14 : 24 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
                     {/* Warning Points Card */}
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
@@ -171,7 +167,7 @@ export function ExportWarningDialog({
                         borderRadius: 20,
                         border: '1px solid hsl(var(--border))',
                         background: 'hsl(var(--muted)/0.25)',
-                        padding: isMobileDevice ? '12px 16px' : '16px 20px',
+                        padding: '16px 20px',
                       }}
                     >
                       <ul style={{
@@ -180,7 +176,7 @@ export function ExportWarningDialog({
                         listStyle: 'none',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: isMobileDevice ? 8 : 10,
+                        gap: 10,
                       }}>
                         {[
                           'Tables will lose their structure and formatting',
@@ -188,8 +184,8 @@ export function ExportWarningDialog({
                           'Rich text layout details will be simplified',
                           'Special editor blocks will be flattened to plain text',
                         ].map((point, i) => (
-                          <li key={i} style={{ display: 'flex', alignItems: 'start', gap: isMobileDevice ? 8 : 10, fontSize: isMobileDevice ? 12 : 13, color: 'hsl(var(--foreground))', lineHeight: 1.4 }}>
-                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgb(245, 158, 11)', marginTop: isMobileDevice ? 6 : 7, flexShrink: 0 }} />
+                          <li key={i} style={{ display: 'flex', alignItems: 'start', gap: 10, fontSize: 13, color: 'hsl(var(--foreground))', lineHeight: 1.4 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgb(245, 158, 11)', marginTop: 7, flexShrink: 0 }} />
                             {point}
                           </li>
                         ))}
@@ -205,15 +201,15 @@ export function ExportWarningDialog({
                         borderRadius: 99,
                         border: '1px solid hsl(var(--primary)/0.2)',
                         background: 'hsl(var(--primary)/0.04)',
-                        padding: isMobileDevice ? '9px 16px' : '12px 24px 12px 16px',
+                        padding: '12px 24px 12px 16px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: isMobileDevice ? 10 : 14,
+                        gap: 14,
                       }}
                     >
                       <div style={{
-                        width: isMobileDevice ? 32 : 38,
-                        height: isMobileDevice ? 32 : 38,
+                        width: 38,
+                        height: 38,
                         borderRadius: 99,
                         flexShrink: 0,
                         background: 'hsl(var(--primary)/0.12)',
@@ -222,13 +218,13 @@ export function ExportWarningDialog({
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}>
-                        <JsonFileIcon size={isMobileDevice ? 14 : 16} />
+                        <JsonFileIcon size={16} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
                           Recommended: Use JSON
                         </div>
-                        <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
                           JSON format preserves all content, formatting, and media files perfectly.
                         </div>
                       </div>
@@ -240,7 +236,7 @@ export function ExportWarningDialog({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.12 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? 8 : 10 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
                   >
                     <motion.button
                       onClick={onUseJson}
@@ -263,11 +259,11 @@ export function ExportWarningDialog({
                         gap: 8,
                       }}
                     >
-                      <JsonFileIcon size={isMobileDevice ? 14 : 16} />
+                      <JsonFileIcon size={16} />
                       Use JSON (Preserve Everything)
                     </motion.button>
                     
-                    <div style={{ display: 'flex', gap: isMobileDevice ? 10 : 12 }}>
+                    <div style={{ display: 'flex', gap: 12 }}>
                       <motion.button
                         onClick={onClose}
                         whileTap={{ scale: 0.97 }}

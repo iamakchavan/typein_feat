@@ -4,7 +4,6 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Upload, ChevronRight } from 'lucide-react';
 import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon, SidebarImportPillIcon, ImportModalTitleIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
-import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -38,9 +37,6 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
   const isDarkMode = theme === 'dark' || theme.endsWith('-dark');
   const [selectedFormat, setSelectedFormat] = useState<'txt' | 'md' | 'json'>('md');
   const [retainDate, setRetainDate] = useState(true);
-
-  // Mobile back button handler
-  useModalBackHandler(isOpen, onClose);
 
   const handleFileSelect = () => {
     const input = document.createElement('input');
@@ -156,30 +152,30 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                 <div style={{ padding: isMobileDevice ? '6px 20px 20px' : '10px 24px 24px' }}>
+                <div style={{ padding: '10px 24px 24px' }}>
 
                   {/* Hero Header */}
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: isMobileDevice ? 16 : 28 }}
+                    style={{ marginBottom: 28 }}
                   >
                     <div style={{
-                      width: isMobileDevice ? 44 : 56,
-                      height: isMobileDevice ? 44 : 56,
+                      width: 56,
+                      height: 56,
                       borderRadius: 99,
                       background: 'hsl(var(--primary)/0.1)',
                       color: 'hsl(var(--primary))',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: isMobileDevice ? 12 : 16,
+                      marginBottom: 16,
                     }}>
-                      <ImportModalTitleIcon size={isMobileDevice ? 20 : 24} />
+                      <ImportModalTitleIcon size={24} />
                     </div>
                     <div style={{
-                      fontSize: isMobileDevice ? 21 : 26,
+                      fontSize: 26,
                       fontWeight: 600,
                       color: 'hsl(var(--foreground))',
                       letterSpacing: '-0.6px',
@@ -188,7 +184,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                     }}>
                       Import Notes
                     </div>
-                    <div style={{ fontSize: isMobileDevice ? 12.5 : 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
                       Choose a format and select a file to import your work.
                     </div>
                   </motion.div>
@@ -198,7 +194,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.07 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: isMobileDevice ? 14 : 20 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}
                   >
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'hsl(var(--muted-foreground))' }}>
                       Format
@@ -219,7 +215,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                             onClick={() => setSelectedFormat(f.value)}
                             style={{
                               flex: 1,
-                              height: isMobileDevice ? 52 : 64,
+                              height: 64,
                               border: 'none',
                               background: 'transparent',
                               cursor: 'pointer',
@@ -301,8 +297,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                                     textAlign: 'left',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: isMobileDevice ? 10 : 14,
-                                    padding: isMobileDevice ? '9px 16px' : '12px 24px 12px 16px',
+                                    gap: 14,
+                                    padding: '12px 24px 12px 16px',
                                     borderRadius: 99,
                                     background: selected ? 'hsl(var(--primary)/0.04)' : 'hsl(var(--muted)/0.2)',
                                     border: selected ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
@@ -314,8 +310,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                                 >
                                   <div
                                     style={{
-                                      width: isMobileDevice ? 32 : 38,
-                                      height: isMobileDevice ? 32 : 38,
+                                      width: 38,
+                                      height: 38,
                                       borderRadius: 99,
                                       flexShrink: 0,
                                       display: 'flex',
@@ -326,12 +322,12 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                                       transition: 'background 0.2s, color 0.2s',
                                     }}
                                   >
-                                    <opt.Icon size={isMobileDevice ? 14 : 16} />
+                                    <opt.Icon size={16} />
                                   </div>
                                   <div style={{ flex: 1 }}>
                                     <div
                                       style={{
-                                        fontSize: isMobileDevice ? 12 : 13,
+                                        fontSize: 13,
                                         fontWeight: 600,
                                         color: 'hsl(var(--foreground))',
                                         marginBottom: 2,
@@ -339,7 +335,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                                     >
                                       {opt.label}
                                     </div>
-                                    <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground))' }}>
+                                    <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
                                       {opt.sub}
                                     </div>
                                   </div>
@@ -351,8 +347,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                                     }}
                                     transition={spring}
                                     style={{
-                                      width: isMobileDevice ? 18 : 22,
-                                      height: isMobileDevice ? 18 : 22,
+                                      width: 22,
+                                      height: 22,
                                       borderRadius: '50%',
                                       flexShrink: 0,
                                       border: '1.5px solid',
@@ -411,8 +407,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                         width: '100%',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: isMobileDevice ? 10 : 14,
-                        padding: isMobileDevice ? '9px 16px' : '12px 24px 12px 16px',
+                        gap: 14,
+                        padding: '12px 24px 12px 16px',
                         borderRadius: 99,
                         background: 'hsl(var(--muted)/0.2)',
                         border: '1px solid hsl(var(--border))',
@@ -431,8 +427,8 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                       }}
                     >
                       <div style={{
-                        width: isMobileDevice ? 32 : 38,
-                        height: isMobileDevice ? 32 : 38,
+                        width: 38,
+                        height: 38,
                         borderRadius: 99,
                         flexShrink: 0,
                         background: 'hsl(var(--primary)/0.08)',
@@ -441,17 +437,17 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}>
-                        <RestoreBackupIcon size={isMobileDevice ? 15 : 18} />
+                        <RestoreBackupIcon size={18} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 2 }}>
                           Restore from backup
                         </div>
-                        <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground))' }}>
+                        <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
                           Import a full .zip backup archive
                         </div>
                       </div>
-                      <ChevronRight size={isMobileDevice ? 15 : 18} style={{ color: 'hsl(var(--muted-foreground)/0.4)', flexShrink: 0 }} />
+                      <ChevronRight size={18} style={{ color: 'hsl(var(--muted-foreground)/0.4)', flexShrink: 0 }} />
                     </motion.button>
                   </div>
 
@@ -502,7 +498,7 @@ export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: Impor
                         gap: 8,
                       }}
                     >
-                      <Upload size={isMobileDevice ? 14 : 16} />
+                      <Upload size={16} />
                       Select File
                     </motion.button>
                   </motion.div>

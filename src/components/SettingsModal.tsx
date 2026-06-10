@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Download, Upload, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
-import { SettingsIcon, ColorPresetIcon, FontSelectorIcon, ReplayOnboardingIcon } from './Icons';
+import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
+import { SettingsIcon, ColorPresetIcon, FontSelectorIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
 import packageJson from '../../package.json';
-import { useModalBackHandler } from '@/hooks/useModalBackHandler';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -60,11 +59,6 @@ export function SettingsModal({
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
   const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
-
-  // Register mobile back button handlers
-  useModalBackHandler(isOpen, onClose);
-  useModalBackHandler(isFontSheetOpen, () => setIsFontSheetOpen(false));
-  useModalBackHandler(isThemeSheetOpen, () => setIsThemeSheetOpen(false));
 
   // Handle pointer up on window to ensure we always release sliding state
   useEffect(() => {
@@ -180,7 +174,7 @@ export function SettingsModal({
                   <motion.div 
                     animate={{ opacity: isSliding ? 0 : 1 }}
                     transition={{ duration: 0.22, ease: 'easeInOut' }}
-                    style={{ padding: isMobileDevice ? '6px 20px 14px' : '10px 24px 20px', position: 'relative', flexShrink: 0, pointerEvents: isSliding ? 'none' : 'auto' }}
+                    style={{ padding: '10px 24px 20px', position: 'relative', flexShrink: 0, pointerEvents: isSliding ? 'none' : 'auto' }}
                   >
                     {/* Close button */}
                     <DialogPrimitive.Close asChild>
@@ -188,8 +182,8 @@ export function SettingsModal({
                         whileTap={{ scale: 0.9 }}
                         style={{
                           position: 'absolute',
-                          top: isMobileDevice ? 10 : 8,
-                          right: isMobileDevice ? 16 : 20,
+                          top: 8,
+                          right: 20,
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
@@ -212,20 +206,20 @@ export function SettingsModal({
                       transition={{ ...spring, delay: 0.04 }}
                     >
                       <div style={{
-                        width: isMobileDevice ? 44 : 56,
-                        height: isMobileDevice ? 44 : 56,
+                        width: 56,
+                        height: 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary)/0.1)',
                         color: 'hsl(var(--primary))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: isMobileDevice ? 12 : 16,
+                        marginBottom: 16,
                       }}>
-                        <SettingsIcon size={isMobileDevice ? 20 : 24} />
+                        <SettingsIcon size={24} />
                       </div>
                       <div style={{
-                        fontSize: isMobileDevice ? 21 : 26,
+                        fontSize: 26,
                         fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         letterSpacing: '-0.6px',
@@ -234,7 +228,7 @@ export function SettingsModal({
                       }}>
                         Settings
                       </div>
-                      <div style={{ fontSize: isMobileDevice ? 12.5 : 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                      <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
                         Customize your workspace, choose themes, and manage data backups.
                       </div>
                     </motion.div>
@@ -246,7 +240,7 @@ export function SettingsModal({
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
-                      padding: isMobileDevice ? '0 16px 16px' : '0 24px 24px',
+                      padding: '0 24px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -259,7 +253,7 @@ export function SettingsModal({
                         y: isSliding ? 10 : 0
                       }}
                       transition={{ duration: 0.22, ease: 'easeInOut' }}
-                      style={{ marginBottom: isMobileDevice ? 14 : 20, pointerEvents: isSliding ? 'none' : 'auto' }}
+                      style={{ marginBottom: 20, pointerEvents: isSliding ? 'none' : 'auto' }}
                     >
                       <div style={{
                         borderRadius: 20,
@@ -275,8 +269,8 @@ export function SettingsModal({
                             textAlign: 'left',
                             display: 'flex',
                             alignItems: 'start',
-                            gap: isMobileDevice ? 10 : 14,
-                            padding: isMobileDevice ? '11px 16px' : '14px 20px',
+                            gap: 14,
+                            padding: '14px 20px',
                             background: 'transparent',
                             border: 'none',
                             cursor: 'pointer',
@@ -287,8 +281,8 @@ export function SettingsModal({
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <div style={{
-                            width: isMobileDevice ? 32 : 38,
-                            height: isMobileDevice ? 32 : 38,
+                            width: 38,
+                            height: 38,
                             borderRadius: 12,
                             background: 'hsl(var(--primary)/0.08)',
                             color: 'hsl(var(--primary))',
@@ -298,14 +292,14 @@ export function SettingsModal({
                             flexShrink: 0,
                             marginTop: 2,
                           }}>
-                            <FontSelectorIcon size={isMobileDevice ? 15 : 18} />
+                            <FontSelectorIcon size={18} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
-                            <div style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
-                            <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected interface typeface</div>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
+                            <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected interface typeface</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'center', flexShrink: 0 }}>
-                            <span style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }} className={`font-${selectedFont}`}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }} className={`font-${selectedFont}`}>
                               {selectedFontLabel}
                             </span>
                             <svg 
@@ -340,13 +334,13 @@ export function SettingsModal({
                         borderRadius: 20,
                         borderWidth: 1,
                         borderStyle: 'solid',
-                        padding: isMobileDevice ? '12px 16px' : '16px 20px',
-                        marginBottom: isMobileDevice ? 14 : 20,
+                        padding: '16px 20px',
+                        marginBottom: 20,
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <span style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Font Size</span>
-                        <span style={{ fontSize: isMobileDevice ? 11 : 12, color: 'hsl(var(--muted-foreground))', fontVariantNumeric: 'tabular-nums', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Font Size</span>
+                        <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontVariantNumeric: 'tabular-nums', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 99 }}>
                           {fontSize}px
                         </span>
                       </div>
@@ -371,20 +365,20 @@ export function SettingsModal({
                         y: isSliding ? 10 : 0
                       }}
                       transition={{ duration: 0.22, ease: 'easeInOut' }}
-                      style={{ marginBottom: isMobileDevice ? 14 : 20, pointerEvents: isSliding ? 'none' : 'auto' }}
+                      style={{ marginBottom: 20, pointerEvents: isSliding ? 'none' : 'auto' }}
                     >
                       <div style={{
                         borderRadius: 20,
                         border: '1px solid hsl(var(--border)/0.4)',
                         background: 'hsl(var(--muted)/0.12)',
                         backdropFilter: 'blur(10px)',
-                        padding: isMobileDevice ? '12px 16px' : '16px 20px',
+                        padding: '16px 20px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: isMobileDevice ? 12 : 16,
+                        gap: 16,
                       }}>
                         <div>
-                          <div style={{ fontSize: isMobileDevice ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: isMobileDevice ? 10 : 12 }}>Theme Mode</div>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 12 }}>Theme Mode</div>
                           <div style={{ display: 'flex', gap: 8 }}>
                             {[
                               {
@@ -441,12 +435,12 @@ export function SettingsModal({
                                 onClick={onClick}
                                 style={{
                                   flex: 1,
-                                  height: isMobileDevice ? 38 : 42,
+                                  height: 42,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   gap: 8,
-                                  fontSize: isMobileDevice ? 12 : 13,
+                                  fontSize: 13,
                                   fontWeight: 500,
                                   background: isActive ? 'hsl(var(--primary)/0.1)' : 'hsl(var(--muted)/0.4)',
                                   color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
@@ -463,26 +457,26 @@ export function SettingsModal({
                                   if (!isActive) e.currentTarget.style.background = 'hsl(var(--muted)/0.4)';
                                 }}
                               >
-                                <Icon size={isActive ? 15 : 16} />
+                                <Icon size={16} />
                                 {label}
                               </button>
                             ))}
                           </div>
                         </div>
 
-                        <div style={{ height: 1, background: 'hsl(var(--border)/0.2)', margin: isMobileDevice ? '0 -16px' : '0 -20px' }} />
+                        <div style={{ height: 1, background: 'hsl(var(--border)/0.2)', margin: '0 -20px' }} />
 
                         {/* Theme Preset row button */}
                         <button
                           onClick={() => setIsThemeSheetOpen(true)}
                           style={{
-                            width: isMobileDevice ? 'calc(100% + 32px)' : 'calc(100% + 40px)',
-                            marginLeft: isMobileDevice ? -16 : -20,
+                            width: 'calc(100% + 40px)',
+                            marginLeft: -20,
                             textAlign: 'left',
                             display: 'flex',
                             alignItems: 'start',
-                            gap: isMobileDevice ? 10 : 14,
-                            padding: isMobileDevice ? '11px 16px' : '14px 20px',
+                            gap: 14,
+                            padding: '14px 20px',
                             background: 'transparent',
                             border: 'none',
                             cursor: 'pointer',
@@ -493,8 +487,8 @@ export function SettingsModal({
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <div style={{
-                            width: isMobileDevice ? 32 : 38,
-                            height: isMobileDevice ? 32 : 38,
+                            width: 38,
+                            height: 38,
                             borderRadius: 12,
                             background: 'hsl(var(--primary)/0.08)',
                             color: 'hsl(var(--primary))',
@@ -504,14 +498,14 @@ export function SettingsModal({
                             flexShrink: 0,
                             marginTop: 2,
                           }}>
-                            <ColorPresetIcon size={isMobileDevice ? 15 : 18} />
+                            <ColorPresetIcon size={18} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
-                            <div style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Color Preset</div>
-                            <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected color theme preset</div>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Color Preset</div>
+                            <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected color theme preset</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'center', flexShrink: 0 }}>
-                            <span style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
                               {selectedThemeLabel}
                             </span>
                             <svg 
@@ -573,7 +567,7 @@ export function SettingsModal({
                           ...(onShowOnboarding ? [{
                             label: 'Replay onboarding',
                             sub: 'Review the quick intro tour',
-                            Icon: ReplayOnboardingIcon,
+                            Icon: Sparkles,
                             onClick: () => {
                               onClose();
                               onShowOnboarding();
@@ -596,8 +590,8 @@ export function SettingsModal({
                               textAlign: 'left',
                               display: 'flex',
                               alignItems: 'start',
-                              gap: isMobileDevice ? 10 : 14,
-                              padding: isMobileDevice ? '9px 16px' : '12px 20px',
+                              gap: 14,
+                              padding: '12px 20px',
                               background: 'transparent',
                               border: 'none',
                               borderBottom: i < arr.length - 1 ? '1px solid hsl(var(--border)/0.2)' : 'none',
@@ -609,8 +603,8 @@ export function SettingsModal({
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           >
                             <div style={{
-                              width: isMobileDevice ? 32 : 38,
-                              height: isMobileDevice ? 32 : 38,
+                              width: 38,
+                              height: 38,
                               borderRadius: 12,
                               background: 'hsl(var(--primary)/0.08)',
                               color: 'hsl(var(--primary))',
@@ -620,11 +614,11 @@ export function SettingsModal({
                               flexShrink: 0,
                               marginTop: 2,
                             }}>
-                              <Icon size={isMobileDevice ? 15 : 18} />
+                              <Icon size={18} />
                             </div>
                             <div style={{ flex: 1, marginTop: 2 }}>
-                              <div style={{ fontSize: isMobileDevice ? 12 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>{label}</div>
-                              <div style={{ fontSize: isMobileDevice ? 10 : 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.2 }}>{sub}</div>
+                              <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>{label}</div>
+                              <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.2 }}>{sub}</div>
                             </div>
                             <ChevronRight size={16} style={{ color: 'hsl(var(--muted-foreground)/0.4)', alignSelf: 'center', marginRight: -4 }} />
                           </button>
@@ -721,14 +715,14 @@ export function SettingsModal({
                   </div>
 
                   {/* Header */}
-                  <div style={{ padding: isMobileDevice ? '6px 20px 14px' : '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
+                  <div style={{ padding: '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
                     <DialogPrimitive.Close asChild>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         style={{
                           position: 'absolute',
-                          top: isMobileDevice ? 10 : 8,
-                          right: isMobileDevice ? 16 : 20,
+                          top: 8,
+                          right: 20,
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
@@ -751,20 +745,20 @@ export function SettingsModal({
                       transition={{ ...spring, delay: 0.04 }}
                     >
                       <div style={{
-                        width: isMobileDevice ? 44 : 56,
-                        height: isMobileDevice ? 44 : 56,
+                        width: 56,
+                        height: 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary)/0.1)',
                         color: 'hsl(var(--primary))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: isMobileDevice ? 12 : 16,
+                        marginBottom: 16,
                       }}>
-                        <FontSelectorIcon size={isMobileDevice ? 20 : 24} />
+                        <FontSelectorIcon size={24} />
                       </div>
                       <div style={{
-                        fontSize: isMobileDevice ? 20 : 24,
+                        fontSize: 24,
                         fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         letterSpacing: '-0.5px',
@@ -773,7 +767,7 @@ export function SettingsModal({
                       }}>
                         Font Family
                       </div>
-                      <div style={{ fontSize: isMobileDevice ? 12 : 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
                         Choose your preferred typography for the writing space.
                       </div>
                     </motion.div>
@@ -785,7 +779,7 @@ export function SettingsModal({
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
-                      padding: isMobileDevice ? '0 16px 16px' : '0 24px 24px',
+                      padding: '0 24px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -812,7 +806,7 @@ export function SettingsModal({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              padding: isMobileDevice ? '11px 16px' : '14px 20px',
+                              padding: '14px 20px',
                               background: 'transparent',
                               border: 'none',
                               borderBottom: i < fonts.length - 1 ? '1px solid hsl(var(--border)/0.2)' : 'none',
@@ -823,11 +817,11 @@ export function SettingsModal({
                             onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--muted)/0.35)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           >
-                            <span className={`text-[14px] font-${font.value}`} style={{ color: 'hsl(var(--foreground))', fontSize: isMobileDevice ? 13 : 14 }}>
+                            <span className={`text-[14px] font-${font.value}`} style={{ color: 'hsl(var(--foreground))' }}>
                               {font.label}
                             </span>
                             {isSelected && (
-                              <Check size={isMobileDevice ? 14 : 16} style={{ color: 'hsl(var(--primary))' }} />
+                              <Check size={16} style={{ color: 'hsl(var(--primary))' }} />
                             )}
                           </button>
                         );
@@ -904,14 +898,14 @@ export function SettingsModal({
                   </div>
 
                   {/* Header */}
-                  <div style={{ padding: isMobileDevice ? '6px 20px 14px' : '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
+                  <div style={{ padding: '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
                     <DialogPrimitive.Close asChild>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         style={{
                           position: 'absolute',
-                          top: isMobileDevice ? 10 : 8,
-                          right: isMobileDevice ? 16 : 20,
+                          top: 8,
+                          right: 20,
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
@@ -934,20 +928,20 @@ export function SettingsModal({
                       transition={{ ...spring, delay: 0.04 }}
                     >
                       <div style={{
-                        width: isMobileDevice ? 44 : 56,
-                        height: isMobileDevice ? 44 : 56,
+                        width: 56,
+                        height: 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary)/0.1)',
                         color: 'hsl(var(--primary))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: isMobileDevice ? 12 : 16,
+                        marginBottom: 16,
                       }}>
-                        <ColorPresetIcon size={isMobileDevice ? 20 : 24} />
+                        <ColorPresetIcon size={24} />
                       </div>
                       <div style={{
-                        fontSize: isMobileDevice ? 20 : 24,
+                        fontSize: 24,
                         fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         letterSpacing: '-0.5px',
@@ -956,7 +950,7 @@ export function SettingsModal({
                       }}>
                         Color Preset
                       </div>
-                      <div style={{ fontSize: isMobileDevice ? 12 : 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
                         Select a beautiful theme preset designed for your active theme mode.
                       </div>
                     </motion.div>
@@ -968,7 +962,7 @@ export function SettingsModal({
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
-                      padding: isMobileDevice ? '0 16px 16px' : '0 24px 24px',
+                      padding: '0 24px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -995,7 +989,7 @@ export function SettingsModal({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              padding: isMobileDevice ? '11px 16px' : '14px 20px',
+                              padding: '14px 20px',
                               background: 'transparent',
                               border: 'none',
                               borderBottom: i < activePresets.length - 1 ? '1px solid hsl(var(--border)/0.2)' : 'none',
@@ -1006,22 +1000,22 @@ export function SettingsModal({
                             onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--muted)/0.35)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? 10 : 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <div 
                                 style={{ 
-                                  width: isMobileDevice ? 16 : 18, 
-                                  height: isMobileDevice ? 16 : 18, 
+                                  width: 18, 
+                                  height: 18, 
                                   borderRadius: '50%', 
                                   background: preset.gradient, 
                                   border: '1px solid hsl(var(--border)/0.6)' 
                                 }} 
                               />
-                              <span style={{ fontSize: isMobileDevice ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                              <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                 {preset.label}
                               </span>
                             </div>
                             {isSelected && (
-                              <Check size={isMobileDevice ? 14 : 16} style={{ color: 'hsl(var(--primary))' }} />
+                              <Check size={16} style={{ color: 'hsl(var(--primary))' }} />
                             )}
                           </button>
                         );
