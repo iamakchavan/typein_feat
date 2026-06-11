@@ -674,7 +674,7 @@ export function Editor({
 
                   {/* Scrollable list */}
                   <div 
-                    className="custom-scrollbar-visible scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border"
+                    className="custom-scrollbar-visible"
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 

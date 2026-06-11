@@ -238,7 +238,7 @@ export function SettingsModal({
 
                   {/* Scrollable body content */}
                   <div 
-                    className="custom-scrollbar-visible scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border"
+                    className="custom-scrollbar-visible"
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
@@ -777,7 +777,7 @@ export function SettingsModal({
 
                   {/* Scrollable list */}
                   <div 
-                    className="custom-scrollbar-visible scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border"
+                    className="custom-scrollbar-visible"
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
@@ -960,7 +960,7 @@ export function SettingsModal({
 
                   {/* Scrollable list */}
                   <div 
-                    className="custom-scrollbar-visible scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border"
+                    className="custom-scrollbar-visible"
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 

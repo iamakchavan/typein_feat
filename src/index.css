@@ -372,7 +372,9 @@
   /* Command Palette Custom Scrollbar - Visible State */
   /* Custom Scrollbar - Visible only on hover of the scrollable container */
   .custom-scrollbar-visible {
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    overflow-y: overlay !important;
   }
 
   .custom-scrollbar-visible:hover {
