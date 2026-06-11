@@ -36,6 +36,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useAppleScroll } from '@/hooks/useAppleScroll';
 
 const isMobileDevice = typeof window !== 'undefined' && (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -138,6 +139,38 @@ export function EditorBlockNote({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
   const { toast } = useToast();
+
+  const getScrollContainer = useCallback(() => {
+    return document.querySelector('.bn-container') as HTMLElement | null;
+  }, []);
+
+  const getCaretRect = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    
+    const anchorNode = selection.anchorNode;
+    if (!anchorNode) return null;
+    
+    const editorEl = document.querySelector('.bn-editor');
+    if (!editorEl || !editorEl.contains(anchorNode)) return null;
+
+    const range = selection.getRangeAt(0);
+    let rect = range.getBoundingClientRect();
+
+    if (rect.top === 0 && rect.bottom === 0) {
+      // Fallback if caret rect is empty (e.g. empty line or brand new line)
+      const element = anchorNode.nodeType === Node.ELEMENT_NODE 
+        ? (anchorNode as Element) 
+        : anchorNode.parentElement;
+      if (element) {
+        rect = element.getBoundingClientRect();
+      }
+    }
+
+    return { top: rect.top, bottom: rect.bottom };
+  }, []);
+
+  useAppleScroll({ getScrollContainer, getCaretRect });
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

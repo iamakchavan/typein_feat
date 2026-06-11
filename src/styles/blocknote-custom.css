@@ -179,7 +179,7 @@ div:has(> .bn-side-menu) {
 
 .bn-editor {
   background: transparent !important;
-  padding: 72px 0 120px 0 !important;
+  padding: 72px 0 200px 0 !important;
   font-size: inherit !important;
   font-family: inherit !important;
   line-height: 1.75 !important;

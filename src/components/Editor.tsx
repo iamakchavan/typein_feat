@@ -22,6 +22,8 @@ import { SettingsModal } from '@/components/SettingsModal';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useAppleScroll } from '@/hooks/useAppleScroll';
+import { getCaretCoordinates } from '@/lib/caretCoordinates';
 
 const isMobileDevice = typeof window !== 'undefined' && (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -60,6 +62,20 @@ export function Editor({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
+
+  const getScrollContainer = useCallback(() => {
+    return document.querySelector('textarea') as HTMLElement | null;
+  }, []);
+
+  const getCaretRect = useCallback(() => {
+    const textarea = document.querySelector('textarea');
+    if (!textarea || document.activeElement !== textarea) return null;
+
+    const caret = getCaretCoordinates(textarea, textarea.selectionStart);
+    return { top: caret.top, bottom: caret.top + caret.height };
+  }, []);
+
+  useAppleScroll({ getScrollContainer, getCaretRect });
 
   // Backup status dialog state
   const [backupDialog, setBackupDialog] = useState<{
@@ -901,7 +917,7 @@ export function Editor({
           <textarea
             key={currentEntry?.id}
             className={cn(
-              "w-full h-full resize-none bg-transparent pt-20 pb-32",
+              "w-full h-full resize-none bg-transparent pt-20 pb-48",
               "text-lg leading-relaxed outline-none whitespace-pre-wrap",
               "transition-all duration-200",
               "placeholder:text-muted-foreground/75 md:text-[20px] text-[18px]"
