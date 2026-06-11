@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Hash, FileText, Image, Table2, Code2, Video, Type, CheckCircle2, AlertCircle, X, Loader2, Database } from 'lucide-react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface MigrationStatus {
   version: number;
@@ -67,6 +68,7 @@ function Counter({ to }: { to: number }) {
 }
 
 function Card({ simulate = false, onClose }: Props) {
+  const isMobile = useIsMobile();
   const [phase, setPhase] = useState<Phase>('welcome');
   const [indexCount, setIndexCount] = useState(0);
   const [current, setCurrent] = useState(0);
@@ -242,8 +244,8 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 24,
-                padding: '18px 24px 24px',
+                gap: isMobile ? 18 : 24,
+                padding: isMobile ? '18px 16px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
@@ -251,32 +253,32 @@ function Card({ simulate = false, onClose }: Props) {
               {/* Header */}
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobile ? 44 : 56,
+                  height: isMobile ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobile ? 12 : 18,
                 }}>
-                  <Database size={24} />
+                  <Database size={isMobile ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobile ? 20 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
                   lineHeight: 1.25,
-                  marginBottom: 8,
+                  marginBottom: isMobile ? 4 : 8,
                 }}>
                   Upgrade Database
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
                   marginBottom: 4,
@@ -290,7 +292,7 @@ function Card({ simulate = false, onClose }: Props) {
               {/* Features grid */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>What's new</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 274, overflowY: 'auto', paddingRight: 4 }} className="custom-scrollbar-visible">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 8 : 10, maxHeight: isMobile ? 220 : 274, overflowY: 'auto', paddingRight: 4 }} className="custom-scrollbar-visible">
                   {FEATURES.map((item) => {
                     const Icon = item.Icon;
                     return (
@@ -299,16 +301,16 @@ function Card({ simulate = false, onClose }: Props) {
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 14,
-                          padding: '10px 14px',
+                          gap: isMobile ? 10 : 14,
+                          padding: isMobile ? '8px 12px' : '10px 14px',
                           borderRadius: 20,
                           background: 'hsl(var(--muted)/0.25)',
                           border: '1px solid hsl(var(--border)/0.2)',
                         }}
                       >
                         <div style={{
-                          width: 36,
-                          height: 36,
+                          width: isMobile ? 30 : 36,
+                          height: isMobile ? 30 : 36,
                           borderRadius: 10,
                           background: 'hsl(var(--primary)/0.08)',
                           color: 'hsl(var(--primary))',
@@ -317,11 +319,11 @@ function Card({ simulate = false, onClose }: Props) {
                           justifyContent: 'center',
                           flexShrink: 0,
                         }}>
-                          <Icon size={18} />
+                          <Icon size={isMobile ? 15 : 18} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>{item.label}</span>
-                          <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{item.desc}</span>
+                          <span style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>{item.label}</span>
+                          <span style={{ fontSize: isMobile ? 10.5 : 11, color: 'hsl(var(--muted-foreground))' }}>{item.desc}</span>
                         </div>
                       </div>
                     );
@@ -332,19 +334,19 @@ function Card({ simulate = false, onClose }: Props) {
               <div style={{ height: 1, background: 'hsl(var(--border)/0.3)', marginTop: 4 }} />
 
               {/* Actions CTA buttons */}
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ display: 'flex', gap: isMobile ? 8 : 12 }}>
                 <motion.button
                   onClick={onClose}
                   whileTap={{ scale: 0.97 }}
                   transition={spring}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobile ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--muted))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     fontWeight: 500,
                     color: 'hsl(var(--foreground))',
                     fontFamily: 'inherit',
@@ -358,12 +360,12 @@ function Card({ simulate = false, onClose }: Props) {
                   transition={spring}
                   style={{
                     flex: 2,
-                    height: 52,
+                    height: isMobile ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--primary))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     fontWeight: 600,
                     color: 'hsl(var(--primary-foreground))',
                     fontFamily: 'inherit',
@@ -390,43 +392,43 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobile ? 16 : 20,
+                padding: isMobile ? '18px 16px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobile ? 44 : 56,
+                  height: isMobile ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobile ? 12 : 18,
                 }}>
-                  <Loader2 size={24} className="animate-spin" />
+                  <Loader2 size={isMobile ? 20 : 24} className="animate-spin" />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobile ? 20 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
                   lineHeight: 1.25,
-                  marginBottom: 6,
+                  marginBottom: isMobile ? 4 : 6,
                 }}>
                   Scanning Entries
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.45,
-                  marginBottom: 16,
+                  marginBottom: isMobile ? 12 : 16,
                 }}>
                   {indexCount > 0 ? (
                     <>Found {indexCount} notes in local storage...</>
@@ -445,7 +447,7 @@ function Card({ simulate = false, onClose }: Props) {
                     style={{ height: '100%', background: 'hsl(var(--primary))', borderRadius: 99 }}
                   />
                 </div>
-                <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+                <span style={{ fontSize: isMobile ? 11 : 12, color: 'hsl(var(--muted-foreground))' }}>
                   Reading browser database cache
                 </span>
               </div>
@@ -464,74 +466,74 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobile ? 16 : 20,
+                padding: isMobile ? '18px 16px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobile ? 44 : 56,
+                  height: isMobile ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobile ? 12 : 18,
                 }}>
                   {isDone ? (
-                    <CheckCircle2 size={24} />
+                    <CheckCircle2 size={isMobile ? 20 : 24} />
                   ) : (
-                    <Loader2 size={24} className="animate-spin" />
+                    <Loader2 size={isMobile ? 20 : 24} className="animate-spin" />
                   )}
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobile ? 20 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
                   lineHeight: 1.25,
-                  marginBottom: 6,
+                  marginBottom: isMobile ? 4 : 6,
                 }}>
                   {isDone ? 'Database Ready' : 'Upgrading Notes'}
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.45,
-                  marginBottom: 8,
+                  marginBottom: isMobile ? 4 : 8,
                 }}>
                   {isDone ? 'Your notes have been successfully migrated.' : 'Please wait while we convert your entries...'}
                 </p>
               </div>
 
               {/* Progress Bar & Counters */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 10 : 14 }}>
                 <div style={{
-                  borderRadius: 20,
+                  borderRadius: isMobile ? 16 : 20,
                   border: '1px solid hsl(var(--border)/0.4)',
                   background: 'hsl(var(--muted)/0.12)',
-                  padding: '20px 24px',
+                  padding: isMobile ? '14px 16px' : '20px 24px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16,
+                  gap: isMobile ? 12 : 16,
                   marginBottom: 8,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Converted</span>
-                      <span style={{ fontSize: 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                      <span style={{ fontSize: isMobile ? 10 : 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Converted</span>
+                      <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                         {isDone ? <Counter to={status?.migratedEntries ?? current} /> : current}
                       </span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Entries</span>
-                      <span style={{ fontSize: 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                      <span style={{ fontSize: isMobile ? 10 : 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Entries</span>
+                      <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                         {total}
                       </span>
                     </div>
@@ -564,10 +566,10 @@ function Card({ simulate = false, onClose }: Props) {
 
                 {isDone && skipped > 0 && (
                   <div style={{
-                    borderRadius: 20,
+                    borderRadius: isMobile ? 14 : 20,
                     background: 'hsl(var(--muted)/0.2)',
-                    padding: '12px 16px',
-                    fontSize: 12,
+                    padding: isMobile ? '10px 14px' : '12px 16px',
+                    fontSize: isMobile ? 11 : 12,
                     color: 'hsl(var(--muted-foreground))'
                   }}>
                     <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>{skipped} note{skipped === 1 ? '' : 's'}</span> skipped (kept as plain-text format cleanly, no data lost).
@@ -589,12 +591,12 @@ function Card({ simulate = false, onClose }: Props) {
                     transition={spring}
                     style={{
                       width: '100%',
-                      height: 52,
+                      height: isMobile ? 44 : 52,
                       borderRadius: 99,
                       background: 'hsl(var(--primary))',
                       border: 'none',
                       cursor: 'pointer',
-                      fontSize: 14,
+                      fontSize: isMobile ? 13 : 14,
                       fontWeight: 600,
                       color: 'hsl(var(--primary-foreground))',
                       fontFamily: 'inherit',
@@ -622,43 +624,43 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobile ? 16 : 20,
+                padding: isMobile ? '18px 16px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobile ? 44 : 56,
+                  height: isMobile ? 44 : 56,
                   borderRadius: 99,
                   background: 'hsl(var(--primary)/0.1)',
                   color: 'hsl(var(--primary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobile ? 12 : 18,
                 }}>
-                  <CheckCircle2 size={24} />
+                  <CheckCircle2 size={isMobile ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobile ? 20 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
                   lineHeight: 1.25,
-                  marginBottom: 6,
+                  marginBottom: isMobile ? 4 : 6,
                 }}>
                   Ready to Write
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
-                  marginBottom: 28,
+                  marginBottom: isMobile ? 20 : 28,
                 }}>
                   No legacy entries found on this device. You're ready to get started.
                 </p>
@@ -670,12 +672,12 @@ function Card({ simulate = false, onClose }: Props) {
                 transition={spring}
                 style={{
                   width: '100%',
-                  height: 52,
+                  height: isMobile ? 44 : 52,
                   borderRadius: 99,
                   background: 'hsl(var(--primary))',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   fontWeight: 600,
                   color: 'hsl(var(--primary-foreground))',
                   fontFamily: 'inherit',
@@ -701,43 +703,43 @@ function Card({ simulate = false, onClose }: Props) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
-                padding: '18px 24px 24px',
+                gap: isMobile ? 16 : 20,
+                padding: isMobile ? '18px 16px 20px' : '18px 24px 24px',
                 width: '100%',
                 boxSizing: 'border-box',
               }}
             >
               <div>
                 <div style={{
-                  width: 56,
-                  height: 56,
+                  width: isMobile ? 44 : 56,
+                  height: isMobile ? 44 : 56,
                   borderRadius: 99,
                   background: 'rgba(239, 68, 68, 0.1)',
                   color: 'rgb(239, 68, 68)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: isMobile ? 12 : 18,
                 }}>
-                  <AlertCircle size={24} />
+                  <AlertCircle size={isMobile ? 20 : 24} />
                 </div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: 26,
+                  fontSize: isMobile ? 20 : 26,
                   fontWeight: 600,
                   color: 'hsl(var(--foreground))',
                   letterSpacing: '-0.6px',
                   lineHeight: 1.25,
-                  marginBottom: 6,
+                  marginBottom: isMobile ? 4 : 6,
                 }}>
                   Migration Error
                 </h2>
                 <p style={{
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12.5 : 14,
                   color: 'hsl(var(--muted-foreground))',
                   lineHeight: 1.5,
-                  marginBottom: 20,
+                  marginBottom: isMobile ? 16 : 20,
                 }}>
                   An error occurred during database migration. Your original notes remain untouched and completely safe.
                 </p>
@@ -745,31 +747,31 @@ function Card({ simulate = false, onClose }: Props) {
 
               {errorMsg && (
                 <div style={{
-                  borderRadius: 20,
+                  borderRadius: isMobile ? 14 : 20,
                   background: 'rgba(239, 68, 68, 0.05)',
                   border: '1px solid rgba(239, 68, 68, 0.15)',
-                  padding: '12px 16px',
-                  fontSize: 12,
+                  padding: isMobile ? '10px 14px' : '12px 16px',
+                  fontSize: isMobile ? 11 : 12,
                   color: 'rgb(239, 68, 68)',
                   fontFamily: 'monospace',
                   wordBreak: 'break-all',
-                  marginBottom: 24,
+                  marginBottom: isMobile ? 16 : 24,
                 }}>
                   {errorMsg}
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ display: 'flex', gap: isMobile ? 8 : 12 }}>
                 <button
                   onClick={() => window.location.reload()}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobile ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--primary))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     fontWeight: 600,
                     color: 'hsl(var(--primary-foreground))',
                     fontFamily: 'inherit',
@@ -781,12 +783,12 @@ function Card({ simulate = false, onClose }: Props) {
                   onClick={onClose}
                   style={{
                     flex: 1,
-                    height: 52,
+                    height: isMobile ? 44 : 52,
                     borderRadius: 99,
                     background: 'hsl(var(--muted))',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     fontWeight: 500,
                     color: 'hsl(var(--foreground))',
                     fontFamily: 'inherit',
@@ -805,6 +807,7 @@ function Card({ simulate = false, onClose }: Props) {
 
 export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
   const [active, setActive] = useState(simulate);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setActive(simulate);
@@ -880,14 +883,14 @@ export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
                   right: 0,
                   zIndex: 9999,
                   background: 'hsl(var(--background))',
-                  borderRadius: '32px 32px 0 0',
+                  borderRadius: isMobile ? '24px 24px 0 0' : '32px 32px 0 0',
                   boxShadow: '0 -12px 60px rgba(0,0,0,0.15)',
                   outline: 'none',
                   fontFamily: 'inherit',
                   maxWidth: 520,
                   margin: '0 auto',
                   paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-                  maxHeight: '90vh',
+                  maxHeight: isMobile ? '85vh' : '90vh',
                   overflowY: 'auto',
                 }}
               >

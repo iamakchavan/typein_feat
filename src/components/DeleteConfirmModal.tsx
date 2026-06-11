@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 import { DeleteTitleIcon } from './Icons';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function DeleteConfirmModal({
   onConfirm,
   entryTitle,
 }: DeleteConfirmModalProps) {
+  const isMobile = useIsMobile();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -76,14 +78,14 @@ export function DeleteConfirmModal({
                   right: 0,
                   zIndex: 51,
                   background: 'hsl(var(--background))',
-                  borderRadius: '32px 32px 0 0',
+                  borderRadius: isMobile ? '24px 24px 0 0' : '32px 32px 0 0',
                   boxShadow: '0 -12px 60px rgba(0,0,0,0.15)',
                   outline: 'none',
                   fontFamily: 'inherit',
                   maxWidth: 520,
                   margin: '0 auto',
                   paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-                  maxHeight: '90vh',
+                  maxHeight: isMobile ? '85vh' : '90vh',
                   overflowY: 'auto',
                 }}
               >
@@ -92,7 +94,7 @@ export function DeleteConfirmModal({
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                <div style={{ padding: '10px 24px 24px', position: 'relative' }}>
+                <div style={{ padding: isMobile ? '10px 16px 16px' : '10px 24px 24px', position: 'relative' }}>
                   {/* Close button */}
                   <DialogPrimitive.Close asChild>
                     <motion.button
@@ -100,7 +102,7 @@ export function DeleteConfirmModal({
                       style={{
                         position: 'absolute',
                         top: 8,
-                        right: 20,
+                        right: isMobile ? 16 : 20,
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -122,32 +124,32 @@ export function DeleteConfirmModal({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: 24 }}
+                    style={{ marginBottom: isMobile ? 16 : 24 }}
                   >
                     <div style={{
-                      width: 56,
-                      height: 56,
+                      width: isMobile ? 44 : 56,
+                      height: isMobile ? 44 : 56,
                       borderRadius: 99,
                       background: 'rgba(239, 68, 68, 0.1)',
                       color: 'rgb(239, 68, 68)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: 16,
+                      marginBottom: isMobile ? 12 : 16,
                     }}>
-                      <DeleteTitleIcon size={24} />
+                      <DeleteTitleIcon size={isMobile ? 20 : 24} />
                     </div>
                     <div style={{
-                      fontSize: 26,
+                      fontSize: isMobile ? 20 : 26,
                       fontWeight: 600,
                       color: 'hsl(var(--foreground))',
                       letterSpacing: '-0.6px',
                       lineHeight: 1.25,
-                      marginBottom: 6,
+                      marginBottom: isMobile ? 4 : 6,
                     }}>
                       Delete Entry
                     </div>
-                    <div style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: isMobile ? 12.5 : 14, color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>
                       Are you sure you want to delete the entry <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>"{entryTitle}"</span>?
                     </div>
                   </motion.div>
@@ -161,15 +163,15 @@ export function DeleteConfirmModal({
                       borderRadius: 20,
                       background: 'rgba(239, 68, 68, 0.05)',
                       border: '1px solid rgba(239, 68, 68, 0.15)',
-                      padding: '16px 20px',
+                      padding: isMobile ? '12px 14px' : '16px 20px',
                       display: 'flex',
                       alignItems: 'start',
-                      gap: 12,
-                      marginBottom: 24,
+                      gap: isMobile ? 10 : 12,
+                      marginBottom: isMobile ? 16 : 24,
                     }}
                   >
-                    <AlertTriangle size={18} style={{ color: 'rgb(239, 68, 68)', flexShrink: 0, marginTop: 1 }} />
-                    <div style={{ fontSize: 13, color: 'rgb(239, 68, 68)', lineHeight: 1.45, fontWeight: 500 }}>
+                    <AlertTriangle size={isMobile ? 15 : 18} style={{ color: 'rgb(239, 68, 68)', flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ fontSize: isMobile ? 12 : 13, color: 'rgb(239, 68, 68)', lineHeight: 1.45, fontWeight: 500 }}>
                       This action is permanent. All text, tables, and media references inside this note will be deleted and cannot be recovered.
                     </div>
                   </motion.div>
@@ -179,7 +181,7 @@ export function DeleteConfirmModal({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.12 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 8 : 10 }}
                   >
                     <motion.button
                       onClick={onConfirm}
@@ -187,12 +189,12 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: 52,
+                        height: isMobile ? 46 : 52,
                         borderRadius: 99,
                         background: 'rgb(239, 68, 68)',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 14,
+                        fontSize: isMobile ? 13 : 14,
                         fontWeight: 600,
                         color: '#ffffff',
                         fontFamily: 'inherit',
@@ -208,7 +210,7 @@ export function DeleteConfirmModal({
                         e.currentTarget.style.background = 'rgb(239, 68, 68)';
                       }}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={isMobile ? 15 : 16} />
                       Delete Entry
                     </motion.button>
                     
@@ -218,12 +220,12 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: 50,
+                        height: isMobile ? 44 : 50,
                         borderRadius: 99,
                         background: 'hsl(var(--muted))',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 14,
+                        fontSize: isMobile ? 13 : 14,
                         fontWeight: 500,
                         color: 'hsl(var(--foreground))',
                         fontFamily: 'inherit',

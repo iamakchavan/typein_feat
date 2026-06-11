@@ -4,6 +4,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { CheckCircle2, Download, Upload, Loader2, AlertCircle, X, Image } from 'lucide-react';
 import { EntryPageIcon } from './Icons';
 import { db } from '@/lib/db';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { mediaStorage } from '@/lib/mediaStorage';
 import { getReferencedMediaIds, getReferencedMediaCount } from '@/lib/backup';
 
@@ -46,6 +47,7 @@ export function BackupStatusDialog({
   error,
 }: BackupStatusDialogProps) {
   const [displayProgress, setDisplayProgress] = useState(0);
+  const isMobile = useIsMobile();
 
   // Smooth progress animation
   useEffect(() => {
@@ -127,14 +129,14 @@ export function BackupStatusDialog({
                   right: 0,
                   zIndex: 51,
                   background: 'hsl(var(--background))',
-                  borderRadius: '32px 32px 0 0',
+                  borderRadius: isMobile ? '24px 24px 0 0' : '32px 32px 0 0',
                   boxShadow: '0 -12px 60px rgba(0,0,0,0.15)',
                   outline: 'none',
                   fontFamily: 'inherit',
                   maxWidth: 520,
                   margin: '0 auto',
                   paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-                  maxHeight: '90vh',
+                  maxHeight: isMobile ? '85vh' : '90vh',
                   overflowY: 'auto',
                 }}
               >
@@ -143,7 +145,7 @@ export function BackupStatusDialog({
                   <div style={{ width: 38, height: 5, borderRadius: 99, background: 'hsl(var(--muted-foreground)/0.2)' }} />
                 </div>
 
-                <div style={{ padding: '10px 24px 24px', position: 'relative' }}>
+                <div style={{ padding: isMobile ? '10px 16px 16px' : '10px 24px 24px', position: 'relative' }}>
                   {/* Close button (top right of sheet) */}
                   <DialogPrimitive.Close asChild>
                     <motion.button
@@ -151,7 +153,7 @@ export function BackupStatusDialog({
                       style={{
                         position: 'absolute',
                         top: 8,
-                        right: 20,
+                        right: isMobile ? 16 : 20,
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -173,7 +175,7 @@ export function BackupStatusDialog({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 }}
-                    style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                    style={{ marginBottom: isMobile ? 16 : 24, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                   >
                     <motion.div
                       animate={{
@@ -182,28 +184,28 @@ export function BackupStatusDialog({
                       }}
                       transition={spring}
                       style={{
-                        width: 52,
-                        height: 52,
+                        width: isMobile ? 44 : 52,
+                        height: isMobile ? 44 : 52,
                         borderRadius: 99,
                         background: iconBg,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: 14,
+                        marginBottom: isMobile ? 10 : 14,
                       }}
                     >
                       {isComplete ? (
-                        <CheckCircle2 size={22} style={{ color: iconColor }} />
+                        <CheckCircle2 size={isMobile ? 18 : 22} style={{ color: iconColor }} />
                       ) : isError ? (
-                        <AlertCircle size={22} style={{ color: iconColor }} />
+                        <AlertCircle size={isMobile ? 18 : 22} style={{ color: iconColor }} />
                       ) : isExport ? (
-                        <Download size={22} style={{ color: iconColor }} />
+                        <Download size={isMobile ? 18 : 22} style={{ color: iconColor }} />
                       ) : (
-                        <Upload size={22} style={{ color: iconColor }} />
+                        <Upload size={isMobile ? 18 : 22} style={{ color: iconColor }} />
                       )}
                     </motion.div>
 
-                    <div style={{ fontSize: 21, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.3px', lineHeight: 1.2, marginBottom: 4 }}>
+                    <div style={{ fontSize: isMobile ? 18 : 21, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.3px', lineHeight: 1.2, marginBottom: 4 }}>
                       {isComplete
                         ? isExport
                           ? 'Export Complete'
@@ -216,7 +218,7 @@ export function BackupStatusDialog({
                             ? 'Exporting Backup'
                             : 'Importing Backup'}
                     </div>
-                    <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                    <div style={{ fontSize: isMobile ? 12 : 13, color: 'hsl(var(--muted-foreground))' }}>
                       {isComplete
                         ? isExport
                           ? 'Your backup has been downloaded'
@@ -290,10 +292,10 @@ export function BackupStatusDialog({
                           border: '1px solid hsl(var(--border)/0.4)',
                           background: 'hsl(var(--muted)/0.12)',
                           backdropFilter: 'blur(10px)',
-                          padding: '16px 20px',
+                          padding: isMobile ? '12px 14px' : '16px 20px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: 12,
+                          gap: isMobile ? 10 : 12,
                         }}
                       >
                         {stats.totalEntries !== undefined && (() => {
@@ -307,12 +309,12 @@ export function BackupStatusDialog({
                           else subtext = `${stats.totalEntries} entries ${isExport ? 'exported' : 'imported'}`;
 
                           return (
-                            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: isMobile ? 10 : 14, alignItems: 'center' }}>
                               {/* Icon Wrapper */}
                               <div style={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: 12,
+                                width: isMobile ? 32 : 38,
+                                height: isMobile ? 32 : 38,
+                                borderRadius: isMobile ? 10 : 12,
                                 background: isEntriesComplete ? 'hsl(var(--primary)/0.08)' : 'hsl(var(--primary)/0.03)',
                                 color: isEntriesComplete ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground)/0.7)',
                                 display: 'flex',
@@ -321,13 +323,13 @@ export function BackupStatusDialog({
                                 flexShrink: 0,
                                 transition: 'all 0.3s ease',
                               }}>
-                                <EntryPageIcon size={18} />
+                                <EntryPageIcon size={isMobile ? 15 : 18} />
                               </div>
                               
                               {/* Content */}
                               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                                <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Entries</span>
-                                <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', transition: 'all 0.3s ease' }}>
+                                <span style={{ fontSize: isMobile ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Entries</span>
+                                <span style={{ fontSize: isMobile ? 10.5 : 11, color: 'hsl(var(--muted-foreground)/0.8)', transition: 'all 0.3s ease' }}>
                                   {subtext}
                                 </span>
                               </div>
@@ -338,10 +340,10 @@ export function BackupStatusDialog({
                                   <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.5)', fontWeight: 500 }}>Pending</span>
                                 )}
                                 {isEntriesActive && (
-                                  <Loader2 size={14} className="animate-spin text-primary" style={{ color: 'hsl(var(--primary))' }} />
+                                  <Loader2 size={isMobile ? 13 : 14} className="animate-spin text-primary" style={{ color: 'hsl(var(--primary))' }} />
                                 )}
                                 {isEntriesComplete && (
-                                  <CheckCircle2 size={16} style={{ color: 'hsl(var(--primary))' }} />
+                                  <CheckCircle2 size={isMobile ? 15 : 16} style={{ color: 'hsl(var(--primary))' }} />
                                 )}
                               </div>
                             </div>
@@ -363,12 +365,12 @@ export function BackupStatusDialog({
                           else subtext = `${stats.totalMedia} media files ${isExport ? 'exported' : 'imported'}`;
 
                           return (
-                            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: isMobile ? 10 : 14, alignItems: 'center' }}>
                               {/* Icon Wrapper */}
                               <div style={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: 12,
+                                width: isMobile ? 32 : 38,
+                                height: isMobile ? 32 : 38,
+                                borderRadius: isMobile ? 10 : 12,
                                 background: isMediaComplete ? 'hsl(var(--primary)/0.08)' : 'hsl(var(--primary)/0.03)',
                                 color: isMediaComplete ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground)/0.7)',
                                 display: 'flex',
@@ -377,13 +379,13 @@ export function BackupStatusDialog({
                                 flexShrink: 0,
                                 transition: 'all 0.3s ease',
                               }}>
-                                <Image size={18} />
+                                <Image size={isMobile ? 15 : 18} />
                               </div>
                               
                               {/* Content */}
                               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                                <span style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Media Files</span>
-                                <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', transition: 'all 0.3s ease' }}>
+                                <span style={{ fontSize: isMobile ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))' }}>Media Files</span>
+                                <span style={{ fontSize: isMobile ? 10.5 : 11, color: 'hsl(var(--muted-foreground)/0.8)', transition: 'all 0.3s ease' }}>
                                   {subtext}
                                 </span>
                               </div>
@@ -394,10 +396,10 @@ export function BackupStatusDialog({
                                   <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.5)', fontWeight: 500 }}>Pending</span>
                                 )}
                                 {isMediaActive && (
-                                  <Loader2 size={14} className="animate-spin text-primary" style={{ color: 'hsl(var(--primary))' }} />
+                                  <Loader2 size={isMobile ? 13 : 14} className="animate-spin text-primary" style={{ color: 'hsl(var(--primary))' }} />
                                 )}
                                 {isMediaComplete && (
-                                  <CheckCircle2 size={16} style={{ color: 'hsl(var(--primary))' }} />
+                                  <CheckCircle2 size={isMobile ? 15 : 16} style={{ color: 'hsl(var(--primary))' }} />
                                 )}
                               </div>
                             </div>
@@ -416,14 +418,14 @@ export function BackupStatusDialog({
                           borderRadius: 20,
                           background: 'hsl(var(--primary)/0.06)',
                           border: '1px solid hsl(var(--primary)/0.15)',
-                          padding: '14px 18px',
+                          padding: isMobile ? '10px 14px' : '14px 18px',
                           display: 'flex',
                           alignItems: 'start',
-                          gap: 12,
+                          gap: isMobile ? 10 : 12,
                         }}
                       >
-                        <CheckCircle2 size={18} style={{ color: 'hsl(var(--primary))', flexShrink: 0, marginTop: 2 }} />
-                        <div style={{ fontSize: 13, color: 'hsl(var(--foreground))', lineHeight: 1.45 }}>
+                        <CheckCircle2 size={isMobile ? 15 : 18} style={{ color: 'hsl(var(--primary))', flexShrink: 0, marginTop: 2 }} />
+                        <div style={{ fontSize: isMobile ? 12 : 13, color: 'hsl(var(--foreground))', lineHeight: 1.45 }}>
                           {isExport
                             ? 'Your backup file has been saved to your downloads folder.'
                             : 'Your notes and media have been successfully restored. The page will reload shortly.'}
@@ -470,12 +472,12 @@ export function BackupStatusDialog({
                         transition={spring}
                         style={{
                           width: '100%',
-                          height: 50,
+                          height: isMobile ? 44 : 50,
                           borderRadius: 99,
                           background: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
                           border: 'none',
                           cursor: 'pointer',
-                          fontSize: 14,
+                          fontSize: isMobile ? 13 : 14,
                           fontWeight: 500,
                           color: isComplete ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                           fontFamily: 'inherit',

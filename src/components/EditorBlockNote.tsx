@@ -35,6 +35,7 @@ import { SettingsModal } from '@/components/SettingsModal';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const isMobileDevice = typeof window !== 'undefined' && (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -132,6 +133,7 @@ export function EditorBlockNote({
 }) {
   // Theme and font handling
   const { theme, selectedFont, setSelectedFont, fontSize } = useTheme();
+  const isMobile = useIsMobile();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
@@ -628,13 +630,13 @@ export function EditorBlockNote({
                     right: 0,
                     zIndex: 61,
                     background: 'hsl(var(--background))',
-                    borderRadius: '32px 32px 0 0',
+                    borderRadius: isMobile ? '24px 24px 0 0' : '32px 32px 0 0',
                     boxShadow: '0 -12px 60px rgba(0,0,0,0.15)',
                     outline: 'none',
                     fontFamily: 'inherit',
                     maxWidth: 520,
                     margin: '0 auto',
-                    maxHeight: '80vh',
+                    maxHeight: isMobile ? '85vh' : '80vh',
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
@@ -646,14 +648,14 @@ export function EditorBlockNote({
                   </div>
 
                   {/* Header */}
-                  <div style={{ padding: '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
+                  <div style={{ padding: isMobile ? '10px 16px 14px' : '10px 24px 20px', position: 'relative', flexShrink: 0 }}>
                     <DialogPrimitive.Close asChild>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         style={{
                           position: 'absolute',
                           top: 8,
-                          right: 20,
+                          right: isMobile ? 16 : 20,
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
@@ -676,29 +678,29 @@ export function EditorBlockNote({
                       transition={{ ...spring, delay: 0.04 }}
                     >
                       <div style={{
-                        width: 56,
-                        height: 56,
+                        width: isMobile ? 44 : 56,
+                        height: isMobile ? 44 : 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary)/0.1)',
                         color: 'hsl(var(--primary))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: 16,
+                        marginBottom: isMobile ? 12 : 16,
                       }}>
-                        <FontSelectorIcon size={24} />
+                        <FontSelectorIcon size={isMobile ? 20 : 24} />
                       </div>
                       <div style={{
-                        fontSize: 24,
+                        fontSize: isMobile ? 20 : 24,
                         fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         letterSpacing: '-0.5px',
                         lineHeight: 1.2,
-                        marginBottom: 6,
+                        marginBottom: isMobile ? 4 : 6,
                       }}>
                         Font Family
                       </div>
-                      <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: isMobile ? 12.5 : 13, color: 'hsl(var(--muted-foreground))', lineHeight: 1.4 }}>
                         Choose your preferred typography for the writing space.
                       </div>
                     </motion.div>
@@ -710,13 +712,13 @@ export function EditorBlockNote({
                     style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
-                      padding: '0 24px 24px',
+                      padding: isMobile ? '0 16px 16px' : '0 24px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
                   >
                     <div style={{
-                      borderRadius: 20,
+                      borderRadius: isMobile ? 16 : 20,
                       border: '1px solid hsl(var(--border)/0.4)',
                       background: 'hsl(var(--muted)/0.12)',
                       backdropFilter: 'blur(10px)',
@@ -737,7 +739,7 @@ export function EditorBlockNote({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              padding: '14px 20px',
+                              padding: isMobile ? '12px 16px' : '14px 20px',
                               background: 'transparent',
                               border: 'none',
                               borderBottom: i < fonts.length - 1 ? '1px solid hsl(var(--border)/0.2)' : 'none',
@@ -749,7 +751,7 @@ export function EditorBlockNote({
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           >
                             <span className={cn(
-                              "text-[14px]",
+                              isMobile ? "text-[13px]" : "text-[14px]",
                               {
                                 'font-general-sans': font.value === 'general-sans',
                                 'font-geist': font.value === 'geist',
