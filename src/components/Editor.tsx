@@ -75,7 +75,7 @@ export function Editor({
     return { top: caret.top, bottom: caret.top + caret.height };
   }, []);
 
-  useAppleScroll({ getScrollContainer, getCaretRect });
+  useAppleScroll({ getScrollContainer, getCaretRect, bottomMargin: isMobile ? 180 : 220 });
 
   // Backup status dialog state
   const [backupDialog, setBackupDialog] = useState<{
@@ -922,7 +922,10 @@ export function Editor({
               "transition-all duration-200",
               "placeholder:text-muted-foreground/75 md:text-[20px] text-[18px]"
             )}
-            style={{ fontSize: `var(--editor-font-size)` }}
+            style={{ 
+              fontSize: `var(--editor-font-size)`,
+              scrollPaddingBottom: isMobile ? 120 : 160
+            }}
             value={state.content}
             onChange={handleChange}
             onScroll={handleScroll}

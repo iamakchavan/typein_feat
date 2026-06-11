@@ -170,7 +170,7 @@ export function EditorBlockNote({
     return { top: rect.top, bottom: rect.bottom };
   }, []);
 
-  useAppleScroll({ getScrollContainer, getCaretRect });
+  useAppleScroll({ getScrollContainer, getCaretRect, bottomMargin: isMobile ? 180 : 220 });
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

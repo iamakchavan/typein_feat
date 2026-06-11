@@ -171,6 +171,7 @@ div:has(> .bn-side-menu) {
   /* Hide scrollbar completely */
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
+  scroll-padding-bottom: 160px;
 }
 
 .bn-container::-webkit-scrollbar {
