@@ -304,6 +304,30 @@ export function Editor({
     dispatch({ type: 'REDO' });
   });
 
+  useKeyboardShortcut(
+    [
+      { key: ',', ctrlKey: true },
+      { key: ',', metaKey: true },
+    ],
+    (e) => {
+      e.preventDefault();
+      setIsSettingsOpen(prev => !prev);
+    }
+  );
+
+  useKeyboardShortcut(
+    [
+      { key: '\\', ctrlKey: true },
+      { key: '\\', metaKey: true },
+      { key: 'b', ctrlKey: true },
+      { key: 'b', metaKey: true },
+    ],
+    (e) => {
+      e.preventDefault();
+      setIsSidebarOpen(prev => !prev);
+    }
+  );
+
   // Load content from storage when component mounts
   useEffect(() => {
     const loadContent = async () => {

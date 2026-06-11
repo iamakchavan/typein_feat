@@ -172,6 +172,31 @@ export function EditorBlockNote({
 
   useAppleScroll({ getScrollContainer, getCaretRect, bottomMargin: isMobile ? 180 : 220 });
 
+  // Keyboard shortcuts
+  useKeyboardShortcut(
+    [
+      { key: ',', ctrlKey: true },
+      { key: ',', metaKey: true },
+    ],
+    (e) => {
+      e.preventDefault();
+      setIsSettingsOpen(prev => !prev);
+    }
+  );
+
+  useKeyboardShortcut(
+    [
+      { key: '\\', ctrlKey: true },
+      { key: '\\', metaKey: true },
+      { key: 'b', ctrlKey: true },
+      { key: 'b', metaKey: true },
+    ],
+    (e) => {
+      e.preventDefault();
+      setIsSidebarOpen(prev => !prev);
+    }
+  );
+
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 

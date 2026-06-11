@@ -110,6 +110,29 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        const hasActiveModal = 
+          isDeleteModalOpen || 
+          isImportModalOpen || 
+          exportWarning.isOpen || 
+          isCommandPaletteOpen || 
+          openDropdownId !== null;
+
+        if (!hasActiveModal) {
+          event.preventDefault();
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isDeleteModalOpen, isImportModalOpen, exportWarning.isOpen, isCommandPaletteOpen, openDropdownId]);
+
   const isAnyOtherModalOpen = isDeleteModalOpen || exportWarning.isOpen || isCommandPaletteOpen;
 
   const handleEntryClick = (entry: Entry) => {
