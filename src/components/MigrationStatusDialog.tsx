@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Hash, FileText, Image, Table2, Code2, Video, Type, CheckCircle2, AlertCircle, X, Loader2, Database } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface MigrationStatus {
   version: number;
@@ -809,6 +810,14 @@ export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
   const [active, setActive] = useState(simulate);
   const isMobile = useIsMobile();
 
+  const handleClose = () => {
+    setActive(false);
+    onClose?.();
+    window.dispatchEvent(new CustomEvent('migration-cancelled'));
+  };
+
+  useModalHistory(active, handleClose, 'migration-status');
+
   useEffect(() => {
     setActive(simulate);
   }, [simulate]);
@@ -830,12 +839,6 @@ export function MigrationStatusDialog({ simulate = false, onClose }: Props) {
       window.removeEventListener('migration-error', open);
     };
   }, [simulate]);
-
-  const handleClose = () => {
-    setActive(false);
-    onClose?.();
-    window.dispatchEvent(new CustomEvent('migration-cancelled'));
-  };
 
   return (
     <AnimatePresence>

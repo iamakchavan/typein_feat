@@ -5,6 +5,7 @@ import { CheckCircle2, Download, Upload, Loader2, AlertCircle, X, Image } from '
 import { EntryPageIcon } from './Icons';
 import { db } from '@/lib/db';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 import { mediaStorage } from '@/lib/mediaStorage';
 import { getReferencedMediaIds, getReferencedMediaCount } from '@/lib/backup';
 
@@ -46,6 +47,7 @@ export function BackupStatusDialog({
   stats,
   error,
 }: BackupStatusDialogProps) {
+  useModalHistory(isOpen, onClose, 'backup-status');
   const [displayProgress, setDisplayProgress] = useState(0);
   const isMobile = useIsMobile();
 

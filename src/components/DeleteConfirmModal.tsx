@@ -3,6 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 import { DeleteTitleIcon } from './Icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function DeleteConfirmModal({
   onConfirm,
   entryTitle,
 }: DeleteConfirmModalProps) {
+  useModalHistory(isOpen, onClose, 'delete-confirm');
   const isMobile = useIsMobile();
   return (
     <AnimatePresence>

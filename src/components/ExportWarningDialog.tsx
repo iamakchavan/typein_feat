@@ -3,6 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertTriangle, X } from 'lucide-react';
 import { JsonFileIcon } from './Icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface ExportWarningDialogProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export function ExportWarningDialog({
   onUseJson,
   format,
 }: ExportWarningDialogProps) {
+  useModalHistory(isOpen, onClose, 'export-warning');
   const isMobile = useIsMobile();
   const formatName = format === 'md' ? 'Markdown' : 'Plain Text';
 

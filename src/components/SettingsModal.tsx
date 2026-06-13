@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { fonts } from '@/lib/fonts';
 import packageJson from '../../package.json';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -59,6 +60,11 @@ export function SettingsModal({
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
   const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
+
+  // Modal History support (Progressive dismissals)
+  useModalHistory(isOpen, onClose, 'settings');
+  useModalHistory(isFontSheetOpen, () => setIsFontSheetOpen(false), 'settings-font');
+  useModalHistory(isThemeSheetOpen, () => setIsThemeSheetOpen(false), 'settings-theme');
 
   // Handle pointer up on window to ensure we always release sliding state
   useEffect(() => {

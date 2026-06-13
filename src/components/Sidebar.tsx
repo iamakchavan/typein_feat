@@ -19,6 +19,7 @@ import { importMarkdownFile, importTextFile, importJsonFile } from '@/lib/import
 import { importBackup } from '@/lib/backup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -82,6 +83,7 @@ const springMed = isMobileDevice
   : { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
 
 export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = false }: SidebarProps) {
+  useModalHistory(isOpen, onClose, 'sidebar');
   const { entries, currentEntry, setCurrentEntry, createNewEntry, deleteEntry, togglePinEntry, branchOffEntry } = useEntries();
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'week' | 'month' | 'pinned'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);

@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
+import { useModalHistory } from '@/hooks/useModalHistory';
 import { fonts } from '@/lib/fonts';
 import { getEntryPlainText, getEntryTitle, isContentEmpty } from '@/lib/entryHelpers';
 import { useToast } from '@/hooks/use-toast';
@@ -281,6 +282,7 @@ function parseDateQuery(query: string): { start?: Date; end?: Date; isParsed: bo
 }
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+  useModalHistory(isOpen, onClose, 'command-palette');
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showSpecialThemes, setShowSpecialThemes] = useState<string | null>(null);

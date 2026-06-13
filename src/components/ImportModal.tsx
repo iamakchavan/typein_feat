@@ -5,6 +5,7 @@ import { Upload, ChevronRight } from 'lucide-react';
 import { JsonFileIcon, MarkdownFileIcon, RestoreBackupIcon, EntryPageIcon, RetainOriginalDateIcon, ImportAsNewEntryIcon, SidebarImportPillIcon, ImportModalTitleIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ const springMed = isMobileDevice
   : { type: 'spring', stiffness: 380, damping: 36, mass: 0.9 };
 
 export function ImportModal({ isOpen, onClose, onImport, onImportBackup }: ImportModalProps) {
+  useModalHistory(isOpen, onClose, 'import');
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const isDarkMode = theme === 'dark' || theme.endsWith('-dark');
