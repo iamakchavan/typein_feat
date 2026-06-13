@@ -48,11 +48,9 @@ import { mediaStorage } from '@/lib/mediaStorage';
 import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
 
 export function Editor({ 
-  onShowOnboarding, 
   openCommandPalette: externalOpenCommandPalette, 
   setOpenCommandPalette: setExternalOpenCommandPalette 
 }: { 
-  onShowOnboarding?: () => void;
   openCommandPalette?: boolean;
   setOpenCommandPalette?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
@@ -548,7 +546,6 @@ export function Editor({
         onClose={() => setIsSettingsOpen(false)}
         onExportBackup={handleExportBackup}
         onImportBackup={handleImportBackup}
-        onShowOnboarding={onShowOnboarding}
       />
 
       {/* Font selector bottom-sheet Modal */}

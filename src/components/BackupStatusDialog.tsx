@@ -472,13 +472,13 @@ export function BackupStatusDialog({
                         transition={spring}
                         style={{
                           width: '100%',
-                          height: isMobile ? 44 : 50,
+                          height: isMobile ? 48 : 56,
                           borderRadius: 99,
                           background: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
                           border: 'none',
                           cursor: 'pointer',
                           fontSize: isMobile ? 13 : 14,
-                          fontWeight: 500,
+                          fontWeight: 600,
                           color: isComplete ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                           fontFamily: 'inherit',
                           display: 'flex',

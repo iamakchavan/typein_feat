@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Download, Upload, Sparkles, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
+import { X, Download, Upload, ChevronRight, Sun, Moon, Mail, Check } from 'lucide-react';
 import { SettingsIcon, ColorPresetIcon, FontSelectorIcon } from './Icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { Slider } from '@/components/ui/slider';
@@ -14,7 +14,6 @@ interface SettingsModalProps {
   onClose: () => void;
   onExportBackup: () => void;
   onImportBackup: () => void;
-  onShowOnboarding?: () => void;
 }
 
 const isMobileDevice = typeof window !== 'undefined' && (
@@ -51,8 +50,7 @@ export function SettingsModal({
   isOpen,
   onClose,
   onExportBackup,
-  onImportBackup,
-  onShowOnboarding
+  onImportBackup
 }: SettingsModalProps) {
   const { theme, setTheme, selectedFont, setSelectedFont, fontSize, setFontSize } = useTheme();
   const isMobile = useIsMobile();
@@ -566,15 +564,6 @@ export function SettingsModal({
                               onImportBackup();
                             }
                           },
-                          ...(onShowOnboarding ? [{
-                            label: 'Replay onboarding',
-                            sub: 'Review the quick intro tour',
-                            Icon: Sparkles,
-                            onClick: () => {
-                              onClose();
-                              onShowOnboarding();
-                            }
-                          }] : []),
                           {
                             label: 'Contact support',
                             sub: 'info@typein.space',

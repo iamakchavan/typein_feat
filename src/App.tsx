@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { EntryProvider, useEntries } from '@/contexts/EntryContext';
 import { Analytics } from '@vercel/analytics/react';
-import OnboardingModal from './components/OnboardingModal';
 import { MigrationStatusDialog } from './components/MigrationStatusDialog';
 import React from 'react';
 
@@ -22,10 +21,6 @@ const Loading = () => (
 function AppContent() {
   const { createNewEntry } = useEntries();
   const [openCommandPalette, setOpenCommandPalette] = React.useState(false);
-  
-  const [showOnboarding, setShowOnboarding] = React.useState(() => {
-    return localStorage.getItem('typein_onboarding_complete') !== 'true';
-  });
 
   // Handle URL parameters on component mount
   React.useEffect(() => {
@@ -47,18 +42,11 @@ function AppContent() {
     }
   }, [createNewEntry]);
 
-  const handleCloseOnboarding = React.useCallback(() => {
-    setShowOnboarding(false);
-    localStorage.setItem('typein_onboarding_complete', 'true');
-  }, []);
-
   return (
     <>
       <MigrationStatusDialog />
-      {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
       <Suspense fallback={<Loading />}>
         <Editor 
-          onShowOnboarding={() => setShowOnboarding(true)}
           openCommandPalette={openCommandPalette}
           setOpenCommandPalette={setOpenCommandPalette}
         />

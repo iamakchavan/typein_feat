@@ -25,7 +25,7 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
   selectedFont: 'geist',
   setSelectedFont: () => null,
-  fontSize: 20,
+  fontSize: 18,
   setFontSize: () => null,
 };
 
@@ -45,7 +45,7 @@ export function ThemeProvider({
 
   // Font state
   const [selectedFont, setSelectedFont] = useState<Font>('geist');
-  const [fontSize, setFontSize] = useState<number>(20);
+  const [fontSize, setFontSize] = useState<number>(18);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load font preferences on mount
@@ -55,7 +55,21 @@ export function ThemeProvider({
         const savedPreferences = await loadFontPreferences();
         if (savedPreferences) {
           setSelectedFont(savedPreferences.selectedFont as Font);
-          setFontSize(savedPreferences.fontSize);
+          
+          // One-time default transition from 20px to 18px
+          let size = savedPreferences.fontSize;
+          const hasMigratedTo18 = localStorage.getItem('font-size-default-18-migrated');
+          if (!hasMigratedTo18) {
+            if (size === 20) {
+              size = 18;
+            }
+            localStorage.setItem('font-size-default-18-migrated', 'true');
+          }
+          
+          setFontSize(size);
+        } else {
+          // If no saved preferences, mark migration as done for new users
+          localStorage.setItem('font-size-default-18-migrated', 'true');
         }
       } catch (error) {
         console.error('Failed to load font preferences:', error);

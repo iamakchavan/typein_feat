@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import type { PartialBlock } from '@blocknote/core';
 import { migrateEntryContent } from '@/lib/migration';
 import { isContentEmpty } from '@/lib/entryHelpers';
+import { WELCOME_NOTE_BLOCKS } from '@/lib/welcomeTemplate';
 
 // Timezone-safe local date string helper (YYYY-MM-DD)
 export const getLocalDateString = (d: Date): string => {
@@ -17,13 +18,13 @@ export const getLocalDateString = (d: Date): string => {
 export function parseDateSafe(dateStr: string | Date | undefined | null): Date {
   if (!dateStr) return new Date();
   if (dateStr instanceof Date) return dateStr;
-  
+
   // If it's a date-only string (YYYY-MM-DD), parse it as local time by creating Date with local args
   if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(year, month - 1, day);
   }
-  
+
   const parsed = new Date(dateStr);
   return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
@@ -74,13 +75,15 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
         // Try to load from IndexedDB first
         let loadedEntries = await db.getEntries();
         if (!active) return;
-        
+
         // If no entries in IndexedDB, try migrating from localStorage
         if (loadedEntries.length === 0) {
           await db.migrateFromLocalStorage();
           loadedEntries = await db.getEntries();
           if (!active) return;
         }
+
+        const isBrandNewUser = loadedEntries.length === 0;
 
         // MIGRATION: Check if entries need to be migrated from plain text to BlockNote format
         const migrationStatus = await db.getMigrationStatus();
@@ -127,7 +130,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
             // Step 1: Show the welcome screen and wait for user to click Continue or Cancel
             window.dispatchEvent(new CustomEvent('migration-welcome'));
-            
+
             let migrationCancelled = false;
             await new Promise<void>(resolve => {
               const onReady = () => {
@@ -145,7 +148,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
               window.addEventListener('migration-ready', onReady);
               window.addEventListener('migration-cancelled', onCancel);
             });
-            
+
             if (!active) return;
 
             if (migrationCancelled) {
@@ -177,7 +180,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
                 if (typeof entry.content === 'string' && !entry.contentFormat) {
                   try {
                     const { success, migratedContent, error } = migrateEntryContent(entry.content);
-                    
+
                     if (success) {
                       entry.content = migratedContent;
                       entry.contentFormat = 'blocknote';
@@ -230,9 +233,40 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
         if (!active) return;
 
+        // Ensure any existing welcome notes with level 1/2 headings are migrated to level 3 (user preference)
+        for (const entry of loadedEntries) {
+          if (Array.isArray(entry.content)) {
+            const isWelcomeNote = entry.content.some(block => 
+              block.type === 'heading' && 
+              Array.isArray(block.content) && 
+              block.content.some((c: any) => typeof c.text === 'string' && c.text.includes('Welcome to typein!'))
+            );
+            if (isWelcomeNote) {
+              let modified = false;
+              const updatedContent = entry.content.map(block => {
+                if (block.type === 'heading' && block.props && (block.props.level === 1 || block.props.level === 2)) {
+                  modified = true;
+                  return {
+                    ...block,
+                    props: {
+                      ...block.props,
+                      level: 3
+                    }
+                  };
+                }
+                return block;
+              });
+              if (modified) {
+                entry.content = updatedContent;
+                await db.saveEntry(entry);
+              }
+            }
+          }
+        }
+
         // Get today's date in local timezone YYYY-MM-DD
         const today = getLocalDateString(new Date());
-        
+
         // Find today's entries using timezone-safe local dates
         const todayEntries = loadedEntries.filter(entry => {
           const entryDate = getLocalDateString(parseDateSafe(entry.date));
@@ -247,10 +281,16 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           const newEntry: Entry = {
             id: uuidv4(),
             date: new Date().toISOString(),
-            content: '',
+            content: isBrandNewUser ? WELCOME_NOTE_BLOCKS : '',
+            contentFormat: isBrandNewUser ? 'blocknote' : 'plaintext'
           };
           await db.saveEntry(newEntry);
           if (!active) return;
+
+          if (isBrandNewUser) {
+            localStorage.setItem('typein_onboarding_complete', 'true');
+          }
+
           loadedEntries = [newEntry, ...loadedEntries];
           setEntries(loadedEntries);
           setCurrentEntry(newEntry);
@@ -296,7 +336,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
               console.log(`Fallback recovery: Loaded ${fallbackEntries.length} entries from fallback`);
               const today = getLocalDateString(new Date());
               const todayEntries = fallbackEntries.filter(entry => getLocalDateString(parseDateSafe(entry.date)) === today);
-              
+
               if (todayEntries.length === 0) {
                 const newEntry: Entry = {
                   id: uuidv4(),
@@ -420,7 +460,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
       const updatedEntries = entries.filter(entry => entry.id !== id);
       await db.deleteEntry(id);
       setEntries(updatedEntries);
-      
+
       // If we deleted the current entry or if there are no entries left
       if (currentEntry?.id === id || updatedEntries.length === 0) {
         // If there are remaining entries, switch to the most recent one
@@ -442,15 +482,15 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
       if (!entryToUpdate) return;
 
       const updatedEntry = { ...entryToUpdate, pinned: !entryToUpdate.pinned };
-      
+
       // Update in database
       await db.saveEntry(updatedEntry);
-      
+
       // Update state
-      setEntries(prev => prev.map(entry => 
+      setEntries(prev => prev.map(entry =>
         entry.id === id ? updatedEntry : entry
       ));
-      
+
       // Update current entry if it's the one being pinned/unpinned
       if (currentEntry?.id === id) {
         setCurrentEntry(updatedEntry);
@@ -467,7 +507,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
       const today = new Date().toISOString();
       const originalDate = getLocalDateString(parseDateSafe(entryToBranchOff.date));
-      
+
       const branchedEntry: Entry = {
         id: uuidv4(),
         date: today,
@@ -479,7 +519,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
 
       // Save to database
       await db.saveEntry(branchedEntry);
-      
+
       // Update state
       setEntries(prev => {
         const updated = [branchedEntry, ...prev];
@@ -490,7 +530,7 @@ export function EntryProvider({ children }: { children: React.ReactNode }) {
           return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
         });
       });
-      
+
       // Set the branched entry as current
       setCurrentEntry(branchedEntry);
     } catch (error) {

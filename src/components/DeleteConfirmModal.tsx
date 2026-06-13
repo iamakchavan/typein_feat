@@ -189,7 +189,7 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: isMobile ? 46 : 52,
+                        height: isMobile ? 48 : 56,
                         borderRadius: 99,
                         background: 'rgb(239, 68, 68)',
                         border: 'none',
@@ -220,13 +220,13 @@ export function DeleteConfirmModal({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: isMobile ? 44 : 50,
+                        height: isMobile ? 48 : 56,
                         borderRadius: 99,
                         background: 'hsl(var(--muted))',
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: isMobile ? 13 : 14,
-                        fontWeight: 500,
+                        fontWeight: 600,
                         color: 'hsl(var(--foreground))',
                         fontFamily: 'inherit',
                       }}

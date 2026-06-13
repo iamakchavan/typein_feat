@@ -246,7 +246,7 @@ export function ExportWarningDialog({
                       transition={spring}
                       style={{
                         width: '100%',
-                        height: isMobile ? 46 : 52,
+                        height: isMobile ? 48 : 56,
                         borderRadius: 99,
                         background: 'hsl(var(--primary))',
                         border: 'none',
@@ -272,13 +272,13 @@ export function ExportWarningDialog({
                         transition={spring}
                         style={{
                           flex: 1,
-                          height: isMobile ? 44 : 50,
+                          height: isMobile ? 48 : 56,
                           borderRadius: 99,
                           background: 'hsl(var(--muted))',
                           border: 'none',
                           cursor: 'pointer',
                           fontSize: isMobile ? 13 : 14,
-                          fontWeight: 500,
+                          fontWeight: 600,
                           color: 'hsl(var(--foreground))',
                           fontFamily: 'inherit',
                         }}
@@ -291,13 +291,13 @@ export function ExportWarningDialog({
                         transition={spring}
                         style={{
                           flex: 1.3,
-                          height: isMobile ? 44 : 50,
+                          height: isMobile ? 48 : 56,
                           borderRadius: 99,
                           background: 'transparent',
                           border: '1px solid hsl(var(--border))',
                           cursor: 'pointer',
                           fontSize: isMobile ? 12 : 13,
-                          fontWeight: 500,
+                          fontWeight: 600,
                           color: 'hsl(var(--muted-foreground))',
                           fontFamily: 'inherit',
                           whiteSpace: 'nowrap',

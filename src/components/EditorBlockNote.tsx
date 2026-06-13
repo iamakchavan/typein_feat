@@ -124,11 +124,9 @@ SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
 
 export function EditorBlockNote({ 
-  onShowOnboarding, 
   openCommandPalette: externalOpenCommandPalette, 
   setOpenCommandPalette: setExternalOpenCommandPalette 
 }: { 
-  onShowOnboarding?: () => void;
   openCommandPalette?: boolean;
   setOpenCommandPalette?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
@@ -640,7 +638,6 @@ export function EditorBlockNote({
         onClose={() => setIsSettingsOpen(false)}
         onExportBackup={handleExportBackup}
         onImportBackup={handleImportBackup}
-        onShowOnboarding={onShowOnboarding}
       />
 
       {/* Font selector bottom-sheet Modal */}
