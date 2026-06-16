@@ -982,13 +982,13 @@ export function EditorBlockNote({
         <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none z-50">
           <button
             onClick={openPalette}
-            className="pointer-events-auto flex items-center justify-between gap-3 text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1.5 rounded-full shadow-md overflow-hidden h-9 w-64 cursor-pointer hover:text-foreground/90 transition-all select-none outline-none focus:outline-none"
+            className="pointer-events-auto flex items-center justify-between gap-3 text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1 rounded-full shadow-lg overflow-hidden h-10 w-64 cursor-pointer hover:text-foreground/90 transition-all select-none outline-none focus:outline-none"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/0 to-primary/5 animate-pulse"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
             <div className="relative z-10 flex items-center gap-2">
-              <Search className="h-3.5 w-3.5 opacity-70" />
-              <span>Search notes & commands...</span>
+              <Search className="h-4 w-4 text-muted-foreground/60" />
+              <span className="text-[13px] font-medium tracking-tight">Search notes...</span>
             </div>
             <div className="relative z-10 flex items-center gap-0.5 bg-muted/40 px-1.5 py-0.5 rounded-md border border-border/20 text-[10px] font-sans font-medium">
               <kbd className="text-[10px] font-sans">⌘K</kbd>
