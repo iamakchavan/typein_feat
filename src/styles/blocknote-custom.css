@@ -127,16 +127,8 @@ div:has(> .bn-side-menu) {
     display: none !important;
   }
 
-  /* Formatting toolbar: constrain to viewport with side margins on mobile */
+  /* Hide formatting toolbar on mobile to prevent overlap with native text selection tools */
   .bn-formatting-toolbar {
-    max-width: calc(100vw - 24px) !important;
-    left: 12px !important;
-    right: 12px !important;
-    overflow-x: auto !important;
-    scrollbar-width: none !important;
-  }
-
-  .bn-formatting-toolbar::-webkit-scrollbar {
     display: none !important;
   }
 
