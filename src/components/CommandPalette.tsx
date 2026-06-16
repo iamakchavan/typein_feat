@@ -2009,6 +2009,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onConfirm={confirmDelete}
+        onClose={cancelDelete}
+        entryTitle={entryToDeleteTitle}
+      />
     </>
   );
 }
