@@ -34,7 +34,7 @@ import { BackupStatusDialog } from '@/components/BackupStatusDialog';
 import { SettingsModal } from '@/components/SettingsModal';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check } from 'lucide-react';
+import { X, Check, Search } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAppleScroll } from '@/hooks/useAppleScroll';
 
@@ -978,16 +978,22 @@ export function EditorBlockNote({
           )}
         </div>
         
-        {/* Centered ⌘K hint */}
+        {/* Centered Search Pill */}
         <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none z-50">
-          <div className="pointer-events-auto flex items-center text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1.5 rounded-full shadow-md overflow-hidden h-9">
+          <button
+            onClick={openPalette}
+            className="pointer-events-auto flex items-center justify-between gap-3 text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1.5 rounded-full shadow-md overflow-hidden h-9 w-64 cursor-pointer hover:text-foreground/90 transition-all select-none outline-none focus:outline-none"
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/0 to-primary/5 animate-pulse"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
-            <div className="relative z-10 flex items-center gap-1">
-              <kbd className="text-[13px] font-medium font-sans">⌘K</kbd>
-              <span className="opacity-80">for quick search</span>
+            <div className="relative z-10 flex items-center gap-2">
+              <Search className="h-3.5 w-3.5 opacity-70" />
+              <span>Search notes & commands...</span>
             </div>
-          </div>
+            <div className="relative z-10 flex items-center gap-0.5 bg-muted/40 px-1.5 py-0.5 rounded-md border border-border/20 text-[10px] font-sans font-medium">
+              <kbd className="text-[10px] font-sans">⌘K</kbd>
+            </div>
+          </button>
         </div>
         
         <div className="pointer-events-auto flex items-center justify-center h-11 w-11 p-0 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
