@@ -1105,47 +1105,56 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     return date.toLocaleDateString();
   };
 
-  return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
-          <DialogPrimitive.Content
-            onEscapeKeyDown={(e) => {
-              // If any dropdown or filter popover is open, block Radix from closing the dialog —
-              // our keyboard handler will close only the dropdown/popover.
-              if (showSpecialThemes || showFonts || showKebabMenu || showTimelineFilter || showDateRangeFilter) {
-                e.preventDefault();
-              }
-            }}
-            className="fixed left-0 md:left-[50%] top-0 md:top-[40%] z-50 translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%] p-0 w-full h-[100dvh] md:h-auto md:max-w-xl md:mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none md:rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out"
-            style={
-              isMobile && viewportHeight
-                ? {
-                    height: `${viewportHeight}px`,
-                    top: `${viewportOffsetTop}px`,
-                    left: `${viewportOffsetLeft}px`,
-                    position: 'fixed',
-                  }
-                : undefined
-            }
-          >
-            <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
-            <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
+  const renderDialogBody = (isMobileAnimated = false) => {
+    const HeaderContainer = (isMobileAnimated ? motion.div : 'div') as any;
+    const FiltersContainer = (isMobileAnimated ? motion.div : 'div') as any;
+    const ListContainer = (isMobileAnimated ? motion.div : 'div') as any;
+    const FooterContainer = (isMobileAnimated ? motion.div : 'div') as any;
+
+    return (
+      <>
+        <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
+        <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
         <div className="flex flex-col h-full max-h-full md:max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
-          <div className="flex items-center gap-4 px-6 pt-10 pb-5 md:py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
-            <SearchIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
+          <HeaderContainer
+            {...(isMobileAnimated ? {
+              initial: { y: -35, opacity: 0 },
+              animate: { y: 0, opacity: 1 },
+              exit: { y: -35, opacity: 0 },
+              transition: { type: 'spring', stiffness: 420, damping: 32 }
+            } : {})}
+            className={cn(
+              "flex items-center gap-4 px-6 pt-10 pb-5 md:py-5 bg-background/20",
+              !isMobileAnimated && "animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out"
+            )}
+          >
+            <SearchIcon 
+              className={cn(
+                "h-4 w-4 text-muted-foreground/60 flex-shrink-0",
+                !isMobileAnimated && "animate-in fade-in-0 duration-500 ease-out"
+              )} 
+              style={!isMobileAnimated ? { animationDelay: '100ms', animationFillMode: 'both' } : undefined} 
+            />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search entries or commands..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
-              style={{ animationDelay: '150ms', animationFillMode: 'both' }}
+              className={cn(
+                "flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal",
+                !isMobileAnimated && "animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
+              )}
+              style={!isMobileAnimated ? { animationDelay: '150ms', animationFillMode: 'both' } : undefined}
             />
-            <div className="hidden md:flex text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-out" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+            <div 
+              className={cn(
+                "hidden md:flex text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md",
+                !isMobileAnimated && "animate-in fade-in-0 zoom-in-95 duration-500 ease-out"
+              )} 
+              style={!isMobileAnimated ? { animationDelay: '250ms', animationFillMode: 'both' } : undefined}
+            >
               ⌘K
             </div>
             <button
@@ -1154,10 +1163,22 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             >
               Cancel
             </button>
-          </div>
+          </HeaderContainer>
 
           {/* Date Filters Bar */}
-          <div className="flex items-center gap-2 px-6 pb-4 pt-1 bg-background/20 border-b border-border/10 overflow-x-auto select-none no-scrollbar animate-in fade-in-0 slide-in-from-top-1 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <FiltersContainer
+            {...(isMobileAnimated ? {
+              initial: { y: -15, opacity: 0 },
+              animate: { y: 0, opacity: 1 },
+              exit: { y: -15, opacity: 0 },
+              transition: { type: 'spring', stiffness: 420, damping: 32 }
+            } : {})}
+            className={cn(
+              "flex items-center gap-2 px-6 pb-4 pt-1 bg-background/20 border-b border-border/10 overflow-x-auto select-none no-scrollbar",
+              !isMobileAnimated && "animate-in fade-in-0 slide-in-from-top-1 duration-400 ease-out"
+            )}
+            style={!isMobileAnimated ? { animationDelay: '200ms', animationFillMode: 'both' } : undefined}
+          >
             {/* Timeline Preset Pill */}
             <Popover open={showTimelineFilter} onOpenChange={setShowTimelineFilter}>
               <PopoverTrigger asChild>
@@ -1329,13 +1350,20 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 <span>Reset</span>
               </button>
             )}
-          </div>
+          </FiltersContainer>
 
           {/* Commands List */}
-          <div 
+          <ListContainer 
             ref={listRef}
+            {...(isMobileAnimated ? {
+              initial: { y: 40, opacity: 0 },
+              animate: { y: 0, opacity: 1 },
+              exit: { y: 40, opacity: 0 },
+              transition: { type: 'spring', stiffness: 420, damping: 32 }
+            } : {})}
             className={cn(
-              "flex-1 overflow-y-auto max-h-none md:max-h-80 py-1 transition-all duration-300",
+              "flex-1 overflow-y-auto max-h-none md:max-h-80 py-1",
+              !isMobileAnimated && "transition-all duration-300",
               isScrolling ? "custom-scrollbar-visible" : "custom-scrollbar-hidden"
             )}
             onScroll={handleScroll}
@@ -1350,11 +1378,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               filteredCommands.map((command, index) => (
                 <div 
                   key={command.id}
-                  style={{ 
+                  style={!isMobileAnimated ? { 
                     animationDelay: `${Math.min(index * 20, 100)}ms`,
                     animationFillMode: 'both'
-                  }}
-                  className="animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-out"
+                  } : undefined}
+                  className={cn(
+                    "w-full",
+                    !isMobileAnimated && "animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-out"
+                  )}
                 >
                   {command.isSpecialThemes ? (
                     <Popover
@@ -1733,8 +1764,6 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                               const entry = entries.find(e => e.id === command.id);
                                               return entry && !isContentEmpty(entry.content);
                                             })()
-                                          ? "hover:bg-primary/8 focus:bg-primary/8 text-foreground/90 hover:text-foreground" 
-                                          : "opacity-40 cursor-not-allowed"
                                       )}
                                     >
                                       <div className="flex items-center gap-2">
@@ -1867,10 +1896,22 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 </div>
               ))
             )}
-          </div>
+          </ListContainer>
 
           {/* Footer */}
-          <div className="px-6 py-3 bg-background/30 border-t border-border/20 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <FooterContainer
+            {...(isMobileAnimated ? {
+              initial: { y: 20, opacity: 0 },
+              animate: { y: 0, opacity: 1 },
+              exit: { y: 20, opacity: 0 },
+              transition: { type: 'spring', stiffness: 420, damping: 32 }
+            } : {})}
+            className={cn(
+              "px-6 py-3 bg-background/30 border-t border-border/20",
+              !isMobileAnimated && "animate-in fade-in-0 slide-in-from-bottom-2 duration-400 ease-out"
+            )}
+            style={!isMobileAnimated ? { animationDelay: '200ms', animationFillMode: 'both' } : undefined}
+          >
             <div className="flex items-center justify-center md:justify-between">
               <div className="hidden md:flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
@@ -1888,19 +1929,86 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               </div>
               <span className="text-[11px] text-muted-foreground/50 font-medium">{entries.length} total entries</span>
             </div>
-          </div>
+          </FooterContainer>
         </div>
-        </DialogPrimitive.Content>
-                </DialogPrimitive.Portal>
-        </Dialog>
-      
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
-        onConfirm={confirmDelete}
-        onClose={cancelDelete}
-        entryTitle={entryToDeleteTitle}
-      />
+      </>
+    );
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        <AnimatePresence>
+          {isOpen && (
+            <Dialog open={true} onOpenChange={onClose}>
+              <DialogPrimitive.Portal forceMount>
+                <DialogPrimitive.Overlay asChild forceMount>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[12px]"
+                  />
+                </DialogPrimitive.Overlay>
+                <DialogPrimitive.Content
+                  forceMount
+                  asChild
+                  onEscapeKeyDown={(e) => {
+                    if (showSpecialThemes || showFonts || showKebabMenu || showTimelineFilter || showDateRangeFilter) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="fixed left-0 top-0 z-50 p-0 w-full bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none overflow-hidden"
+                    style={{
+                      height: viewportHeight ? `${viewportHeight}px` : '100dvh',
+                      top: `${viewportOffsetTop}px`,
+                      left: `${viewportOffsetLeft}px`,
+                      position: 'fixed',
+                    }}
+                  >
+                    {renderDialogBody(true)}
+                  </motion.div>
+                </DialogPrimitive.Content>
+              </DialogPrimitive.Portal>
+            </Dialog>
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={isDeleteModalOpen}
+          onConfirm={confirmDelete}
+          onClose={cancelDelete}
+          entryTitle={entryToDeleteTitle}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 ease-out" />
+          <DialogPrimitive.Content
+            onEscapeKeyDown={(e) => {
+              if (showSpecialThemes || showFonts || showKebabMenu || showTimelineFilter || showDateRangeFilter) {
+                e.preventDefault();
+              }
+            }}
+            className="fixed left-0 md:left-[50%] top-0 md:top-[40%] z-50 translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%] p-0 w-full h-[100dvh] md:h-auto md:max-w-xl md:mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none md:rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out"
+          >
+            {renderDialogBody()}
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </Dialog>
     </>
   );
-} 
+}
