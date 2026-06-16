@@ -893,8 +893,6 @@ export function Editor({
             onClick={openPalette}
             className="pointer-events-auto flex items-center justify-between gap-3 text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1 rounded-full shadow-lg overflow-hidden h-10 w-64 cursor-pointer hover:text-foreground/90 transition-all select-none outline-none focus:outline-none"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/0 to-primary/5 animate-pulse"></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
             <div className="relative z-10 flex items-center gap-2">
               <Search className="h-4 w-4 text-muted-foreground/60" />
               <span className="text-[13px] font-medium tracking-tight">Search notes...</span>
