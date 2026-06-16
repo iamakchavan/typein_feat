@@ -313,6 +313,42 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [viewportOffsetTop, setViewportOffsetTop] = useState<number>(0);
+  const [viewportOffsetLeft, setViewportOffsetLeft] = useState<number>(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateViewport = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+        setViewportOffsetTop(window.visualViewport.offsetTop);
+        setViewportOffsetLeft(window.visualViewport.offsetLeft);
+      } else {
+        setViewportHeight(window.innerHeight);
+        setViewportOffsetTop(0);
+        setViewportOffsetLeft(0);
+      }
+    };
+
+    updateViewport();
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateViewport);
+      window.visualViewport.addEventListener('scroll', updateViewport);
+    }
+    window.addEventListener('resize', updateViewport);
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateViewport);
+        window.visualViewport.removeEventListener('scroll', updateViewport);
+      }
+      window.removeEventListener('resize', updateViewport);
+    };
+  }, [isOpen]);
+
   // Blur search input on mobile when any filter/popover opens to hide keyboard and free up viewport space
   useEffect(() => {
     if (isMobile && (showTimelineFilter || showDateRangeFilter || showSpecialThemes || showFonts || showKebabMenu)) {
@@ -1082,10 +1118,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 e.preventDefault();
               }
             }}
-            className="fixed left-0 md:left-[50%] top-0 md:top-[40%] z-50 translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%] p-0 w-full h-[100dvh] md:h-auto md:max-w-xl md:mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none md:rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
+            className="fixed left-0 md:left-[50%] top-0 md:top-[40%] z-50 translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%] p-0 w-full h-[100dvh] md:h-auto md:max-w-xl md:mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none md:rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out"
+            style={
+              isMobile && viewportHeight
+                ? {
+                    height: `${viewportHeight}px`,
+                    top: `${viewportOffsetTop}px`,
+                    left: `${viewportOffsetLeft}px`,
+                    position: 'fixed',
+                  }
+                : undefined
+            }
+          >
             <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
             <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
-        <div className="flex flex-col h-full max-h-[100dvh] md:max-h-[70vh] min-w-0 overflow-hidden">
+        <div className="flex flex-col h-full max-h-full md:max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
           <div className="flex items-center gap-4 px-6 pt-10 pb-5 md:py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
             <SearchIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
@@ -1824,8 +1871,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
           {/* Footer */}
           <div className="px-6 py-3 bg-background/30 border-t border-border/20 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 ease-out" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center md:justify-between">
+              <div className="hidden md:flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
                   <kbd className="px-1.5 py-0.5 bg-muted/40 rounded text-[10px] font-medium">↑↓</kbd>
                   Navigate
