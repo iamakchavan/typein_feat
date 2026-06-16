@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAppleScroll } from '@/hooks/useAppleScroll';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 const isMobileDevice = typeof window !== 'undefined' && (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -136,6 +137,7 @@ export function EditorBlockNote({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
+  useModalHistory(isFontSheetOpen, () => setIsFontSheetOpen(false), 'editor-font');
   const { toast } = useToast();
 
   const getScrollContainer = useCallback(() => {

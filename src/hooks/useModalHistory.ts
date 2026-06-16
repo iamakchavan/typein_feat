@@ -1,10 +1,65 @@
 import { useEffect, useRef } from 'react';
 
-// A global stack of open modal IDs to ensure progressive, LIFO dismissal.
-const modalStack: string[] = [];
+interface ModalInstance {
+  id: string;
+  onClose: () => void;
+  stateIndex: number;
+}
 
-// A global counter to bypass popstate event handling when we trigger a programmatic back operation (manual close).
-let ignorePopStateCount = 0;
+// Helper to access HMR-safe global state on the window object
+function getGlobalState() {
+  if (typeof window === 'undefined') {
+    return {
+      activeModals: [] as ModalInstance[],
+      modalHistoryDepth: 0,
+      isHandlingPopState: false,
+    };
+  }
+
+  const win = window as any;
+  if (!win.__modalHistoryState) {
+    win.__modalHistoryState = {
+      activeModals: [] as ModalInstance[],
+      modalHistoryDepth: 0,
+      isHandlingPopState: false,
+    };
+  }
+  return win.__modalHistoryState as {
+    activeModals: ModalInstance[];
+    modalHistoryDepth: number;
+    isHandlingPopState: boolean;
+  };
+}
+
+// Set up popstate event listener on initial load
+if (typeof window !== 'undefined') {
+  const globalState = getGlobalState();
+
+  // Clear any stale state from previous sessions (e.g., page reload)
+  if (window.history.state?.isModal) {
+    window.history.replaceState(null, '');
+  }
+
+  window.addEventListener('popstate', (event) => {
+    const newStateIndex = event.state?.isModal ? event.state.index : 0;
+    
+    globalState.isHandlingPopState = true;
+    
+    if (newStateIndex < globalState.modalHistoryDepth) {
+      const diff = globalState.modalHistoryDepth - newStateIndex;
+      // Close the topmost modals in LIFO order
+      for (let i = 0; i < diff; i++) {
+        const modal = globalState.activeModals.pop();
+        if (modal) {
+          modal.onClose();
+        }
+      }
+    }
+    
+    globalState.modalHistoryDepth = newStateIndex;
+    globalState.isHandlingPopState = false;
+  });
+}
 
 /**
  * A hook that registers a history state when a modal/sidebar is open.
@@ -25,43 +80,38 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, id: string
   useEffect(() => {
     if (typeof window === 'undefined' || !isOpen) return;
 
-    const stateId = `modal-${id}-${Date.now()}`;
-    modalStack.push(stateId);
+    const globalState = getGlobalState();
+    
+    // Increment index and set state Index
+    globalState.modalHistoryDepth++;
+    const stateIndex = globalState.modalHistoryDepth;
 
-    // Push a state into browser history
-    window.history.pushState({ modalId: stateId }, '');
-
-    const handlePopState = () => {
-      // If we are currently ignoring a programmatic popstate, decrement and skip
-      if (ignorePopStateCount > 0) {
-        ignorePopStateCount--;
-        return;
-      }
-
-      // Back button was pressed, trigger the close callback ONLY if this is the topmost modal
-      if (modalStack[modalStack.length - 1] === stateId) {
-        onCloseRef.current();
-      }
+    const instance: ModalInstance = {
+      id,
+      onClose: () => onCloseRef.current(),
+      stateIndex,
     };
 
-    window.addEventListener('popstate', handlePopState);
+    globalState.activeModals.push(instance);
+
+    // Push new history state
+    window.history.pushState({ isModal: true, index: stateIndex }, '');
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
-
-      // Remove from stack
-      const index = modalStack.indexOf(stateId);
+      const globalState = getGlobalState();
+      
+      // Find and remove from global state
+      const index = globalState.activeModals.findIndex((m) => m.stateIndex === stateIndex);
       if (index !== -1) {
-        modalStack.splice(index, 1);
+        globalState.activeModals.splice(index, 1);
       }
 
-      // If the modal was closed manually (not via popstate),
-      // we remove the state we pushed to clean up history.
-      if (window.history.state?.modalId === stateId) {
-        ignorePopStateCount++;
+      // If we are unmounting because of a manual close (not via back button gesture),
+      // we need to pop this state from browser history.
+      if (!globalState.isHandlingPopState && stateIndex === globalState.modalHistoryDepth) {
+        globalState.modalHistoryDepth--;
         window.history.back();
       }
     };
   }, [isOpen, id]);
 }
-

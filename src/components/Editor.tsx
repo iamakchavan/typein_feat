@@ -23,6 +23,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAppleScroll } from '@/hooks/useAppleScroll';
+import { useModalHistory } from '@/hooks/useModalHistory';
 import { getCaretCoordinates } from '@/lib/caretCoordinates';
 
 const isMobileDevice = typeof window !== 'undefined' && (
@@ -60,6 +61,7 @@ export function Editor({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFontSheetOpen, setIsFontSheetOpen] = useState(false);
+  useModalHistory(isFontSheetOpen, () => setIsFontSheetOpen(false), 'editor-font');
 
   const getScrollContainer = useCallback(() => {
     return document.querySelector('textarea') as HTMLElement | null;
