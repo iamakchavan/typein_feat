@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
-  X, Trash2, Search, MoreVertical, Pin, 
+  X, Trash2, MoreVertical, Pin, 
   ChevronRight, Filter
 } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, SidebarImportPillIcon } from './Icons';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, SidebarImportPillIcon, SearchIcon } from './Icons';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ImportModal } from './ImportModal';
 import { ExportWarningDialog } from './ExportWarningDialog';
@@ -533,7 +533,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
               {/* Search */}
               <div style={{ padding: '12px 18px', borderBottom: '1px solid hsla(var(--border)/0.15)' }}>
                 <div className="search-wrapper">
-                  <Search className="search-icon" />
+                  <SearchIcon className="search-icon" />
                   <Input
                     type="text"
                     placeholder="Search entries..."

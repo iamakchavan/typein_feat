@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEntries } from '@/contexts/EntryContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-import { Search, Clock, Sun, Moon, Trash2, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
-import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, ColorPresetFillIcon, FontSelectorIcon } from './Icons';
+import { Clock, Sun, Moon, Trash2, MoreVertical, Pin, Filter, ChevronRight, X as ClearIcon } from 'lucide-react';
+import { JsonFileIcon, MarkdownFileIcon, EntryPageIcon, CopyIcon, ColorPresetFillIcon, FontSelectorIcon, SearchIcon } from './Icons';
 import { Dialog } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -1073,7 +1073,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
           <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
-            <Search className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
+            <SearchIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
             <input
               ref={searchInputRef}
               type="text"

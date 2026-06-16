@@ -34,7 +34,7 @@ import { BackupStatusDialog } from '@/components/BackupStatusDialog';
 import { SettingsModal } from '@/components/SettingsModal';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Search } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAppleScroll } from '@/hooks/useAppleScroll';
 
@@ -121,7 +121,7 @@ const SafePopoverTrigger = React.forwardRef<
 ));
 SafePopoverTrigger.displayName = 'SafePopoverTrigger';
 
-import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon } from './Icons';
+import { FullscreenIcon, ExitFullscreenIcon, SettingsIcon, FontSelectorIcon, SearchIcon } from './Icons';
 
 export function EditorBlockNote({ 
   openCommandPalette: externalOpenCommandPalette, 
@@ -985,7 +985,7 @@ export function EditorBlockNote({
             className="pointer-events-auto flex items-center justify-between gap-3 text-xs text-muted-foreground/70 liquid-glass-dock px-3.5 py-1 rounded-full shadow-lg overflow-hidden h-10 w-64 cursor-pointer hover:text-foreground/90 transition-all select-none outline-none focus:outline-none"
           >
             <div className="relative z-10 flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground/60" />
+              <SearchIcon className="h-4 w-4 text-muted-foreground/60" />
               <span className="text-[13px] font-medium tracking-tight">Search notes...</span>
             </div>
             <div className="relative z-10 flex items-center gap-0.5 bg-muted/40 px-1.5 py-0.5 rounded-md border border-border/20 text-[10px] font-sans font-medium">
