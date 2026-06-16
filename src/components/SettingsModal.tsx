@@ -274,7 +274,7 @@ export function SettingsModal({
                             width: '100%',
                             textAlign: 'left',
                             display: 'flex',
-                            alignItems: 'start',
+                            alignItems: 'center',
                             gap: isMobile ? 10 : 14,
                             padding: isMobile ? '12px 14px' : '14px 20px',
                             background: 'transparent',
@@ -296,11 +296,11 @@ export function SettingsModal({
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            marginTop: 2,
+
                           }}>
                             <FontSelectorIcon size={isMobile ? 15 : 18} />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: isMobile ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Font Family</div>
                             <div style={{ fontSize: isMobile ? 10.5 : 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected interface typeface</div>
                           </div>
@@ -480,7 +480,7 @@ export function SettingsModal({
                             marginLeft: isMobile ? -14 : -20,
                             textAlign: 'left',
                             display: 'flex',
-                            alignItems: 'start',
+                            alignItems: 'center',
                             gap: isMobile ? 10 : 14,
                             padding: isMobile ? '12px 14px' : '14px 20px',
                             background: 'transparent',
@@ -502,11 +502,11 @@ export function SettingsModal({
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            marginTop: 2,
+
                           }}>
                             <ColorPresetIcon size={isMobile ? 15 : 18} />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0, marginTop: 2 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: isMobile ? 12.5 : 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>Color Preset</div>
                             <div style={{ fontSize: isMobile ? 10.5 : 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.35 }}>Selected color theme preset</div>
                           </div>
@@ -586,7 +586,7 @@ export function SettingsModal({
                               width: '100%',
                               textAlign: 'left',
                               display: 'flex',
-                              alignItems: 'start',
+                              alignItems: 'center',
                               gap: isMobile ? 10 : 14,
                               padding: isMobile ? '10px 14px' : '12px 20px',
                               background: 'transparent',
@@ -609,11 +609,11 @@ export function SettingsModal({
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0,
-                              marginTop: 2,
+
                             }}>
                               <Icon size={isMobile ? 15 : 18} />
                             </div>
-                            <div style={{ flex: 1, marginTop: 2 }}>
+                            <div style={{ flex: 1 }}>
                               <div style={{ fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 1 }}>{label}</div>
                               <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground)/0.8)', lineHeight: 1.2 }}>{sub}</div>
                             </div>
