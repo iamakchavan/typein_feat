@@ -116,6 +116,7 @@ export function Sidebar({ isOpen, onClose, className, isCommandPaletteOpen = fal
     if (!isOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (event.key === 'Escape') {
         const hasActiveModal = 
           isDeleteModalOpen || 

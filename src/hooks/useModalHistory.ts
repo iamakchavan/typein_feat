@@ -13,6 +13,7 @@ function getGlobalState() {
       activeModals: [] as ModalInstance[],
       modalHistoryDepth: 0,
       isHandlingPopState: false,
+      ignorePopStateCount: 0,
     };
   }
 
@@ -22,12 +23,14 @@ function getGlobalState() {
       activeModals: [] as ModalInstance[],
       modalHistoryDepth: 0,
       isHandlingPopState: false,
+      ignorePopStateCount: 0,
     };
   }
   return win.__modalHistoryState as {
     activeModals: ModalInstance[];
     modalHistoryDepth: number;
     isHandlingPopState: boolean;
+    ignorePopStateCount: number;
   };
 }
 
@@ -40,8 +43,20 @@ if (typeof window !== 'undefined') {
     window.history.replaceState(null, '');
   }
 
+  // Initialize the base state if it doesn't exist
+  if (!window.history.state) {
+    window.history.replaceState({ isModal: false, index: 0 }, '');
+  }
+
   window.addEventListener('popstate', (event) => {
-    const newStateIndex = event.state?.isModal ? event.state.index : 0;
+    if (globalState.ignorePopStateCount > 0) {
+      globalState.ignorePopStateCount--;
+      return;
+    }
+
+    const newStateIndex = event.state && typeof event.state.index === 'number'
+      ? event.state.index
+      : Math.max(0, globalState.modalHistoryDepth - 1);
     
     globalState.isHandlingPopState = true;
     
@@ -104,13 +119,14 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, id: string
       const index = globalState.activeModals.findIndex((m) => m.stateIndex === stateIndex);
       if (index !== -1) {
         globalState.activeModals.splice(index, 1);
-      }
 
-      // If we are unmounting because of a manual close (not via back button gesture),
-      // we need to pop this state from browser history.
-      if (!globalState.isHandlingPopState && stateIndex === globalState.modalHistoryDepth) {
-        globalState.modalHistoryDepth--;
-        window.history.back();
+        // If we are unmounting because of a manual close (not via back button gesture),
+        // we need to pop this state from browser history.
+        if (!globalState.isHandlingPopState && stateIndex === globalState.modalHistoryDepth) {
+          globalState.ignorePopStateCount++;
+          globalState.modalHistoryDepth--;
+          window.history.back();
+        }
       }
     };
   }, [isOpen, id]);
