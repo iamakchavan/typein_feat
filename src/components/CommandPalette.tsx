@@ -1162,7 +1162,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <Popover open={showTimelineFilter} onOpenChange={setShowTimelineFilter}>
               <PopoverTrigger asChild>
                 <button className={cn(
-                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock shrink-0 whitespace-nowrap",
                   timelineFilter !== 'all'
                     ? "is-active"
                     : "text-foreground/90"
@@ -1238,7 +1238,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <Popover open={showDateRangeFilter} onOpenChange={setShowDateRangeFilter}>
               <PopoverTrigger asChild>
                 <button className={cn(
-                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock",
+                  "rounded-full text-[12px] font-medium px-3.5 py-1.5 flex items-center gap-1.5 transition-all outline-none liquid-glass-dock shrink-0 whitespace-nowrap",
                   timelineFilter === 'custom'
                     ? "is-active"
                     : "text-foreground/90"
@@ -1323,7 +1323,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   setTimelineFilter('all');
                   setDateRange(undefined);
                 }}
-                className="rounded-full text-[11px] font-medium px-2.5 py-1.5 flex items-center gap-1 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all outline-none"
+                className="rounded-full text-[11px] font-medium px-2.5 py-1.5 flex items-center gap-1 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all outline-none shrink-0 whitespace-nowrap"
               >
                 <ClearIcon className="h-3 w-3" />
                 <span>Reset</span>
