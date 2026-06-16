@@ -996,7 +996,16 @@ export function EditorBlockNote({
           </button>
         </div>
         
-        <div className="pointer-events-auto flex items-center justify-center h-11 w-11 p-0 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
+        <div className="pointer-events-auto flex items-center justify-center h-11 px-2.5 py-1 gap-1.5 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={openPalette}
+            className="flex md:hidden h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+          >
+            <SearchIcon className="h-4 w-4" />
+            <span className="sr-only">Search</span>
+          </Button>
           <Button
             variant="ghost"
             size="icon"

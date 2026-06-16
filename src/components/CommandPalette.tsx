@@ -305,6 +305,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Blur search input on mobile when any filter/popover opens to hide keyboard and free up viewport space
+  useEffect(() => {
+    if (isMobile && (showTimelineFilter || showDateRangeFilter || showSpecialThemes || showFonts || showKebabMenu)) {
+      searchInputRef.current?.blur();
+    }
+  }, [isMobile, showTimelineFilter, showDateRangeFilter, showSpecialThemes, showFonts, showKebabMenu]);
+
   // Reset state when opening/closing
   useEffect(() => {
     if (isOpen) {
@@ -1067,12 +1082,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 e.preventDefault();
               }
             }}
-            className="fixed left-[50%] top-[40%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 max-w-xl w-full mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
+            className="fixed left-0 md:left-[50%] top-0 md:top-[40%] z-50 translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%] p-0 w-full h-[100dvh] md:h-auto md:max-w-xl md:mx-4 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/90 border-0 shadow-2xl rounded-none md:rounded-2xl overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] duration-300 ease-out">
             <DialogPrimitive.Title className="sr-only">Quick Search</DialogPrimitive.Title>
             <DialogPrimitive.Description className="sr-only">Search and navigate through your entries, themes, fonts, and music tracks</DialogPrimitive.Description>
-        <div className="flex flex-col max-h-[70vh] min-w-0 overflow-hidden">
+        <div className="flex flex-col h-full max-h-[100dvh] md:max-h-[70vh] min-w-0 overflow-hidden">
           {/* Search Header */}
-          <div className="flex items-center gap-4 px-6 py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
+          <div className="flex items-center gap-4 px-6 pt-10 pb-5 md:py-5 bg-background/20 animate-in fade-in-0 slide-in-from-top-2 duration-400 ease-out">
             <SearchIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 animate-in fade-in-0 duration-500 ease-out" style={{ animationDelay: '100ms', animationFillMode: 'both' }} />
             <input
               ref={searchInputRef}
@@ -1083,9 +1098,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground/50 placeholder:font-normal animate-in fade-in-0 slide-in-from-left-2 duration-500 ease-out"
               style={{ animationDelay: '150ms', animationFillMode: 'both' }}
             />
-            <div className="text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-out" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+            <div className="hidden md:flex text-[11px] font-medium text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md animate-in fade-in-0 zoom-in-95 duration-500 ease-out" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
               ⌘K
             </div>
+            <button
+              onClick={onClose}
+              className="flex md:hidden text-[14px] font-medium text-primary/80 hover:text-primary active:scale-95 transition-all select-none"
+            >
+              Cancel
+            </button>
           </div>
 
           {/* Date Filters Bar */}
@@ -1124,7 +1145,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   />
                 </button>
               </PopoverTrigger>
-              <PopoverContent forceMount className="w-44 p-0 border-0 bg-transparent shadow-none" align="start">
+              <PopoverContent forceMount className="w-44 p-0 border-0 bg-transparent shadow-none" align={isMobile ? "center" : "start"}>
                 <AnimatePresence>
                   {showTimelineFilter && (
                     <motion.div
@@ -1214,7 +1235,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   />
                 </button>
               </PopoverTrigger>
-              <PopoverContent forceMount className="w-auto p-0 border-0 bg-transparent shadow-none" align="start">
+              <PopoverContent forceMount className="w-auto p-0 border-0 bg-transparent shadow-none" align={isMobile ? "center" : "start"}>
                 <AnimatePresence>
                   {showDateRangeFilter && (
                     <motion.div
@@ -1267,7 +1288,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           <div 
             ref={listRef}
             className={cn(
-              "flex-1 overflow-y-auto max-h-80 py-1 transition-all duration-300",
+              "flex-1 overflow-y-auto max-h-none md:max-h-80 py-1 transition-all duration-300",
               isScrolling ? "custom-scrollbar-visible" : "custom-scrollbar-hidden"
             )}
             onScroll={handleScroll}
@@ -1337,7 +1358,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                       <PopoverContent
                         forceMount
                         className="w-56 p-0 border-0 bg-transparent shadow-none"
-                        align="start"
+                        align={isMobile ? "center" : "start"}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                       >
                         <AnimatePresence>
@@ -1440,7 +1461,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                       <PopoverContent
                         forceMount
                         className="w-56 p-0 border-0 bg-transparent shadow-none"
-                        align="start"
+                        align={isMobile ? "center" : "start"}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                       >
                         <AnimatePresence>
