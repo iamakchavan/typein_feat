@@ -864,50 +864,17 @@ export function EditorBlockNote({
             <span className="sr-only">Open Sidebar</span>
           </Button>
           
-          <div className="border-l border-border/30 h-4 mx-0.5" />
+          {windowWidth >= 768 && <div className="border-l border-border/30 h-4 mx-0.5" />}
           
           {windowWidth < 768 ? (
             <Button
               variant="ghost"
-              onClick={() => setIsFontSheetOpen(true)}
-              className={cn(
-                "h-8 w-[140px] md:w-[155px] border-none bg-transparent hover:bg-primary/5 transition-all shadow-none font-medium rounded-full py-0 px-2 flex items-center justify-between",
-                {
-                  'font-general-sans': selectedFont === 'general-sans',
-                  'font-geist': selectedFont === 'geist',
-                  'font-space': selectedFont === 'space',
-                  'font-lora': selectedFont === 'lora',
-                  'font-instrument-italic italic': selectedFont === 'instrument-italic',
-                  'font-playfair': selectedFont === 'playfair',
-                }
-              )}
+              size="icon"
+              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+              onClick={openPalette}
             >
-              <div className="flex items-center truncate">
-                <FontSelectorIcon className="h-4 w-4 text-muted-foreground/60 flex-shrink-0 mr-1.5" />
-                <span className="truncate">
-                  {{
-                    'geist': 'Geist Sans',
-                    'lora': 'Lora',
-                    'general-sans': 'General',
-                    'space': 'Space',
-                    'instrument-italic': 'Instrument',
-                    'playfair': 'Playfair'
-                  }[selectedFont] || selectedFont}
-                </span>
-              </div>
-              <svg 
-                className="h-3.5 w-3.5 bg-muted-foreground/60 dark:bg-muted-foreground/60 flex-shrink-0 ml-1.5" 
-                aria-hidden="true" 
-                focusable="false" 
-                style={{
-                  maskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
-                  WebkitMaskImage: 'url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/duotone/sort.svg")',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskPosition: 'center center',
-                  WebkitMaskPosition: 'center center',
-                }}
-              />
+              <SearchIcon className="h-4 w-4" />
+              <span className="sr-only">Search</span>
             </Button>
           ) : (
             <Select value={selectedFont} onValueChange={setSelectedFont}>
@@ -997,15 +964,17 @@ export function EditorBlockNote({
         </div>
         
         <div className="pointer-events-auto flex items-center justify-center h-11 px-2.5 py-1 gap-1.5 md:h-auto md:w-auto md:px-1.5 md:py-1 md:gap-1 rounded-full liquid-glass-dock static shadow-lg">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={openPalette}
-            className="flex md:hidden h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
-          >
-            <SearchIcon className="h-4 w-4" />
-            <span className="sr-only">Search</span>
-          </Button>
+          {windowWidth < 768 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsFontSheetOpen(true)}
+              className="flex h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+            >
+              <FontSelectorIcon className="h-4 w-4" />
+              <span className="sr-only">Select Font</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
